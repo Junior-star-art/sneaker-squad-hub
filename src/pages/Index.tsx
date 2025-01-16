@@ -14,8 +14,8 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar onCartClick={() => setCartOpen(true)} />
       <Hero />
-      <ComfortSection />
       <ProductGrid />
+      <ComfortSection />
       <Newsletter />
       <Footer />
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
