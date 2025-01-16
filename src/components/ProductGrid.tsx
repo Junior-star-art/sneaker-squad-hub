@@ -5,6 +5,7 @@ import { Eye, Heart, Share2, Ruler } from "lucide-react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductFilters, { FilterOptions } from "./filters/ProductFilters";
+import { Button } from "@/components/ui/button";
 
 const products = [
   {
