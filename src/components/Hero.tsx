@@ -19,7 +19,7 @@ const Hero = () => {
         <div className="mt-10">
           <a
             href="#"
-            className="inline-block bg-white text-black px-8 py-3 text-base font-medium hover:bg-gray-100 transition duration-300"
+            className="inline-block bg-white text-black px-8 py-3 text-base font-medium rounded-full hover:bg-gray-100 transition duration-300"
           >
             Shop Now
           </a>
