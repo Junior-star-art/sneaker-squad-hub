@@ -1,11 +1,12 @@
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useState } from "react";
-import { Eye, Heart, Share2, Ruler } from "lucide-react";
+import { Eye, Heart, Share2, Ruler, SlidersHorizontal } from "lucide-react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductFilters, { FilterOptions } from "./filters/ProductFilters";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const products = [
   {
@@ -177,17 +178,35 @@ const ProductGrid = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold">Trending Now</h2>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm" className="lg:hidden">
+              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+            <div className="py-4">
+              <ProductFilters
+                initialFilters={filters}
+                onFilterChange={setFilters}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1">
-          <ProductFilters
-            initialFilters={filters}
-            onFilterChange={setFilters}
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="hidden lg:block lg:col-span-3">
+          <div className="sticky top-4">
+            <ProductFilters
+              initialFilters={filters}
+              onFilterChange={setFilters}
+            />
+          </div>
         </div>
         
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-9">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
               <div key={product.id} className="group animate-fade-up">
