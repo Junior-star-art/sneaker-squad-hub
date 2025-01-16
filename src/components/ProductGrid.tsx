@@ -4,14 +4,7 @@ import { useState } from "react";
 import { Eye, Heart, Share2, Ruler } from "lucide-react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
-import { Button } from "./ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import ProductFilters, { FilterOptions } from "./filters/ProductFilters";
 
 const products = [
   {
@@ -136,25 +129,26 @@ const ProductGrid = () => {
   const { recentlyViewed, addToRecentlyViewed } = useRecentlyViewed();
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
-  const [sortBy, setSortBy] = useState("featured");
   const [wishlist, setWishlist] = useState<number[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [filters, setFilters] = useState<FilterOptions>({
+    priceRange: [0, 300],
+    colors: [],
+    sizes: [],
+  });
 
-  const handleSort = (value: string) => {
-    setSortBy(value);
-    let sorted = [...products];
-    switch (value) {
-      case "price-asc":
-        sorted.sort((a, b) => parseFloat(a.price.slice(1)) - parseFloat(b.price.slice(1)));
-        break;
-      case "price-desc":
-        sorted.sort((a, b) => parseFloat(b.price.slice(1)) - parseFloat(a.price.slice(1)));
-        break;
-      default:
-        sorted = products;
-    }
-    setFilteredProducts(sorted);
-  };
+  const filteredProducts = products.filter((product) => {
+    const price = parseFloat(product.price.replace("$", ""));
+    const matchesPrice = price >= filters.priceRange[0] && price <= filters.priceRange[1];
+    
+    const matchesColor = filters.colors.length === 0 || 
+      product.colors.some(color => 
+        filters.colors.includes(color.name.toLowerCase().replace("/", "-"))
+      );
+    
+    const matchesSize = filters.sizes.length === 0;
+
+    return matchesPrice && matchesColor && matchesSize;
+  });
 
   const toggleWishlist = (productId: number) => {
     setWishlist(prev => 
@@ -184,70 +178,81 @@ const ProductGrid = () => {
         <h2 className="text-2xl font-bold">Trending Now</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {filteredProducts.map((product) => (
-          <div key={product.id} className="group animate-fade-up">
-            <div className="relative overflow-hidden">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-auto transform group-hover:scale-105 transition duration-300"
-                loading="lazy"
-              />
-              <div className="absolute top-4 right-4 flex flex-col gap-2">
-                <button
-                  onClick={() => toggleWishlist(product.id)}
-                  className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
-                >
-                  <Heart 
-                    className={wishlist.includes(product.id) ? "fill-red-500 text-red-500" : ""}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1">
+          <ProductFilters
+            initialFilters={filters}
+            onFilterChange={setFilters}
+          />
+        </div>
+        
+        <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="group animate-fade-up">
+                <div className="relative overflow-hidden">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-auto transform group-hover:scale-105 transition duration-300"
+                    loading="lazy"
                   />
-                </button>
-                <button
-                  onClick={() => handleShare(product)}
-                  className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
-                >
-                  <Share2 />
-                </button>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => addItem(product)}
-                    className="flex-1 bg-white text-black py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  >
-                    Add to Bag
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      addToRecentlyViewed(product);
-                    }}
-                    className="bg-white text-black p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    aria-label="Quick view"
-                  >
-                    <Eye className="w-5 h-5" />
-                  </button>
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
+                    <button
+                      onClick={() => toggleWishlist(product.id)}
+                      className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                    >
+                      <Heart 
+                        className={wishlist.includes(product.id) ? "fill-red-500 text-red-500" : ""}
+                      />
+                    </button>
+                    <button
+                      onClick={() => handleShare(product)}
+                      className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                    >
+                      <Share2 />
+                    </button>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => addItem(product)}
+                        className="flex-1 bg-white text-black py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      >
+                        Add to Bag
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          addToRecentlyViewed(product);
+                        }}
+                        className="bg-white text-black p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        aria-label="Quick view"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-medium">{product.name}</h3>
+                      <p className="text-nike-gray mt-1">{product.price}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSizeGuideOpen(true)}
+                    >
+                      <Ruler className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-medium">{product.name}</h3>
-                  <p className="text-nike-gray mt-1">{product.price}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSizeGuideOpen(true)}
-                >
-                  <Ruler className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       {recentlyViewed.length > 0 && (
