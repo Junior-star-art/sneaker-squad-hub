@@ -27,6 +27,7 @@ interface SupabaseProduct {
 }
 
 const fetchProducts = async () => {
+  console.log('Fetching products...');
   const { data, error } = await supabase
     .from('products')
     .select(`
@@ -39,6 +40,8 @@ const fetchProducts = async () => {
     console.error('Error fetching products:', error);
     throw error;
   }
+  
+  console.log('Products fetched:', data);
   return data as SupabaseProduct[];
 };
 
@@ -47,8 +50,8 @@ const ProductGrid = () => {
   const { recentlyViewed, addToRecentlyViewed } = useRecentlyViewed();
   const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
-  const [wishlist, setWishlist] = useState<string[]>([]); // Changed from number[] to string[]
-  const [zoomedImageId, setZoomedImageId] = useState<string | null>(null); // Changed from number to string
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [zoomedImageId, setZoomedImageId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -57,7 +60,19 @@ const ProductGrid = () => {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
+    onError: (error) => {
+      console.error('Query error:', error);
+      toast({
+        title: "Error loading products",
+        description: "There was a problem loading the products. Please try again later.",
+        variant: "destructive",
+      });
+    },
   });
+
+  useEffect(() => {
+    console.log('Current products state:', products);
+  }, [products]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -84,7 +99,7 @@ const ProductGrid = () => {
     window.location.reload();
   };
 
-  const toggleWishlist = (productId: string) => { // Changed from number to string
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
