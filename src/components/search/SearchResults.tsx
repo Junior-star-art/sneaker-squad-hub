@@ -19,8 +19,8 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [wishlist, setWishlist] = useState<string[]>([]); // Changed from number[] to string[]
-  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null); // Changed from number to string
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
   if (!searchQuery) {
     return null;
@@ -59,7 +59,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     });
   };
 
-  const toggleWishlist = (productId: string) => { // Changed from number to string
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
