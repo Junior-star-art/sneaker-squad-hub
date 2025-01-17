@@ -5,6 +5,7 @@ import ComfortSection from "@/components/ComfortSection";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
+import StyleCommunity from "@/components/community/StyleCommunity";
 import { useState } from "react";
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
       <Hero />
       <ComfortSection />
       <ProductGrid />
+      <StyleCommunity />
       <Newsletter />
       <Footer />
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
