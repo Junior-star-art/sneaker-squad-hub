@@ -52,7 +52,7 @@ const ProductGrid = () => {
     );
   };
 
-  const handleShare = async (product: typeof products[0]) => {
+  const handleShare = async (product: Product) => {
     if (navigator.share) {
       try {
         await navigator.share({
