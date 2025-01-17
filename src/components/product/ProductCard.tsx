@@ -65,7 +65,7 @@ export const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
                 addItem({
                   id: product.id,
                   name: product.name,
-                  price: formatPrice(product.price),
+                  price: product.price,
                   image: product.images?.[0] || '/placeholder.svg'
                 });
                 toast({
@@ -85,7 +85,7 @@ export const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
                 addToRecentlyViewed({
                   id: product.id,
                   name: product.name,
-                  price: formatPrice(product.price),
+                  price: product.price,
                   image: product.images?.[0] || '/placeholder.svg'
                 });
               }}

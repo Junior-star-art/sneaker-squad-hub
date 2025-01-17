@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 interface SearchProduct {
   id: string;
   name: string;
-  price: number;
+  price: number;  // Changed from string to number
   description: string;
   image: string;
   stock?: number;
@@ -53,7 +53,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addItem({
       id: product.id,
       name: product.name,
-      price: formatPrice(product.price),
+      price: product.price,
       image: product.image
     });
     toast({
@@ -67,7 +67,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addToRecentlyViewed({
       id: product.id,
       name: product.name,
-      price: formatPrice(product.price),
+      price: product.price,
       image: product.image
     });
   };
@@ -173,7 +173,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
           product={{
             id: selectedProduct.id,
             name: selectedProduct.name,
-            price: formatPrice(selectedProduct.price),
+            price: selectedProduct.price,
             description: selectedProduct.description,
             features: [],
             materials: '',
