@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useToast } from "@/components/ui/use-toast";
 import FilterSection from "./FilterSection";
 import SearchResults from "./SearchResults";
 
@@ -44,6 +45,7 @@ export function SearchOverlay({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<Filter>({
     priceRange: [0, 500],
@@ -55,6 +57,7 @@ export function SearchOverlay({
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchButtonHovered, setSearchButtonHovered] = useState(false);
 
   const categories = ["Shoes", "Clothing", "Equipment"];
   const genders = ["Men", "Women", "Kids"];
@@ -62,15 +65,25 @@ export function SearchOverlay({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "/" && !open) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         onOpenChange(true);
+        toast({
+          title: "Search Activated",
+          description: "Use '/' or 'Ctrl + K' to search",
+          duration: 2000,
+        });
+      } else if (e.key === "/" && !open) {
+        e.preventDefault();
+        onOpenChange(true);
+      } else if (e.key === "Escape" && open) {
+        onOpenChange(false);
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, toast]);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -80,12 +93,23 @@ export function SearchOverlay({
     }
 
     setIsSearching(true);
+    // Mock search results - replace with actual API call
     const mockResults = [
       {
         id: 1,
         name: "Nike Air Max 270",
         price: "$150",
         description: "Men's Running Shoes",
+        features: ["Responsive cushioning", "Breathable mesh upper"],
+        materials: "Mesh and synthetic materials",
+        care: "Wipe clean with a damp cloth",
+        shipping: "Free shipping on orders over $50",
+        stock: 10,
+        colors: [
+          { name: "Black", code: "#000000", image: "black-270.jpg" },
+          { name: "White", code: "#FFFFFF", image: "white-270.jpg" }
+        ],
+        angles: ["front", "back", "side"],
         image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png"
       },
       {
@@ -93,6 +117,16 @@ export function SearchOverlay({
         name: "Nike Air Force 1",
         price: "$100",
         description: "Men's Shoes",
+        features: ["Classic design", "Durable construction"],
+        materials: "Leather and synthetic materials",
+        care: "Clean with shoe cleaner",
+        shipping: "Free shipping on orders over $50",
+        stock: 15,
+        colors: [
+          { name: "White", code: "#FFFFFF", image: "white-af1.jpg" },
+          { name: "Black", code: "#000000", image: "black-af1.jpg" }
+        ],
+        angles: ["front", "back", "side"],
         image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e6da41fa-1be4-4ce5-b89c-22be4f1f02d4/air-force-1-07-shoes-WrLlWX.png"
       }
     ].filter(item => 
@@ -135,11 +169,18 @@ export function SearchOverlay({
       <DialogContent className="sm:max-w-2xl">
         <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+            <div className="relative flex-1 group">
+              <Search className={cn(
+                "absolute left-3 top-2.5 h-5 w-5 transition-colors duration-200",
+                searchQuery ? "text-primary" : "text-muted-foreground"
+              )} />
               <Input
                 placeholder="Search products..."
-                className="pl-10 pr-10"
+                className={cn(
+                  "pl-10 pr-10 transition-all duration-200",
+                  "focus:ring-2 focus:ring-primary focus:border-transparent",
+                  searchQuery && "border-primary"
+                )}
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
               />
@@ -147,7 +188,7 @@ export function SearchOverlay({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-2 top-2"
+                  className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => {
                     setSearchQuery("");
                     setSearchResults([]);
@@ -159,8 +200,20 @@ export function SearchOverlay({
             </div>
             <Sheet open={showFilters} onOpenChange={setShowFilters}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <SlidersHorizontal className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  className={cn(
+                    "transition-all duration-200",
+                    showFilters && "bg-primary text-primary-foreground"
+                  )}
+                  onMouseEnter={() => setSearchButtonHovered(true)}
+                  onMouseLeave={() => setSearchButtonHovered(false)}
+                >
+                  <SlidersHorizontal className={cn(
+                    "h-4 w-4 transition-transform duration-200",
+                    searchButtonHovered && "scale-110"
+                  )} />
                 </Button>
               </SheetTrigger>
               <SheetContent>
@@ -282,9 +335,12 @@ export function SearchOverlay({
             />
           )}
 
-          <div className="text-xs text-muted-foreground">
-            Press <kbd className="rounded-md border px-2 py-0.5">ESC</kbd> to close
-            or <kbd className="rounded-md border px-2 py-0.5">/</kbd> to open search
+          <div className="text-xs text-muted-foreground flex items-center gap-2">
+            <span>Press</span>
+            <kbd className="rounded-md border px-2 py-0.5 bg-muted">ESC</kbd>
+            <span>to close or</span>
+            <kbd className="rounded-md border px-2 py-0.5 bg-muted">⌘K</kbd>
+            <span>to open search</span>
           </div>
         </div>
       </DialogContent>
