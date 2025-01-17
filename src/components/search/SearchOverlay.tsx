@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import FilterSection from "./FilterSection";
 
 type Filter = {
   category?: string;
