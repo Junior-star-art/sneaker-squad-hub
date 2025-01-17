@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -134,6 +134,11 @@ export function SearchOverlay({
         "sm:max-w-2xl transition-all duration-300",
         isMobile && "w-full h-[100dvh] p-4"
       )}>
+        <DialogTitle className="sr-only">Search Products</DialogTitle>
+        <DialogDescription className="sr-only">
+          Search for products, brands, and categories
+        </DialogDescription>
+        
         <div className="space-y-6">
           <div className="flex items-center gap-2">
             <div className="relative flex-1 group">

@@ -1,22 +1,11 @@
 import { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { Button } from '@/components/ui/button';
-import { Camera, FlipCamera } from 'lucide-react';
+import { Camera, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CameraSearchProps {
   onCapture: (image: string) => void;
-}
-
-// Define custom types for MediaStream API
-interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
-  torch?: boolean;
-}
-
-interface ExtendedMediaTrackConstraints extends MediaTrackConstraints {
-  advanced?: Array<{
-    torch?: boolean;
-  }>;
 }
 
 const CameraSearch = ({ onCapture }: CameraSearchProps) => {
@@ -41,8 +30,9 @@ const CameraSearch = ({ onCapture }: CameraSearchProps) => {
 
   const checkFlashAvailability = useCallback(async (stream: MediaStream) => {
     const track = stream.getVideoTracks()[0];
-    const capabilities = track.getCapabilities() as ExtendedMediaTrackCapabilities;
-    setHasFlash(!!capabilities.torch);
+    const capabilities = track.getCapabilities();
+    // Check if torch is available without type assertion
+    setHasFlash('torch' in capabilities);
   }, []);
 
   const toggleFlash = useCallback(async () => {
@@ -52,12 +42,12 @@ const CameraSearch = ({ onCapture }: CameraSearchProps) => {
     if (!stream) return;
 
     const track = stream.getVideoTracks()[0];
-    const constraints: ExtendedMediaTrackConstraints = {
-      advanced: [{ torch: !isFlashOn }]
-    };
-
+    
     try {
-      await track.applyConstraints(constraints);
+      // Use a simpler approach to toggle flash
+      await track.applyConstraints({
+        advanced: [{ torch: !isFlashOn }] as MediaTrackConstraints['advanced']
+      });
       setIsFlashOn(!isFlashOn);
       navigator.vibrate(50); // Haptic feedback
     } catch (err) {
@@ -86,7 +76,7 @@ const CameraSearch = ({ onCapture }: CameraSearchProps) => {
             onClick={handleCameraSwitch}
             className="rounded-full"
           >
-            <FlipCamera className="h-4 w-4" />
+            <RotateCw className="h-4 w-4" />
           </Button>
           <Button
             variant="secondary"
