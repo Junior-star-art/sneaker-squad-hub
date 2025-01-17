@@ -6,8 +6,6 @@ import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import { Button } from "@/components/ui/button";
 import ProductSkeleton from "./ProductSkeleton";
-import Breadcrumb from "./Breadcrumb";
-import ProductFilters from "./ProductFilters";
 import { useToast } from "@/components/ui/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -228,26 +226,125 @@ const ProductGrid = () => {
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Breadcrumb />
-        
-        <div className="lg:grid lg:grid-cols-4 lg:gap-8">
-          <div className="hidden lg:block">
-            <ProductFilters />
-          </div>
+        <div>
+          <h2 className="text-2xl font-bold mb-8">Trending Now</h2>
           
-          <div className="lg:col-span-3">
-            <h2 className="text-2xl font-bold mb-8">Trending Now</h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, index) => (
-                  <ProductSkeleton key={index} />
-                ))
-              ) : (
-                products.slice(0, page * 6).map((product) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, index) => (
+                <ProductSkeleton key={index} />
+              ))
+            ) : (
+              products.slice(0, page * 6).map((product) => (
+                <div 
+                  key={product.id} 
+                  className="group animate-fade-up"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
+                >
+                  <div className="relative overflow-hidden rounded-lg bg-gray-100">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className={`w-full h-auto aspect-square object-cover transform transition-all duration-300 ${
+                        zoomedImageId === product.id ? 'scale-150' : 'group-hover:scale-105'
+                      }`}
+                      onMouseEnter={() => setZoomedImageId(product.id)}
+                      onMouseLeave={() => setZoomedImageId(null)}
+                      onMouseMove={(e) => handleMouseMove(e, product.id)}
+                      loading="lazy"
+                    />
+                    <div className="absolute top-4 right-4 flex flex-col gap-2">
+                      <button
+                        onClick={() => toggleWishlist(product.id)}
+                        className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                        aria-label={`Add ${product.name} to wishlist`}
+                      >
+                        <Heart 
+                          className={`w-5 h-5 ${wishlist.includes(product.id) ? "fill-red-500 text-red-500" : ""}`}
+                        />
+                      </button>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => handleSocialShare(product, 'facebook')}
+                          className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                          aria-label="Share on Facebook"
+                        >
+                          <Facebook className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleSocialShare(product, 'twitter')}
+                          className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                          aria-label="Share on Twitter"
+                        >
+                          <Twitter className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleSocialShare(product, 'instagram')}
+                          className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                          aria-label="Share on Instagram"
+                        >
+                          <Instagram className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => addItem(product)}
+                          className="flex-1 bg-white text-black hover:bg-white/90"
+                          variant="secondary"
+                        >
+                          Add to Bag
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            addToRecentlyViewed(product);
+                          }}
+                          className="bg-white text-black hover:bg-white/90 px-3"
+                          variant="secondary"
+                          size="icon"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-1">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-left">{product.name}</h3>
+                        <p className="text-nike-gray mt-1 text-left">{product.price}</p>
+                        <p className="text-sm text-gray-500">{product.stock} items in stock</p>
+                        <p className="text-sm text-green-600">{Math.floor(Math.random() * 100)} sold this month</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSizeGuideOpen(true)}
+                        className="mt-1"
+                      >
+                        <Ruler className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div ref={loadMoreRef} className="h-10 mt-8" />
+
+          {recentlyViewed.length > 0 && (
+            <div className="mt-16 animate-fade-up">
+              <h2 className="text-2xl font-bold mb-8">Recently Viewed</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {recentlyViewed.map((product) => (
                   <div 
                     key={product.id} 
-                    className="group animate-fade-up"
+                    className="group"
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
@@ -256,148 +353,41 @@ const ProductGrid = () => {
                       <img
                         src={product.image}
                         alt={product.name}
-                        className={`w-full h-auto aspect-square object-cover transform transition-all duration-300 ${
-                          zoomedImageId === product.id ? 'scale-150' : 'group-hover:scale-105'
-                        }`}
-                        onMouseEnter={() => setZoomedImageId(product.id)}
-                        onMouseLeave={() => setZoomedImageId(null)}
-                        onMouseMove={(e) => handleMouseMove(e, product.id)}
+                        className="w-full h-auto aspect-square object-cover transform group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
-                      <div className="absolute top-4 right-4 flex flex-col gap-2">
-                        <button
-                          onClick={() => toggleWishlist(product.id)}
-                          className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
-                          aria-label={`Add ${product.name} to wishlist`}
-                        >
-                          <Heart 
-                            className={`w-5 h-5 ${wishlist.includes(product.id) ? "fill-red-500 text-red-500" : ""}`}
-                          />
-                        </button>
-                        <div className="flex flex-col gap-2">
-                          <button
-                            onClick={() => handleSocialShare(product, 'facebook')}
-                            className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
-                            aria-label="Share on Facebook"
-                          >
-                            <Facebook className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleSocialShare(product, 'twitter')}
-                            className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
-                            aria-label="Share on Twitter"
-                          >
-                            <Twitter className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleSocialShare(product, 'instagram')}
-                            className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
-                            aria-label="Share on Instagram"
-                          >
-                            <Instagram className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
                       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => addItem(product)}
-                            className="flex-1 bg-white text-black hover:bg-white/90"
-                            variant="secondary"
-                          >
-                            Add to Bag
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setSelectedProduct(product);
-                              addToRecentlyViewed(product);
-                            }}
-                            className="bg-white text-black hover:bg-white/90 px-3"
-                            variant="secondary"
-                            size="icon"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 space-y-1">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-medium text-left">{product.name}</h3>
-                          <p className="text-nike-gray mt-1 text-left">{product.price}</p>
-                          <p className="text-sm text-gray-500">{product.stock} items in stock</p>
-                          <p className="text-sm text-green-600">{Math.floor(Math.random() * 100)} sold this month</p>
-                        </div>
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSizeGuideOpen(true)}
-                          className="mt-1"
+                          onClick={() => addItem(product)}
+                          className="w-full bg-white text-black hover:bg-white/90"
+                          variant="secondary"
                         >
-                          <Ruler className="w-4 h-4" />
+                          Add to Bag
                         </Button>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div ref={loadMoreRef} className="h-10 mt-8" />
-
-            {recentlyViewed.length > 0 && (
-              <div className="mt-16 animate-fade-up">
-                <h2 className="text-2xl font-bold mb-8">Recently Viewed</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {recentlyViewed.map((product) => (
-                    <div 
-                      key={product.id} 
-                      className="group"
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
-                    >
-                      <div className="relative overflow-hidden rounded-lg bg-gray-100">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-auto aspect-square object-cover transform group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <Button
-                            onClick={() => addItem(product)}
-                            className="w-full bg-white text-black hover:bg-white/90"
-                            variant="secondary"
-                          >
-                            Add to Bag
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <h3 className="text-lg font-medium text-left">{product.name}</h3>
-                        <p className="text-nike-gray mt-1 text-left">{product.price}</p>
-                      </div>
+                    <div className="mt-4">
+                      <h3 className="text-lg font-medium text-left">{product.name}</h3>
+                      <p className="text-nike-gray mt-1 text-left">{product.price}</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {selectedProduct && (
-              <ProductQuickView
-                product={selectedProduct}
-                open={Boolean(selectedProduct)}
-                onOpenChange={(open) => !open && setSelectedProduct(null)}
-              />
-            )}
-            
-            <SizeGuide 
-              open={sizeGuideOpen}
-              onOpenChange={setSizeGuideOpen}
+          {selectedProduct && (
+            <ProductQuickView
+              product={selectedProduct}
+              open={Boolean(selectedProduct)}
+              onOpenChange={(open) => !open && setSelectedProduct(null)}
             />
-          </div>
+          )}
+          
+          <SizeGuide 
+            open={sizeGuideOpen}
+            onOpenChange={setSizeGuideOpen}
+          />
         </div>
       </div>
     </ErrorBoundary>
