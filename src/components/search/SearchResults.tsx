@@ -4,23 +4,36 @@ import { Button } from "@/components/ui/button";
 import { Eye, ShoppingBag } from "lucide-react";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 
-type SearchResult = {
+type Color = {
+  name: string;
+  code: string;
+  image: string;
+};
+
+type Product = {
   id: number;
   name: string;
   price: string;
   description: string;
+  features: string[];
+  materials: string;
+  care: string;
+  shipping: string;
+  stock: number;
+  colors: Color[];
+  angles: string[];
   image: string;
 };
 
 type SearchResultsProps = {
-  results: SearchResult[];
+  results: Product[];
   searchQuery: string;
 };
 
 const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const { addItem } = useCart();
   const { addToRecentlyViewed } = useRecentlyViewed();
-  const [selectedProduct, setSelectedProduct] = useState<SearchResult | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   if (!searchQuery) {
     return null;
