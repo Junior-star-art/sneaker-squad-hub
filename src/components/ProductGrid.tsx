@@ -179,13 +179,13 @@ const ProductGrid = () => {
                 products?.slice(0, page * 8).map((product) => (
                   <div 
                     key={product.id} 
-                    className={`group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl`}
+                    className="group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl"
                     role="gridcell"
                     tabIndex={0}
                     aria-label={`${product.name} - ${formatPrice(product.price)}`}
                   >
                     <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
-                      <div className={`aspect-square overflow-hidden`}>
+                      <div className="aspect-square overflow-hidden">
                         <img
                           src={product.images?.[0] || '/placeholder.svg'}
                           alt={product.name}
@@ -203,41 +203,13 @@ const ProductGrid = () => {
                           </div>
                         )}
                       </div>
-                      <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleWishlist(product.id);
-                          }}
-                          className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:scale-110 transition-transform"
-                          aria-label={`Add ${product.name} to wishlist`}
-                        >
-                          <Heart 
-                            className={`w-5 h-5 transition-colors ${wishlist.includes(product.id) ? "fill-red-500 text-red-500" : ""}`}
-                          />
-                        </button>
-                        <div className="flex flex-col gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShare(product);
-                            }}
-                            className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            aria-label="Share product"
-                          >
-                            <Share2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                      <div 
-                        className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
-                      >
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                         <div className="flex gap-2">
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
                               addItem({
-                                id: parseInt(product.id),
+                                id: Number(product.id),
                                 name: product.name,
                                 price: formatPrice(product.price),
                                 image: product.images?.[0] || '/placeholder.svg'
@@ -287,17 +259,6 @@ const ProductGrid = () => {
                             )}
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSizeGuideOpen(true);
-                          }}
-                          className="mt-1 hover:bg-gray-100"
-                        >
-                          <Ruler className="w-4 h-4" />
-                        </Button>
                       </div>
                     </div>
                   </div>
@@ -307,61 +268,10 @@ const ProductGrid = () => {
 
             <div ref={loadMoreRef} className="h-10 mt-8" />
 
-            {recentlyViewed.length > 0 && (
-              <div className="mt-16 animate-fade-up">
-                <h2 className="text-3xl font-bold mb-6 text-left">Recently Viewed</h2>
-                <div 
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-                  role="grid"
-                  aria-label="Recently viewed products"
-                >
-                  {recentlyViewed.map((product) => (
-                    <div 
-                      key={product.id} 
-                      className="group hover:shadow-lg rounded-xl transition-all duration-300"
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="relative overflow-hidden rounded-xl bg-gray-100">
-                        <div className="aspect-square overflow-hidden">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addItem(product);
-                              toast({
-                                title: "Added to bag",
-                                description: `${product.name} has been added to your shopping bag.`,
-                              });
-                            }}
-                            className="w-full bg-white text-black hover:bg-white/90"
-                            variant="secondary"
-                          >
-                            Add to Bag
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="mt-4 p-2">
-                        <h3 className="text-lg font-medium text-left">{product.name}</h3>
-                        <p className="text-nike-gray mt-1 text-left">{formatPrice(product.price)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {selectedProduct && (
               <ProductQuickView
                 product={{
-                  id: parseInt(selectedProduct.id),
+                  id: Number(selectedProduct.id),
                   name: selectedProduct.name,
                   price: formatPrice(selectedProduct.price),
                   description: selectedProduct.description || '',
