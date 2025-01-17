@@ -1,6 +1,6 @@
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Eye, Heart, Share2, Ruler } from "lucide-react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
@@ -135,6 +135,30 @@ const ProductGrid = () => {
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [isLoading] = useState(false);
   const [zoomedImageId, setZoomedImageId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
 
   const toggleWishlist = (productId: number) => {
     setWishlist(prev => 
@@ -155,6 +179,13 @@ const ProductGrid = () => {
       } catch (error) {
         console.log('Error sharing:', error);
       }
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      action();
     }
   };
 
@@ -186,8 +217,14 @@ const ProductGrid = () => {
                 <ProductSkeleton key={index} />
               ))
             ) : (
-              products.map((product) => (
-                <div key={product.id} className="group animate-fade-up">
+              products.slice(0, page * 6).map((product) => (
+                <div 
+                  key={product.id} 
+                  className="group animate-fade-up"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
+                >
                   <div className="relative overflow-hidden rounded-lg bg-gray-100">
                     <img
                       src={product.image}
@@ -204,6 +241,7 @@ const ProductGrid = () => {
                       <button
                         onClick={() => toggleWishlist(product.id)}
                         className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                        aria-label={`Add ${product.name} to wishlist`}
                       >
                         <Heart 
                           className={`w-5 h-5 ${wishlist.includes(product.id) ? "fill-red-500 text-red-500" : ""}`}
@@ -212,6 +250,7 @@ const ProductGrid = () => {
                       <button
                         onClick={() => handleShare(product)}
                         className="bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+                        aria-label={`Share ${product.name}`}
                       >
                         <Share2 className="w-5 h-5" />
                       </button>
@@ -260,12 +299,20 @@ const ProductGrid = () => {
             )}
           </div>
 
+          <div ref={loadMoreRef} className="h-10 mt-8" />
+
           {recentlyViewed.length > 0 && (
-            <div className="mt-16">
+            <div className="mt-16 animate-fade-up">
               <h2 className="text-2xl font-bold mb-8">Recently Viewed</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {recentlyViewed.map((product) => (
-                  <div key={product.id} className="group animate-fade-up">
+                  <div 
+                    key={product.id} 
+                    className="group"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
+                  >
                     <div className="relative overflow-hidden rounded-lg bg-gray-100">
                       <img
                         src={product.image}
