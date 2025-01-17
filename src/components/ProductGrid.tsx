@@ -271,7 +271,7 @@ const ProductGrid = () => {
             {selectedProduct && (
               <ProductQuickView
                 product={{
-                  id: Number(selectedProduct.id),
+                  id: parseInt(selectedProduct.id), // Convert string ID to number
                   name: selectedProduct.name,
                   price: formatPrice(selectedProduct.price),
                   description: selectedProduct.description || '',
