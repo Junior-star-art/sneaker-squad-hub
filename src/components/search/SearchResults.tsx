@@ -9,13 +9,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
 interface Product {
-  id: string;  // Changed from number to string
+  id: string;
   name: string;
   price: string;
   description: string;
+  features: string[];
+  materials: string;
+  care: string;
+  shipping: string;
+  stock: number;
+  colors: Array<{
+    name: string;
+    code: string;
+    image: string;
+  }>;
+  angles: string[];
   image: string;
-  stock?: number;
-  rating?: number;
 }
 
 type SearchResultsProps = {
@@ -28,8 +37,8 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [wishlist, setWishlist] = useState<string[]>([]); // Changed from number[] to string[]
-  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null); // Changed from number to string
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
   if (!searchQuery) {
     return null;
@@ -68,7 +77,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     });
   };
 
-  const toggleWishlist = (productId: string) => { // Changed from number to string
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
@@ -104,10 +113,10 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
                   }`}
                   loading="lazy"
                 />
-                {product.rating && (
+                {product.stock > 0 && (
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-sm font-medium">{product.rating}</span>
+                    <span className="text-sm font-medium">{product.stock} left</span>
                   </div>
                 )}
                 <div className="absolute top-4 right-4">
