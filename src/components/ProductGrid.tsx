@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import ProductSkeleton from "./ProductSkeleton";
 import { useToast } from "@/components/ui/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
-import { products } from "@/data/products";
+import { products, Product } from "@/data/products";
 
 const ProductGrid = () => {
   const { addItem } = useCart();
   const { recentlyViewed, addToRecentlyViewed } = useRecentlyViewed();
-  const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [isLoading] = useState(false);
