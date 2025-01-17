@@ -18,6 +18,11 @@ import FilterSection from "./FilterSection";
 import SearchResults from "./SearchResults";
 import VisualSearch from "./VisualSearch";
 import { useIsMobile } from "@/hooks/use-mobile";
+import VoiceSearch from "./VoiceSearch";
+import RecentSearches from "./RecentSearches";
+import ImageSearchUpload from "./ImageSearchUpload";
+import ColorSearch from "./ColorSearch";
+import CameraSearch from "./CameraSearch";
 
 type Filter = {
   category?: string;
@@ -49,6 +54,7 @@ export function SearchOverlay({
 }) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [activeFilters, setActiveFilters] = useState<Filter>({
     priceRange: [0, 500],
     colors: [],
@@ -62,37 +68,24 @@ export function SearchOverlay({
   const [searchButtonHovered, setSearchButtonHovered] = useState(false);
   const isMobile = useIsMobile();
 
-  const categories = ["Shoes", "Clothing", "Equipment"];
-  const genders = ["Men", "Women", "Kids"];
-  const sports = ["Running", "Basketball", "Training"];
-
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        onOpenChange(true);
-        toast({
-          title: "Search Activated",
-          description: "Use '/' or 'Ctrl + K' to search",
-          duration: 2000,
-        });
-      } else if (e.key === "/" && !open) {
-        e.preventDefault();
-        onOpenChange(true);
-      } else if (e.key === "Escape" && open) {
-        onOpenChange(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, onOpenChange, toast]);
+    const savedSearches = localStorage.getItem('recentSearches');
+    if (savedSearches) {
+      setRecentSearches(JSON.parse(savedSearches));
+    }
+  }, []);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.length < 2) {
       setSearchResults([]);
       return;
+    }
+
+    if (query.length > 2 && !recentSearches.includes(query)) {
+      const newSearches = [query, ...recentSearches].slice(0, 5);
+      setRecentSearches(newSearches);
+      localStorage.setItem('recentSearches', JSON.stringify(newSearches));
     }
 
     setIsSearching(true);
@@ -103,16 +96,6 @@ export function SearchOverlay({
         name: "Nike Air Max 270",
         price: "$150",
         description: "Men's Running Shoes",
-        features: ["Responsive cushioning", "Breathable mesh upper"],
-        materials: "Mesh and synthetic materials",
-        care: "Wipe clean with a damp cloth",
-        shipping: "Free shipping on orders over $50",
-        stock: 10,
-        colors: [
-          { name: "Black", code: "#000000", image: "black-270.jpg" },
-          { name: "White", code: "#FFFFFF", image: "white-270.jpg" }
-        ],
-        angles: ["front", "back", "side"],
         image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png"
       },
       {
@@ -120,16 +103,6 @@ export function SearchOverlay({
         name: "Nike Air Force 1",
         price: "$100",
         description: "Men's Shoes",
-        features: ["Classic design", "Durable construction"],
-        materials: "Leather and synthetic materials",
-        care: "Clean with shoe cleaner",
-        shipping: "Free shipping on orders over $50",
-        stock: 15,
-        colors: [
-          { name: "White", code: "#FFFFFF", image: "white-af1.jpg" },
-          { name: "Black", code: "#000000", image: "black-af1.jpg" }
-        ],
-        angles: ["front", "back", "side"],
         image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e6da41fa-1be4-4ce5-b89c-22be4f1f02d4/air-force-1-07-shoes-WrLlWX.png"
       }
     ].filter(item => 
@@ -142,79 +115,26 @@ export function SearchOverlay({
     setIsSearching(false);
   };
 
-  const handleFilterClick = (type: keyof Filter, value: string | boolean) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      [type]: Array.isArray(prev[type])
-        ? (prev[type] as string[]).includes(value as string)
-          ? (prev[type] as string[]).filter(v => v !== value)
-          : [...(prev[type] as string[]), value]
-        : value
-    }));
+  const handleVoiceSearch = (text: string) => {
+    setSearchQuery(text);
+    handleSearch(text);
   };
 
-  const handlePriceRangeChange = (value: number[]) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      priceRange: value as [number, number]
-    }));
+  const handleRecentSearchSelect = (search: string) => {
+    setSearchQuery(search);
+    handleSearch(search);
   };
 
-  const handleSortChange = (value: Filter['sortBy']) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      sortBy: value
-    }));
-  };
-
-  const handleVisualSearch = async (searchData: { type: string; data: string }) => {
-    setIsSearching(true);
-    try {
-      // Mock visual search results for now
-      // In a real implementation, this would call an API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const mockResults = [
-        {
-          id: 1,
-          name: "Similar Nike Air Max 270",
-          price: "$150",
-          description: "Found by visual search",
-          features: ["Visual match", "Similar style"],
-          materials: "Mesh and synthetic materials",
-          care: "Wipe clean with a damp cloth",
-          shipping: "Free shipping on orders over $50",
-          stock: 10,
-          colors: [
-            { name: "Black", code: "#000000", image: "black-270.jpg" },
-            { name: "White", code: "#FFFFFF", image: "white-270.jpg" }
-          ],
-          angles: ["front", "back", "side"],
-          image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png"
-        }
-      ];
-
-      setSearchResults(mockResults);
-      toast({
-        title: "Visual search complete",
-        description: `Found ${mockResults.length} matching items`,
-      });
-    } catch (error) {
-      console.error("Visual search error:", error);
-      toast({
-        title: "Search failed",
-        description: "Unable to process visual search",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSearching(false);
-    }
+  const handleRecentSearchClear = (search: string) => {
+    const newSearches = recentSearches.filter(s => s !== search);
+    setRecentSearches(newSearches);
+    localStorage.setItem('recentSearches', JSON.stringify(newSearches));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "sm:max-w-2xl",
+        "sm:max-w-2xl transition-all duration-300",
         isMobile && "w-full h-[100dvh] p-4"
       )}>
         <div className="space-y-6">
@@ -243,142 +163,40 @@ export function SearchOverlay({
                   onClick={() => {
                     setSearchQuery("");
                     setSearchResults([]);
+                    navigator.vibrate(50); // Haptic feedback
                   }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
-            <Sheet open={showFilters} onOpenChange={setShowFilters}>
-              <SheetTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size={isMobile ? "lg" : "icon"}
-                  className={cn(
-                    "transition-all duration-200",
-                    showFilters && "bg-primary text-primary-foreground",
-                    isMobile && "h-12"
-                  )}
-                  onMouseEnter={() => setSearchButtonHovered(true)}
-                  onMouseLeave={() => setSearchButtonHovered(false)}
-                >
-                  <SlidersHorizontal className={cn(
-                    "h-4 w-4 transition-transform duration-200",
-                    searchButtonHovered && "scale-110"
-                  )} />
-                  {isMobile && <span className="ml-2">Filters</span>}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side={isMobile ? "bottom" : "right"} className={cn(
-                isMobile && "h-[80vh] rounded-t-xl"
-              )}>
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6 space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Price Range</h3>
-                    <Slider
-                      defaultValue={activeFilters.priceRange}
-                      max={500}
-                      step={10}
-                      onValueChange={handlePriceRangeChange}
-                    />
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>${activeFilters.priceRange?.[0]}</span>
-                      <span>${activeFilters.priceRange?.[1]}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Colors</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {COLORS.map((color) => (
-                        <div
-                          key={color.name}
-                          className={cn(
-                            "w-8 h-8 rounded-full cursor-pointer border-2",
-                            activeFilters.colors?.includes(color.name)
-                              ? "border-primary"
-                              : "border-transparent"
-                          )}
-                          style={{ backgroundColor: color.hex }}
-                          onClick={() => handleFilterClick('colors', color.name)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Sizes</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {SIZES.map((size) => (
-                        <Badge
-                          key={size}
-                          variant={activeFilters.sizes?.includes(size) ? "default" : "outline"}
-                          className="cursor-pointer"
-                          onClick={() => handleFilterClick('sizes', size)}
-                        >
-                          {size}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Sort By</h3>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge
-                        variant={activeFilters.sortBy === 'price-asc' ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => handleSortChange('price-asc')}
-                      >
-                        Price: Low to High
-                      </Badge>
-                      <Badge
-                        variant={activeFilters.sortBy === 'price-desc' ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => handleSortChange('price-desc')}
-                      >
-                        Price: High to Low
-                      </Badge>
-                      <Badge
-                        variant={activeFilters.sortBy === 'newest' ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => handleSortChange('newest')}
-                      >
-                        Newest
-                      </Badge>
-                      <Badge
-                        variant={activeFilters.sortBy === 'popular' ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => handleSortChange('popular')}
-                      >
-                        Popular
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={activeFilters.isNewArrival ? "default" : "outline"}
-                      onClick={() => handleFilterClick('isNewArrival', !activeFilters.isNewArrival)}
-                    >
-                      New Arrivals Only
-                    </Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+            <VoiceSearch onResult={handleVoiceSearch} />
           </div>
 
-          <VisualSearch onSearch={handleVisualSearch} />
+          {!searchQuery && recentSearches.length > 0 && (
+            <RecentSearches
+              searches={recentSearches}
+              onSelect={handleRecentSearchSelect}
+              onClear={handleRecentSearchClear}
+            />
+          )}
 
-          <div className="space-y-4">
-            <FilterSection title="Categories" items={categories} type="category" />
-            <FilterSection title="Gender" items={genders} type="gender" />
-            <FilterSection title="Sport" items={sports} type="sport" />
-          </div>
+          <Tabs defaultValue="image" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="image">Image Search</TabsTrigger>
+              <TabsTrigger value="color">Color Search</TabsTrigger>
+              <TabsTrigger value="camera">Camera Search</TabsTrigger>
+            </TabsList>
+            <TabsContent value="image">
+              <ImageSearchUpload onImageSelect={(image) => handleVisualSearch({ type: 'image', data: image })} />
+            </TabsContent>
+            <TabsContent value="color">
+              <ColorSearch onColorSelect={(colors) => handleVisualSearch({ type: 'color', data: colors.join(',') })} />
+            </TabsContent>
+            <TabsContent value="camera">
+              <CameraSearch onCapture={(image) => handleVisualSearch({ type: 'camera', data: image })} />
+            </TabsContent>
+          </Tabs>
 
           {isSearching ? (
             <div className="animate-pulse space-y-4">
