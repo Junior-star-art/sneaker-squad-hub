@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import FilterSection from "./FilterSection";
+import SearchResults from "./SearchResults";
 
 type Filter = {
   category?: string;
@@ -52,6 +53,8 @@ export function SearchOverlay({
     sortBy: 'newest'
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const categories = ["Shoes", "Clothing", "Equipment"];
   const genders = ["Men", "Women", "Kids"];
@@ -68,6 +71,39 @@ export function SearchOverlay({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open, onOpenChange]);
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    const mockResults = [
+      {
+        id: 1,
+        name: "Nike Air Max 270",
+        price: "$150",
+        description: "Men's Running Shoes",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png"
+      },
+      {
+        id: 2,
+        name: "Nike Air Force 1",
+        price: "$100",
+        description: "Men's Shoes",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e6da41fa-1be4-4ce5-b89c-22be4f1f02d4/air-force-1-07-shoes-WrLlWX.png"
+      }
+    ].filter(item => 
+      item.name.toLowerCase().includes(query.toLowerCase()) ||
+      item.description.toLowerCase().includes(query.toLowerCase())
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+    setSearchResults(mockResults);
+    setIsSearching(false);
+  };
 
   const handleFilterClick = (type: keyof Filter, value: string | boolean) => {
     setActiveFilters(prev => ({
@@ -105,14 +141,17 @@ export function SearchOverlay({
                 placeholder="Search products..."
                 className="pl-10 pr-10"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
               />
               {searchQuery && (
                 <Button
                   variant="ghost"
                   size="icon"
                   className="absolute right-2 top-2"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchResults([]);
+                  }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -231,13 +270,16 @@ export function SearchOverlay({
             <FilterSection title="Sport" items={sports} type="sport" />
           </div>
 
-          {searchQuery && (
-            <div className="animate-fade-up space-y-4">
-              <h3 className="font-medium">Results</h3>
-              <div className="text-sm text-muted-foreground">
-                No results found for "{searchQuery}"
-              </div>
+          {isSearching ? (
+            <div className="animate-pulse space-y-4">
+              <div className="h-48 bg-gray-200 rounded-lg" />
+              <div className="h-48 bg-gray-200 rounded-lg" />
             </div>
+          ) : (
+            <SearchResults 
+              results={searchResults} 
+              searchQuery={searchQuery}
+            />
           )}
 
           <div className="text-xs text-muted-foreground">
