@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
+import { supabase } from "@/lib/supabase";
 
 type CartItem = {
-  id: string; // Changed from number to string
+  id: string;
   name: string;
   price: string;
   image: string;
@@ -12,11 +14,11 @@ type CartContextType = {
   items: CartItem[];
   savedItems: CartItem[];
   addItem: (product: Omit<CartItem, "quantity">) => void;
-  removeItem: (id: string) => void; // Changed from number to string
-  updateQuantity: (id: string, quantity: number) => void; // Changed from number to string
-  saveForLater: (id: string) => void; // Changed from number to string
-  moveToCart: (id: string) => void; // Changed from number to string
-  removeSavedItem: (id: string) => void; // Changed from number to string
+  removeItem: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
+  saveForLater: (id: string) => void;
+  moveToCart: (id: string) => void;
+  removeSavedItem: (id: string) => void;
   total: string;
 };
 
@@ -25,6 +27,44 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [savedItems, setSavedItems] = useState<CartItem[]>([]);
+  const { user } = useAuth();
+
+  // Load cart items when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserCart();
+    } else {
+      // Clear cart when user logs out
+      setItems([]);
+      setSavedItems([]);
+    }
+  }, [user]);
+
+  const loadUserCart = async () => {
+    if (!user) return;
+
+    try {
+      const { data: cartData, error: cartError } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('saved_for_later', false);
+
+      const { data: savedData, error: savedError } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('saved_for_later', true);
+
+      if (cartError) throw cartError;
+      if (savedError) throw savedError;
+
+      setItems(cartData || []);
+      setSavedItems(savedData || []);
+    } catch (error) {
+      console.error('Error loading cart:', error);
+    }
+  };
 
   const addItem = (product: Omit<CartItem, "quantity">) => {
     setItems((currentItems) => {

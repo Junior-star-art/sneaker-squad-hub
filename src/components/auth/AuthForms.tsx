@@ -4,32 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
+import { supabase } from "@/integrations/supabase/client";
 
 export function AuthForms() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (isLogin) {
-        await signIn(email, password);
-      } else {
-        await signUp(email, password, fullName);
-      }
-    } catch (error: any) {
-      console.error("Authentication error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6 p-6">
@@ -47,65 +28,37 @@ export function AuthForms() {
       </div>
 
       <h2 className="text-2xl font-bold text-center mb-6">
-        {isLogin ? "Welcome Back" : "Join Us"}
+        Join Nike Member Profile
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {!isLogin && (
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required={!isLogin}
-            />
-          </div>
-        )}
+      <Auth
+        supabaseClient={supabase}
+        appearance={{
+          theme: ThemeSupa,
+          variables: {
+            default: {
+              colors: {
+                brand: '#000000',
+                brandAccent: '#666666',
+              },
+            },
+          },
+          className: {
+            button: 'rounded-full w-full',
+            container: 'space-y-4',
+            label: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+          },
+        }}
+        providers={['google', 'github']}
+        redirectTo={window.location.origin}
+        onlyThirdPartyProviders={false}
+      />
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full rounded-full"
-          disabled={loading}
-        >
-          {loading ? "Processing..." : isLogin ? "Sign In" : "Join Us"}
-        </Button>
-
-        <div className="text-center mt-4">
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-gray-600 hover:underline"
-          >
-            {isLogin
-              ? "Not a Member? Join Us"
-              : "Already a Member? Sign In"}
-          </button>
-        </div>
-      </form>
+      <div className="text-center mt-4">
+        <p className="text-sm text-gray-600">
+          By logging in, you agree to Nike's Privacy Policy and Terms of Use.
+        </p>
+      </div>
     </div>
   );
 }

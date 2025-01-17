@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/database';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -17,8 +18,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const userData: User = {
@@ -29,13 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           full_name: session.user.user_metadata?.full_name,
         };
         setUser(userData);
-      } else {
-        setUser(null);
       }
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for changes on auth state (signed in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const userData: User = {
           id: session.user.id,
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           full_name: session.user.user_metadata?.full_name,
         };
         setUser(userData);
+        navigate('/');
       } else {
         setUser(null);
       }
@@ -52,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -65,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error signing in",
         description: error.message,
@@ -77,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -86,13 +89,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         },
       });
-      if (signUpError) throw signUpError;
-
+      if (error) throw error;
       toast({
         title: "Welcome to Nike Store!",
         description: "Your account has been created successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error creating account",
         description: error.message,
@@ -110,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Signed out",
         description: "You've been successfully signed out.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error signing out",
         description: error.message,
