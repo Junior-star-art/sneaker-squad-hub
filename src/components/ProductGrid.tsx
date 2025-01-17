@@ -17,7 +17,7 @@ interface SupabaseProduct {
   id: string;
   name: string;
   description: string | null;
-  price: number;
+  price: number;  // Explicitly typed as number
   images: string[] | null;
   stock: number | null;
   featured: boolean | null;
@@ -228,7 +228,7 @@ const ProductGrid = () => {
                               addItem({
                                 id: product.id,
                                 name: product.name,
-                                price: formatPrice(product.price),
+                                price: formatPrice(product.price),  // Convert to string format for display
                                 image: product.images?.[0] || '/placeholder.svg'
                               });
                               toast({
@@ -248,7 +248,7 @@ const ProductGrid = () => {
                               addToRecentlyViewed({
                                 id: product.id,
                                 name: product.name,
-                                price: formatPrice(product.price),
+                                price: formatPrice(product.price),  // Convert to string format for display
                                 image: product.images?.[0] || '/placeholder.svg'
                               });
                             }}
@@ -290,7 +290,7 @@ const ProductGrid = () => {
                 product={{
                   id: selectedProduct.id,
                   name: selectedProduct.name,
-                  price: formatPrice(selectedProduct.price),
+                  price: formatPrice(selectedProduct.price),  // Convert to string format for display
                   description: selectedProduct.description || '',
                   features: [],
                   materials: '',

@@ -53,7 +53,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addItem({
       id: product.id,
       name: product.name,
-      price: formatPrice(product.price),
+      price: formatPrice(product.price),  // Convert to string format for display
       image: product.image
     });
     toast({
@@ -84,8 +84,6 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
       description: `Item has been ${wishlist.includes(productId) ? "removed from" : "added to"} your wishlist.`,
     });
   };
-
-  // ... keep existing code (JSX for search results grid)
 
   return (
     <>
