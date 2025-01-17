@@ -26,6 +26,15 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
       return;
     }
 
+    if (!import.meta.env.VITE_PAYFAST_MERCHANT_ID || !import.meta.env.VITE_PAYFAST_MERCHANT_KEY) {
+      toast({
+        title: "Configuration Error",
+        description: "Payment system is not properly configured. Please contact support.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Calculate total amount from cart items
     const totalAmount = items.reduce((sum, item) => {
       const price = parseFloat(item.price.replace("$", ""));
@@ -37,12 +46,20 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
       ? items[0].name 
       : `${items[0].name} and ${items.length - 1} other items`;
 
-    initiatePayFastPayment({
-      amount: totalAmount,
-      customerName: name,
-      customerEmail: email,
-      itemName: itemName,
-    });
+    try {
+      initiatePayFastPayment({
+        amount: totalAmount,
+        customerName: name,
+        customerEmail: email,
+        itemName: itemName,
+      });
+    } catch (error) {
+      toast({
+        title: "Payment Error",
+        description: "There was an error initiating the payment. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

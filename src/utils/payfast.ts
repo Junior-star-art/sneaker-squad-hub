@@ -13,7 +13,8 @@ interface PayFastData {
 export const createPayFastForm = (data: PayFastData) => {
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = 'https://sandbox.payfast.co.za/eng/process';  // Use sandbox for testing
+  // Use the live URL in production
+  form.action = 'https://www.payfast.co.za/eng/process';
 
   Object.entries(data).forEach(([key, value]) => {
     const input = document.createElement('input');
@@ -33,8 +34,8 @@ export const initiatePayFastPayment = (orderData: {
   itemName: string;
 }) => {
   const paymentData: PayFastData = {
-    merchant_id: process.env.PAYFAST_MERCHANT_ID || '',
-    merchant_key: process.env.PAYFAST_MERCHANT_KEY || '',
+    merchant_id: import.meta.env.VITE_PAYFAST_MERCHANT_ID || '',
+    merchant_key: import.meta.env.VITE_PAYFAST_MERCHANT_KEY || '',
     return_url: `${window.location.origin}/payment-success`,
     cancel_url: `${window.location.origin}/payment-cancelled`,
     notify_url: `${window.location.origin}/api/payfast-notification`,
