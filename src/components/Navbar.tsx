@@ -10,6 +10,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchOverlay } from "./search/SearchOverlay";
 
 type NavbarProps = {
   onCartClick: () => void;
@@ -18,6 +19,7 @@ type NavbarProps = {
 const Navbar = ({ onCartClick }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const { items, total } = useCart();
 
   return (
@@ -96,7 +98,14 @@ const Navbar = ({ onCartClick }: NavbarProps) => {
               </DialogContent>
             </Dialog>
             <div className="hidden md:flex items-center space-x-4">
-              <Search className="h-5 w-5 text-gray-900 cursor-pointer hover:text-nike-red" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:text-nike-red"
+                onClick={() => setShowSearch(true)}
+              >
+                <Search className="h-5 w-5" />
+              </Button>
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <div className="relative">
@@ -208,6 +217,8 @@ const Navbar = ({ onCartClick }: NavbarProps) => {
           </div>
         </div>
       )}
+
+      <SearchOverlay open={showSearch} onOpenChange={setShowSearch} />
     </nav>
   );
 };
