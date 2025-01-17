@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 interface SearchProduct {
   id: string;
   name: string;
-  price: number;
+  price: number;  // Explicitly typed as number
   description: string;
   image: string;
   stock?: number;
@@ -31,6 +31,10 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
+  const formatPrice = (price: number) => {
+    return `$${price.toFixed(2)}`;
+  };
+
   if (!searchQuery) {
     return null;
   }
@@ -44,10 +48,6 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
       </div>
     );
   }
-
-  const formatPrice = (price: number) => {
-    return `$${price.toFixed(2)}`;
-  };
 
   const handleAddToBag = (product: SearchProduct) => {
     addItem({
@@ -173,7 +173,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
           product={{
             id: selectedProduct.id,
             name: selectedProduct.name,
-            price: formatPrice(selectedProduct.price),
+            price: selectedProduct.price, // Now passing the number directly
             description: selectedProduct.description,
             features: [],
             materials: '',
