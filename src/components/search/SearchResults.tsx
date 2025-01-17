@@ -173,3 +173,6 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
       )}
     </>
   );
+};
+
+export default SearchResults;
