@@ -35,7 +35,10 @@ const fetchProducts = async () => {
     `)
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching products:', error);
+    throw error;
+  }
   return data as SupabaseProduct[];
 };
 
@@ -158,10 +161,7 @@ const ProductGrid = () => {
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <PullToRefresh 
-          onRefresh={handleRefresh} 
-          distanceToRefresh={70}
-        >
+        <PullToRefresh onRefresh={handleRefresh} distanceToRefresh={70}>
           <div>
             <h2 className="text-4xl font-bold mb-4 text-left animate-fade-up">
               Trending Now
@@ -170,11 +170,7 @@ const ProductGrid = () => {
               Discover our latest collection of innovative Nike footwear
             </p>
             
-            <div 
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
-              role="grid"
-              aria-label="Product grid"
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, index) => (
                   <ProductSkeleton key={index} />
@@ -355,7 +351,7 @@ const ProductGrid = () => {
                       </div>
                       <div className="mt-4 p-2">
                         <h3 className="text-lg font-medium text-left">{product.name}</h3>
-                        <p className="text-nike-gray mt-1 text-left">{product.price}</p>
+                        <p className="text-nike-gray mt-1 text-left">{formatPrice(product.price)}</p>
                       </div>
                     </div>
                   ))}
@@ -374,6 +370,7 @@ const ProductGrid = () => {
                   shipping: '',
                   angles: selectedProduct.images || [],
                   colors: [],
+                  image: selectedProduct.images?.[0] || '/placeholder.svg'
                 }}
                 open={Boolean(selectedProduct)}
                 onOpenChange={(open) => !open && setSelectedProduct(null)}
