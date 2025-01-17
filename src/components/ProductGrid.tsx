@@ -13,6 +13,19 @@ import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
+interface SupabaseProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  images: string[] | null;
+  stock: number | null;
+  featured: boolean | null;
+  category: {
+    name: string;
+  } | null;
+}
+
 const fetchProducts = async () => {
   const { data, error } = await supabase
     .from('products')
@@ -23,15 +36,15 @@ const fetchProducts = async () => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+  return data as SupabaseProduct[];
 };
 
 const ProductGrid = () => {
   const { addItem } = useCart();
   const { recentlyViewed, addToRecentlyViewed } = useRecentlyViewed();
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
   const [zoomedImageId, setZoomedImageId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -76,12 +89,12 @@ const ProductGrid = () => {
     );
   };
 
-  const handleShare = async (product) => {
+  const handleShare = async (product: SupabaseProduct) => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: product.name,
-          text: product.description,
+          text: product.description || '',
           url: window.location.href,
         });
       } catch (error) {
@@ -138,6 +151,10 @@ const ProductGrid = () => {
     );
   }
 
+  const formatPrice = (price: number) => {
+    return `$${price.toFixed(2)}`;
+  };
+
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -170,7 +187,7 @@ const ProductGrid = () => {
                       ${index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''}`}
                     role="gridcell"
                     tabIndex={0}
-                    aria-label={`${product.name} - ${product.price}`}
+                    aria-label={`${product.name} - ${formatPrice(product.price)}`}
                   >
                     <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
                       <div className={`aspect-square overflow-hidden ${index === 0 ? 'sm:aspect-[4/3]' : ''}`}>
@@ -224,7 +241,12 @@ const ProductGrid = () => {
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
-                              addItem(product);
+                              addItem({
+                                id: product.id,
+                                name: product.name,
+                                price: formatPrice(product.price),
+                                image: product.images?.[0] || '/placeholder.svg'
+                              });
                               toast({
                                 title: "Added to bag",
                                 description: `${product.name} has been added to your shopping bag.`,
@@ -239,7 +261,12 @@ const ProductGrid = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedProduct(product);
-                              addToRecentlyViewed(product);
+                              addToRecentlyViewed({
+                                id: product.id,
+                                name: product.name,
+                                price: formatPrice(product.price),
+                                image: product.images?.[0] || '/placeholder.svg'
+                              });
                             }}
                             className="bg-white text-black hover:bg-white/90 px-3"
                             variant="secondary"
@@ -254,7 +281,7 @@ const ProductGrid = () => {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <h3 className="text-lg font-medium text-left line-clamp-1">{product.name}</h3>
-                          <p className="text-nike-gray mt-1 text-left font-medium">${product.price}</p>
+                          <p className="text-nike-gray mt-1 text-left font-medium">{formatPrice(product.price)}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <p className="text-sm text-green-600">{product.stock} in stock</p>
                             {product.category?.name && (
@@ -299,7 +326,6 @@ const ProductGrid = () => {
                       className="group hover:shadow-lg rounded-xl transition-all duration-300"
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
                     >
                       <div className="relative overflow-hidden rounded-xl bg-gray-100">
                         <div className="aspect-square overflow-hidden">
@@ -339,7 +365,17 @@ const ProductGrid = () => {
 
             {selectedProduct && (
               <ProductQuickView
-                product={selectedProduct}
+                product={{
+                  ...selectedProduct,
+                  price: formatPrice(selectedProduct.price),
+                  features: [],
+                  materials: '',
+                  care: '',
+                  shipping: '',
+                  angles: selectedProduct.images || [],
+                  colors: [],
+                  releaseDate: new Date().toISOString()
+                }}
                 open={Boolean(selectedProduct)}
                 onOpenChange={(open) => !open && setSelectedProduct(null)}
               />
