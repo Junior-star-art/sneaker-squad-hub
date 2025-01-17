@@ -1,4 +1,4 @@
-import { products } from "@/components/ProductGrid";
+import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
 
 const iconicProducts = products.filter(product => 

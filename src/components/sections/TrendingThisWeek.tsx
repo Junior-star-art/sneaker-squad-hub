@@ -1,4 +1,4 @@
-import { products } from "@/components/ProductGrid";
+import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Flame } from "lucide-react";

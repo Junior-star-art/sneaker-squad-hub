@@ -1,4 +1,4 @@
-import { products } from "@/components/ProductGrid";
+import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
