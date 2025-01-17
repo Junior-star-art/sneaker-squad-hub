@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import FilterSection from "./FilterSection";
 import SearchResults from "./SearchResults";
+import VisualSearch from "./VisualSearch";
 
 type Filter = {
   category?: string;
@@ -162,6 +163,50 @@ export function SearchOverlay({
       ...prev,
       sortBy: value
     }));
+  };
+
+  const handleVisualSearch = async (searchData: { type: string; data: string }) => {
+    setIsSearching(true);
+    try {
+      // Mock visual search results for now
+      // In a real implementation, this would call an API endpoint
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockResults = [
+        {
+          id: 1,
+          name: "Similar Nike Air Max 270",
+          price: "$150",
+          description: "Found by visual search",
+          features: ["Visual match", "Similar style"],
+          materials: "Mesh and synthetic materials",
+          care: "Wipe clean with a damp cloth",
+          shipping: "Free shipping on orders over $50",
+          stock: 10,
+          colors: [
+            { name: "Black", code: "#000000", image: "black-270.jpg" },
+            { name: "White", code: "#FFFFFF", image: "white-270.jpg" }
+          ],
+          angles: ["front", "back", "side"],
+          image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png"
+        }
+      ];
+
+      setSearchResults(mockResults);
+      toast({
+        title: "Visual search complete",
+        description: `Found ${mockResults.length} matching items`,
+      });
+    } catch (error) {
+      console.error("Visual search error:", error);
+      toast({
+        title: "Search failed",
+        description: "Unable to process visual search",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -316,6 +361,8 @@ export function SearchOverlay({
               </SheetContent>
             </Sheet>
           </div>
+
+          <VisualSearch onSearch={handleVisualSearch} />
 
           <div className="space-y-4">
             <FilterSection title="Categories" items={categories} type="category" />
