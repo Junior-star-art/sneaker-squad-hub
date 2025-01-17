@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchOverlay } from "./search/SearchOverlay";
+import { AuthForms } from "./auth/AuthForms";
+import { useAuth } from "@/contexts/AuthContext";
 
 type NavbarProps = {
   onCartClick: () => void;
@@ -21,6 +23,7 @@ const Navbar = ({ onCartClick }: NavbarProps) => {
   const [showRegister, setShowRegister] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const { items, total } = useCart();
+  const { user, signOut } = useAuth();
 
   return (
     <>
@@ -58,44 +61,16 @@ const Navbar = ({ onCartClick }: NavbarProps) => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg"
-                      alt="Nike"
-                      className="h-6"
-                    />
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/en/3/37/Jumpman_logo.svg"
-                      alt="Jordan"
-                      className="h-6"
-                    />
-                  </div>
-                  <h2 className="text-2xl font-bold">Enter your email to join us or sign in.</h2>
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>South Africa</span>
-                    <button className="underline">Change</button>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="Email" />
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    By continuing, I agree to Nike's{" "}
-                    <a href="#" className="underline">
-                      Privacy Policy
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="underline">
-                      Terms of Use
-                    </a>
-                    .
-                  </p>
-                  <Button className="w-full rounded-full">Continue</Button>
-                  <Button variant="outline" className="w-full rounded-full">
-                    Sign in with Google
-                  </Button>
-                </div>
+                  {user ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold">Welcome, {user.full_name || 'Member'}</h2>
+                        <Button variant="ghost" onClick={signOut}>Sign Out</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <AuthForms />
+                  )}
                 </DialogContent>
               </Dialog>
               <div className="flex items-center space-x-4">
@@ -122,61 +97,61 @@ const Navbar = ({ onCartClick }: NavbarProps) => {
                     </div>
                   </HoverCardTrigger>
                   <HoverCardContent className="w-80 p-4">
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-lg">Bag</h3>
-                    {items.length === 0 ? (
-                      <p>There are no items in your bag.</p>
-                    ) : (
-                      <>
-                        {items.slice(0, 2).map((item) => (
-                          <div key={item.id} className="flex items-center gap-4">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="h-16 w-16 object-cover"
-                            />
-                            <div>
-                              <p className="font-medium">{item.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                Qty: {item.quantity}
-                              </p>
+                    <div className="space-y-4">
+                      <h3 className="font-bold text-lg">Bag</h3>
+                      {items.length === 0 ? (
+                        <p>There are no items in your bag.</p>
+                      ) : (
+                        <>
+                          {items.slice(0, 2).map((item) => (
+                            <div key={item.id} className="flex items-center gap-4">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-16 w-16 object-cover"
+                              />
+                              <div>
+                                <p className="font-medium">{item.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Qty: {item.quantity}
+                                </p>
+                              </div>
                             </div>
+                          ))}
+                          {items.length > 2 && (
+                            <p className="text-sm text-muted-foreground">
+                              +{items.length - 2} more items
+                            </p>
+                          )}
+                          <div className="border-t pt-4">
+                            <div className="flex justify-between mb-2">
+                              <span>Subtotal</span>
+                              <span className="font-medium">{total}</span>
+                            </div>
+                            <div className="flex justify-between mb-4">
+                              <span>Estimated Delivery & Handling</span>
+                              <span>Free</span>
+                            </div>
+                            <Button onClick={onCartClick} className="w-full rounded-full">
+                              Go to Checkout
+                            </Button>
                           </div>
-                        ))}
-                        {items.length > 2 && (
-                          <p className="text-sm text-muted-foreground">
-                            +{items.length - 2} more items
-                          </p>
-                        )}
-                        <div className="border-t pt-4">
-                          <div className="flex justify-between mb-2">
-                            <span>Subtotal</span>
-                            <span className="font-medium">{total}</span>
-                          </div>
-                          <div className="flex justify-between mb-4">
-                            <span>Estimated Delivery & Handling</span>
-                            <span>Free</span>
-                          </div>
-                          <Button onClick={onCartClick} className="w-full rounded-full">
-                            Go to Checkout
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                    <div className="border-t pt-4">
-                      <h4 className="font-medium mb-2">Favourites</h4>
-                      <p className="text-sm text-gray-600">
-                        Want to view your favourites?{" "}
-                        <button className="text-black underline" onClick={() => setShowRegister(true)}>
-                          Join us
-                        </button>{" "}
-                        or{" "}
-                        <button className="text-black underline" onClick={() => setShowRegister(true)}>
-                          Sign in
-                        </button>
-                      </p>
+                        </>
+                      )}
+                      <div className="border-t pt-4">
+                        <h4 className="font-medium mb-2">Favourites</h4>
+                        <p className="text-sm text-gray-600">
+                          Want to view your favourites?{" "}
+                          <button className="text-black underline" onClick={() => setShowRegister(true)}>
+                            Join us
+                          </button>{" "}
+                          or{" "}
+                          <button className="text-black underline" onClick={() => setShowRegister(true)}>
+                            Sign in
+                          </button>
+                        </p>
+                      </div>
                     </div>
-                  </div>
                   </HoverCardContent>
                 </HoverCard>
               </div>

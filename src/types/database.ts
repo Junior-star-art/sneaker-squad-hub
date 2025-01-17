@@ -5,6 +5,9 @@ export interface User {
   full_name?: string;
   shipping_address?: string;
   billing_address?: string;
+  user_metadata?: {
+    full_name?: string;
+  };
 }
 
 export interface Order {

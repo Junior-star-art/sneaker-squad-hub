@@ -1,30 +1,17 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import { CartProvider } from "./contexts/CartContext";
-import { RecentlyViewedProvider } from "./contexts/RecentlyViewedContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { Navbar } from "@/components/Navbar";
+import { CartProvider } from "@/contexts/CartContext";
+import { SearchOverlay } from "@/components/search/SearchOverlay";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <CartProvider>
-      <RecentlyViewedProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </RecentlyViewedProvider>
-    </CartProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <Navbar onCartClick={() => {}} />
+        <SearchOverlay />
+      </CartProvider>
+    </AuthProvider>
+  );
+}
 
 export default App;
