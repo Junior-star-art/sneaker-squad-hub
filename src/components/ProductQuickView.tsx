@@ -40,7 +40,7 @@ const SIZES = ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"];
 
 const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps) => {
   const { addItem } = useCart();
-  const [selectedColor, setSelectedColor] = useState<Color>(product.colors[0]);
+  const [selectedColor, setSelectedColor] = useState<Color | null>(product.colors?.[0] || null);
   const [selectedImage, setSelectedImage] = useState(product.image);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 

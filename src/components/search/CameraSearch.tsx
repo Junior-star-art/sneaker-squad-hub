@@ -44,12 +44,13 @@ const CameraSearch = ({ onCapture }: CameraSearchProps) => {
     const track = stream.getVideoTracks()[0];
     
     try {
-      // Use a simpler approach to toggle flash
+      // Cast the constraints to any to bypass TypeScript checking
+      // This is safe because we know the torch property exists on supported devices
       await track.applyConstraints({
-        advanced: [{ torch: !isFlashOn }] as MediaTrackConstraints['advanced']
+        advanced: [{ torch: !isFlashOn }] as any
       });
       setIsFlashOn(!isFlashOn);
-      navigator.vibrate(50); // Haptic feedback
+      navigator.vibrate(50);
     } catch (err) {
       console.error('Error toggling flash:', err);
       toast.error("Failed to toggle flash");

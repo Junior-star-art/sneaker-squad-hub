@@ -6,6 +6,7 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useToast } from "@/components/ui/use-toast";
 import ProductQuickView from "@/components/ProductQuickView";
 import { motion } from "framer-motion";
+import type { Product } from "@/data/products";
 
 type SearchResultsProps = {
   results: Product[];
