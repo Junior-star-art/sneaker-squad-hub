@@ -1,38 +1,92 @@
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
+import { initiatePayFastPayment } from "@/utils/payfast";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 type CheckoutFormProps = {
   onBack: () => void;
 };
 
-const CheckoutForm = ({ onBack }: CheckoutFormProps) => (
-  <form className="space-y-4">
-    <div>
-      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-        Email
-      </label>
-      <input
-        type="email"
-        id="email"
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-      />
-    </div>
-    <div>
-      <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-        Shipping Address
-      </label>
-      <textarea
-        id="address"
-        rows={3}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-      />
-    </div>
-    <Button className="w-full" onClick={() => alert("Checkout functionality coming soon!")}>
-      Place Order
-    </Button>
-    <Button variant="outline" className="w-full" onClick={onBack}>
-      Back to Cart
-    </Button>
-  </form>
-);
+const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
+  const { items, total } = useCart();
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !name) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Calculate total amount from cart items
+    const totalAmount = items.reduce((sum, item) => {
+      const price = parseFloat(item.price.replace("$", ""));
+      return sum + (price * item.quantity);
+    }, 0);
+
+    // Create item name from cart items
+    const itemName = items.length === 1 
+      ? items[0].name 
+      : `${items[0].name} and ${items.length - 1} other items`;
+
+    initiatePayFastPayment({
+      amount: totalAmount,
+      customerName: name,
+      customerEmail: email,
+      itemName: itemName,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          Full Name
+        </label>
+        <input
+          type="text"
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          required
+        />
+      </div>
+      <div className="pt-4">
+        <div className="flex justify-between items-center mb-4">
+          <span className="font-medium">Total to Pay:</span>
+          <span className="font-medium">{total}</span>
+        </div>
+        <Button type="submit" className="w-full">
+          Pay with PayFast
+        </Button>
+        <Button variant="outline" className="w-full mt-2" onClick={onBack}>
+          Back to Cart
+        </Button>
+      </div>
+    </form>
+  );
+};
 
 export default CheckoutForm;
