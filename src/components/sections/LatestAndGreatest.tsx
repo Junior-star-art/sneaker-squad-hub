@@ -1,19 +1,22 @@
 import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 const LatestAndGreatest = () => {
   // Get the latest 4 products
   const latestProducts = products.slice(0, 4);
 
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8">
+    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-3xl font-bold">Latest & Greatest</h2>
-            <p className="text-nike-gray mt-2">Fresh drops and bestsellers</p>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-nike-red" />
+            <div>
+              <h2 className="text-3xl font-bold">Latest & Greatest</h2>
+              <p className="text-nike-gray mt-2">Fresh drops and bestsellers</p>
+            </div>
           </div>
           <Button variant="ghost" className="group">
             View All
@@ -21,18 +24,25 @@ const LatestAndGreatest = () => {
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {latestProducts.map((product) => (
-            <Card key={product.id} className="group overflow-hidden animate-fade-up">
+          {latestProducts.map((product, index) => (
+            <Card 
+              key={product.id} 
+              className={`group overflow-hidden animate-fade-up hover:shadow-xl transition-all duration-300 ${
+                index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''
+              }`}
+            >
               <div className="aspect-square overflow-hidden">
                 <img
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
                 />
               </div>
-              <div className="p-4">
-                <h3 className="font-semibold">{product.name}</h3>
+              <div className="p-6">
+                <h3 className="font-semibold text-lg">{product.name}</h3>
                 <p className="text-nike-gray mt-1">{product.price}</p>
+                <p className="text-sm text-green-600 mt-2">New Arrival</p>
               </div>
             </Card>
           ))}

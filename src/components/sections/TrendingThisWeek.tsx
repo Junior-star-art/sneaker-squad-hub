@@ -18,13 +18,15 @@ const TrendingThisWeek = () => {
         </div>
         <p className="text-nike-gray text-center mb-12">What's hot right now</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {trendingProducts.map((product) => (
+          {trendingProducts.map((product, index) => (
             <Card 
               key={product.id} 
-              className="group relative overflow-hidden animate-fade-up"
+              className={`group relative overflow-hidden animate-fade-up hover:shadow-xl transition-all duration-300 ${
+                index === 0 ? 'md:col-span-2' : ''
+              }`}
             >
               <Badge 
-                className="absolute top-4 right-4 bg-nike-red text-white"
+                className="absolute top-4 right-4 bg-nike-red text-white z-10"
                 variant="secondary"
               >
                 Trending
@@ -34,11 +36,17 @@ const TrendingThisWeek = () => {
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
                 />
               </div>
               <div className="p-6">
                 <h3 className="font-bold text-lg">{product.name}</h3>
                 <p className="text-nike-gray mt-2">{product.price}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-sm text-green-600">{product.stock} in stock</span>
+                  <span className="text-nike-gray">•</span>
+                  <span className="text-sm text-nike-gray">{Math.floor(Math.random() * 100)} sold</span>
+                </div>
               </div>
             </Card>
           ))}
