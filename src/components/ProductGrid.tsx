@@ -228,9 +228,8 @@ const ProductGrid = () => {
                               addItem({
                                 id: product.id,
                                 name: product.name,
-                                price: formatPrice(product.price),
-                                image: product.images?.[0] || '/placeholder.svg',
-                                quantity: 1
+                                price: Number(product.price),
+                                image: product.images?.[0] || '/placeholder.svg'
                               });
                               toast({
                                 title: "Added to bag",

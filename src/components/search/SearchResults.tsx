@@ -49,7 +49,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: Number(product.price),
       image: product.image
     });
     toast({
@@ -166,7 +166,20 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
 
       {selectedProduct && (
         <ProductQuickView
-          product={selectedProduct}
+          product={{
+            id: selectedProduct.id,
+            name: selectedProduct.name,
+            price: selectedProduct.price,
+            description: selectedProduct.description || '',
+            features: [],
+            materials: '',
+            care: '',
+            shipping: '',
+            stock: selectedProduct.stock || 0,
+            angles: [selectedProduct.image],
+            colors: [],
+            image: selectedProduct.image
+          }}
           open={Boolean(selectedProduct)}
           onOpenChange={(open) => !open && setSelectedProduct(null)}
         />
