@@ -8,6 +8,15 @@ interface CameraSearchProps {
   onCapture: (image: string) => void;
 }
 
+// Extended type definitions for MediaTrackCapabilities and MediaTrackConstraintSet
+interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
+  torch?: boolean;
+}
+
+interface ExtendedMediaTrackConstraintSet extends MediaTrackConstraintSet {
+  torch?: boolean;
+}
+
 const CameraSearch = ({ onCapture }: CameraSearchProps) => {
   const [isFrontCamera, setIsFrontCamera] = useState(false);
   const [isFlashOn, setIsFlashOn] = useState(false);
@@ -43,10 +52,14 @@ const CameraSearch = ({ onCapture }: CameraSearchProps) => {
       const stream = webcamRef.current.video.srcObject as MediaStream;
       if (stream) {
         const track = stream.getVideoTracks()[0];
-        if (track?.getCapabilities?.()?.torch) {
-          track.applyConstraints({
+        const capabilities = track?.getCapabilities() as ExtendedMediaTrackCapabilities;
+        
+        if (capabilities?.torch) {
+          const constraints: ExtendedMediaTrackConstraintSet = {
             advanced: [{ torch: !isFlashOn }]
-          }).catch(() => {
+          };
+          
+          track.applyConstraints(constraints as MediaTrackConstraints).catch(() => {
             toast.error("Flash control not supported on this device");
           });
         } else {
