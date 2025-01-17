@@ -47,8 +47,8 @@ const ProductGrid = () => {
   const { recentlyViewed, addToRecentlyViewed } = useRecentlyViewed();
   const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
-  const [wishlist, setWishlist] = useState<string[]>([]);
-  const [zoomedImageId, setZoomedImageId] = useState<string | null>(null);
+  const [wishlist, setWishlist] = useState<string[]>([]); // Changed from number[] to string[]
+  const [zoomedImageId, setZoomedImageId] = useState<string | null>(null); // Changed from number to string
   const [page, setPage] = useState(1);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);

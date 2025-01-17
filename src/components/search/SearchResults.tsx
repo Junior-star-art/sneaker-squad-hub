@@ -6,8 +6,17 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useToast } from "@/hooks/use-toast";
 import ProductQuickView from "@/components/ProductQuickView";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Product } from "@/data/products";
 import { Badge } from "@/components/ui/badge";
+
+interface Product {
+  id: string;  // Changed from number to string
+  name: string;
+  price: string;
+  description: string;
+  image: string;
+  stock?: number;
+  rating?: number;
+}
 
 type SearchResultsProps = {
   results: Product[];
@@ -19,8 +28,8 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [wishlist, setWishlist] = useState<string[]>([]);
-  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const [wishlist, setWishlist] = useState<string[]>([]); // Changed from number[] to string[]
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null); // Changed from number to string
 
   if (!searchQuery) {
     return null;
@@ -59,7 +68,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     });
   };
 
-  const toggleWishlist = (productId: string) => {
+  const toggleWishlist = (productId: string) => { // Changed from number to string
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
@@ -164,6 +173,3 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
       )}
     </>
   );
-};
-
-export default SearchResults;
