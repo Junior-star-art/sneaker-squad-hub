@@ -4,17 +4,17 @@ import { motion } from "framer-motion";
 
 type CartItemProps = {
   item: {
-    id: number;
+    id: string; // Changed from number to string
     name: string;
     price: string;
     image: string;
     quantity: number;
   };
   isSaved?: boolean;
-  onUpdateQuantity: (id: number, quantity: number) => void;
-  onRemove: (id: number) => void;
-  onSave?: (id: number) => void;
-  onMoveToCart?: (id: number) => void;
+  onUpdateQuantity: (id: string, quantity: number) => void; // Changed from number to string
+  onRemove: (id: string) => void; // Changed from number to string
+  onSave?: (id: string) => void; // Changed from number to string
+  onMoveToCart?: (id: string) => void; // Changed from number to string
 };
 
 const CartItem = ({

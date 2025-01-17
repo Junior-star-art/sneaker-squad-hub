@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 type CartItem = {
-  id: string; // Changed from number to string to match Supabase UUID
+  id: string; // Changed from number to string
   name: string;
   price: string;
   image: string;
@@ -14,9 +14,9 @@ type CartContextType = {
   addItem: (product: Omit<CartItem, "quantity">) => void;
   removeItem: (id: string) => void; // Changed from number to string
   updateQuantity: (id: string, quantity: number) => void; // Changed from number to string
-  saveForLater: (id: string) => void;
-  moveToCart: (id: string) => void;
-  removeSavedItem: (id: string) => void;
+  saveForLater: (id: string) => void; // Changed from number to string
+  moveToCart: (id: string) => void; // Changed from number to string
+  removeSavedItem: (id: string) => void; // Changed from number to string
   total: string;
 };
 

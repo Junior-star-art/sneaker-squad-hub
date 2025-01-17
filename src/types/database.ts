@@ -23,14 +23,14 @@ export interface Order {
 export interface OrderItem {
   id: string;
   order_id: string;
-  product_id: number;
+  product_id: string; // Changed from number to string
   quantity: number;
   price: number;
 }
 
 export interface ProductReview {
   id: string;
-  product_id: number;
+  product_id: string; // Changed from number to string
   user_id: string;
   rating: number;
   comment: string;
