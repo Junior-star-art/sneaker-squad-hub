@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 interface SupabaseProduct {
-  id: string; // Changed from number to string to match Supabase UUID
+  id: string;
   name: string;
   description: string | null;
   price: number;
@@ -178,7 +178,7 @@ const ProductGrid = () => {
               ) : (
                 products?.slice(0, page * 8).map((product) => (
                   <div 
-                    key={product.id} 
+                    key={product.id}
                     className="group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl"
                     role="gridcell"
                     tabIndex={0}
@@ -209,10 +209,11 @@ const ProductGrid = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               addItem({
-                                id: product.id, // No need to convert to number anymore
+                                id: product.id,
                                 name: product.name,
                                 price: formatPrice(product.price),
-                                image: product.images?.[0] || '/placeholder.svg'
+                                image: product.images?.[0] || '/placeholder.svg',
+                                quantity: 1
                               });
                               toast({
                                 title: "Added to bag",
@@ -271,7 +272,7 @@ const ProductGrid = () => {
             {selectedProduct && (
               <ProductQuickView
                 product={{
-                  id: selectedProduct.id, // No need to convert to number anymore
+                  id: selectedProduct.id,
                   name: selectedProduct.name,
                   price: formatPrice(selectedProduct.price),
                   description: selectedProduct.description || '',

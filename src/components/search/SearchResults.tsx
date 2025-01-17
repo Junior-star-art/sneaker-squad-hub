@@ -13,18 +13,19 @@ interface Product {
   name: string;
   price: string;
   description: string;
-  features: string[];
-  materials: string;
-  care: string;
-  shipping: string;
-  stock: number;
-  colors: Array<{
+  features?: string[];
+  materials?: string;
+  care?: string;
+  shipping?: string;
+  stock?: number;
+  colors?: Array<{
     name: string;
     code: string;
     image: string;
   }>;
-  angles: string[];
+  angles?: string[];
   image: string;
+  rating?: number;
 }
 
 type SearchResultsProps = {
@@ -59,7 +60,8 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.image
+      image: product.image,
+      quantity: 1
     });
     toast({
       title: "Added to bag",
@@ -113,10 +115,10 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
                   }`}
                   loading="lazy"
                 />
-                {product.stock > 0 && (
+                {product.rating && (
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-sm font-medium">{product.stock} left</span>
+                    <span className="text-sm font-medium">{product.rating}</span>
                   </div>
                 )}
                 <div className="absolute top-4 right-4">
@@ -156,7 +158,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
                 <h3 className="text-sm font-medium line-clamp-1">{product.name}</h3>
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-muted-foreground">{product.price}</p>
-                  {product.stock < 5 && (
+                  {typeof product.stock === 'number' && product.stock < 5 && (
                     <Badge variant={product.stock === 0 ? "destructive" : "secondary"}>
                       {product.stock === 0 ? "Out of Stock" : `${product.stock} left`}
                     </Badge>
