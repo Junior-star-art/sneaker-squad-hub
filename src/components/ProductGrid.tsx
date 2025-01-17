@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 interface SupabaseProduct {
-  id: string;
+  id: string; // Changed from number to string to match Supabase UUID
   name: string;
   description: string | null;
   price: number;
@@ -209,7 +209,7 @@ const ProductGrid = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               addItem({
-                                id: Number(product.id),
+                                id: product.id, // No need to convert to number anymore
                                 name: product.name,
                                 price: formatPrice(product.price),
                                 image: product.images?.[0] || '/placeholder.svg'
@@ -271,7 +271,7 @@ const ProductGrid = () => {
             {selectedProduct && (
               <ProductQuickView
                 product={{
-                  id: parseInt(selectedProduct.id), // Convert string ID to number
+                  id: selectedProduct.id, // No need to convert to number anymore
                   name: selectedProduct.name,
                   price: formatPrice(selectedProduct.price),
                   description: selectedProduct.description || '',

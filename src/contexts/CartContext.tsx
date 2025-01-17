@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 type CartItem = {
-  id: number;
+  id: string; // Changed from number to string to match Supabase UUID
   name: string;
   price: string;
   image: string;
@@ -12,11 +12,11 @@ type CartContextType = {
   items: CartItem[];
   savedItems: CartItem[];
   addItem: (product: Omit<CartItem, "quantity">) => void;
-  removeItem: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
-  saveForLater: (id: number) => void;
-  moveToCart: (id: number) => void;
-  removeSavedItem: (id: number) => void;
+  removeItem: (id: string) => void; // Changed from number to string
+  updateQuantity: (id: string, quantity: number) => void; // Changed from number to string
+  saveForLater: (id: string) => void;
+  moveToCart: (id: string) => void;
+  removeSavedItem: (id: string) => void;
   total: string;
 };
 
@@ -40,13 +40,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => { // Changed from number to string
     setItems((currentItems) =>
       currentItems.filter((item) => item.id !== id)
     );
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number) => { // Changed from number to string
     if (quantity === 0) {
       removeItem(id);
       return;
@@ -58,7 +58,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const saveForLater = (id: number) => {
+  const saveForLater = (id: string) => { // Changed from number to string
     const itemToSave = items.find((item) => item.id === id);
     if (itemToSave) {
       setSavedItems((current) => [...current, itemToSave]);
@@ -66,7 +66,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const moveToCart = (id: number) => {
+  const moveToCart = (id: string) => { // Changed from number to string
     const itemToMove = savedItems.find((item) => item.id === id);
     if (itemToMove) {
       addItem(itemToMove);
@@ -74,7 +74,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const removeSavedItem = (id: number) => {
+  const removeSavedItem = (id: string) => { // Changed from number to string
     setSavedItems((current) => current.filter((item) => item.id !== id));
   };
 

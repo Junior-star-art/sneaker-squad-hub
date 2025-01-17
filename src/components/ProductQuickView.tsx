@@ -16,7 +16,7 @@ interface Color {
 }
 
 interface Product {
-  id: number;
+  id: string; // Changed from number to string to match Supabase UUID
   name: string;
   price: string;
   description: string;
