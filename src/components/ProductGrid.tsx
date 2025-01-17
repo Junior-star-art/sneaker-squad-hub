@@ -1,7 +1,7 @@
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useState, useEffect, useRef } from "react";
-import { Eye, Heart, Share2, Ruler, Facebook, Twitter, Instagram, View360, Star } from "lucide-react";
+import { Eye, Heart, Share2, Ruler, Facebook, Twitter, Instagram, Rotate3d, Star } from "lucide-react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import { Button } from "@/components/ui/button";

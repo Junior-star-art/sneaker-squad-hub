@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View360, RotateCcw } from 'lucide-react';
+import { Rotate3d, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Product360ViewProps {
@@ -72,7 +72,7 @@ const Product360View = ({ images, productName }: Product360ViewProps) => {
         />
         <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300">
           <div className="flex items-center justify-center h-full">
-            <View360 className="w-12 h-12 text-white animate-spin-slow" />
+            <Rotate3d className="w-12 h-12 text-white animate-spin-slow" />
           </div>
         </div>
       </div>
