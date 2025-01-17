@@ -1,4 +1,3 @@
-import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -11,20 +10,6 @@ import {
 const ProductFilters = () => {
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="font-medium mb-4">Price Range</h3>
-        <Slider
-          defaultValue={[0, 1000]}
-          max={1000}
-          step={10}
-          className="w-full"
-        />
-        <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-          <span>$0</span>
-          <span>$1000</span>
-        </div>
-      </div>
-
       <div>
         <h3 className="font-medium mb-4">Colors</h3>
         <div className="space-y-2">
