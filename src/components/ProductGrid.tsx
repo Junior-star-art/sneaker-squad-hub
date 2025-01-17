@@ -175,6 +175,14 @@ const ProductGrid = () => {
     return `$${price.toFixed(2)}`;
   };
 
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Error loading products. Please try again later.</p>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -228,7 +236,7 @@ const ProductGrid = () => {
                               addItem({
                                 id: product.id,
                                 name: product.name,
-                                price: product.price.toString(),
+                                price: formatPrice(product.price),
                                 image: product.images?.[0] || '/placeholder.svg'
                               });
                               toast({

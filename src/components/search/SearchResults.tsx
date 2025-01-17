@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 interface SearchProduct {
   id: string;
   name: string;
-  price: string;
+  price: number;
   description: string;
   image: string;
   stock?: number;
@@ -45,11 +45,15 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     );
   }
 
+  const formatPrice = (price: number) => {
+    return `$${price.toFixed(2)}`;
+  };
+
   const handleAddToBag = (product: SearchProduct) => {
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: formatPrice(product.price),
       image: product.image
     });
     toast({
@@ -63,7 +67,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addToRecentlyViewed({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: formatPrice(product.price),
       image: product.image
     });
   };
@@ -146,7 +150,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
               <div className="mt-4 space-y-2">
                 <h3 className="text-sm font-medium line-clamp-1">{product.name}</h3>
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-muted-foreground">{product.price}</p>
+                  <p className="text-sm text-muted-foreground">{formatPrice(product.price)}</p>
                   {typeof product.stock === 'number' && product.stock < 5 && (
                     <Badge variant={product.stock === 0 ? "destructive" : "secondary"}>
                       {product.stock === 0 ? "Out of Stock" : `${product.stock} left`}
@@ -169,8 +173,8 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
           product={{
             id: selectedProduct.id,
             name: selectedProduct.name,
-            price: selectedProduct.price,
-            description: selectedProduct.description || '',
+            price: formatPrice(selectedProduct.price),
+            description: selectedProduct.description,
             features: [],
             materials: '',
             care: '',
