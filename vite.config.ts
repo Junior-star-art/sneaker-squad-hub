@@ -11,6 +11,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 8080,
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
