@@ -2,22 +2,34 @@ const categories = [
   {
     title: "Running",
     image: "https://static.nike.com/a/images/f_auto/dpr_2.0,cs_srgb/w_1824,c_limit/d3689c2c-80c3-4011-9780-9a9f71da81f6/nike-just-do-it.jpg",
-    description: "Find your perfect pace"
+    description: "Find your perfect pace",
+    sport: "Running",
+    context: ["Competition", "Training", "Road Running", "Trail Running"],
+    technology: ["Air", "React", "ZoomX"]
   },
   {
     title: "Basketball",
     image: "https://static.nike.com/a/images/f_auto/dpr_2.0,cs_srgb/w_1824,c_limit/7c5678f4-c28d-4862-a8d9-56750f839f12/nike-just-do-it.jpg",
-    description: "Elevate your game"
+    description: "Elevate your game",
+    sport: "Basketball",
+    context: ["Indoor Court", "Performance", "Streetball"],
+    technology: ["Air Zoom", "Air Max", "Nike Air"]
   },
   {
     title: "Lifestyle",
     image: "https://static.nike.com/a/images/f_auto/dpr_2.0,cs_srgb/w_1824,c_limit/e6da41fa-1be4-4ce5-b89c-22be4f1f02d4/nike-just-do-it.jpg",
-    description: "Style meets comfort"
+    description: "Style meets comfort",
+    sport: "Lifestyle",
+    context: ["Casual", "Street Style", "Athleisure"],
+    technology: ["Air Cushioning", "React Foam"]
   },
   {
     title: "Training",
     image: "https://static.nike.com/a/images/f_auto/dpr_2.0,cs_srgb/w_1824,c_limit/fd17b420-b388-4c8a-aaaa-e0a98ddf175f/nike-just-do-it.jpg",
-    description: "Push your limits"
+    description: "Push your limits",
+    sport: "Training",
+    context: ["Gym", "HIIT", "Cross-Training"],
+    technology: ["Nike Free", "Flyknit", "Dynamic Support"]
   }
 ];
 
@@ -43,11 +55,17 @@ const ExploreMore = () => {
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors">
-                  <div className="flex flex-col items-center justify-center h-full text-white">
+                  <div className="flex flex-col items-center justify-center h-full text-white p-6">
                     <h3 className="text-2xl font-bold mb-2">{category.title}</h3>
-                    <p className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {category.description}
-                    </p>
+                    <p className="text-sm mb-4">{category.description}</p>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="text-xs space-y-2">
+                        <p className="font-semibold">Technologies:</p>
+                        <p className="text-gray-200">{category.technology.join(" • ")}</p>
+                        <p className="font-semibold mt-2">Perfect for:</p>
+                        <p className="text-gray-200">{category.context.join(" • ")}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,9 +1,39 @@
-export const products = [
+export interface Product {
+  id: number;
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+  materials: string;
+  care: string;
+  shipping: string;
+  stock: number;
+  colors: Array<{
+    name: string;
+    code: string;
+    image: string;
+  }>;
+  angles: string[];
+  image: string;
+  // New fields
+  releaseDate: string;
+  isIconic?: boolean;
+  heritage?: string;
+  views?: number;
+  salesVolume?: number;
+  category?: {
+    sport: string;
+    context: string[];
+    technology: string[];
+  };
+}
+
+export const products: Product[] = [
   {
     id: 1,
     name: "Nike Air Max 270",
     price: "$150",
-    description: "The Nike Air Max 270 delivers unrivaled comfort with the largest Air unit yet. The modern design draws inspiration from Air Max icons, showcasing Nike's greatest innovation with its window to the world-famous cushioning.",
+    description: "The Nike Air Max 270 delivers unrivaled comfort with the largest Air unit yet.",
     features: [
       "Largest heel Air unit yet for enhanced cushioning",
       "Mesh upper for breathability",
@@ -31,7 +61,15 @@ export const products = [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/9c9c5e61-d7cf-4245-a30d-c4a6c0fc0452/air-max-270-shoes-rVTfXk.png",
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/9c9c5e61-d7cf-4245-a30d-c4a6c0fc0452/air-max-270-shoes-rVTfXk.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png",
+    releaseDate: "2024-02-15",
+    views: 1200,
+    salesVolume: 85,
+    category: {
+      sport: "Running",
+      context: ["Training", "Lifestyle"],
+      technology: ["Air Max", "React"]
+    }
   },
   {
     id: 2,

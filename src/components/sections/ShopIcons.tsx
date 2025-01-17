@@ -1,10 +1,13 @@
 import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
-import { Star } from "lucide-react";
+import { Star, History } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const iconicProducts = products.filter(product => 
-  product.name.includes('Air Force 1') || 
-  product.name.includes('Air Jordan')
+  product.isIconic && (
+    product.name.includes('Air Force 1') || 
+    product.name.includes('Air Jordan')
+  )
 );
 
 const ShopIcons = () => {
@@ -30,13 +33,25 @@ const ShopIcons = () => {
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-                  <p className="text-sm font-medium">Shop Now</p>
-                </div>
+                <Badge 
+                  className="absolute top-4 right-4 bg-nike-red text-white"
+                  variant="secondary"
+                >
+                  Legacy
+                </Badge>
               </div>
               <div className="p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <History className="w-4 h-4 text-nike-red" />
+                  <span className="text-sm font-medium">Heritage Collection</span>
+                </div>
                 <h3 className="text-2xl font-bold">{product.name}</h3>
                 <p className="text-nike-gray mt-2 line-clamp-2">{product.description}</p>
+                {product.heritage && (
+                  <p className="mt-4 text-sm text-nike-gray italic">
+                    "{product.heritage}"
+                  </p>
+                )}
               </div>
             </Card>
           ))}

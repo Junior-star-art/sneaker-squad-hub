@@ -1,12 +1,18 @@
 import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flame } from "lucide-react";
+import { Flame, Eye, TrendingUp } from "lucide-react";
+
+const calculateTrendingScore = (product: typeof products[0]) => {
+  const stockScore = Math.max(0, 100 - product.stock) * 0.4;
+  const viewScore = (product.views || 0) * 0.3;
+  const salesScore = (product.salesVolume || 0) * 0.3;
+  return stockScore + viewScore + salesScore;
+};
 
 const TrendingThisWeek = () => {
-  // Simulate trending products based on stock (lower stock might indicate higher sales)
   const trendingProducts = [...products]
-    .sort((a, b) => a.stock - b.stock)
+    .sort((a, b) => calculateTrendingScore(b) - calculateTrendingScore(a))
     .slice(0, 3);
 
   return (
@@ -29,6 +35,7 @@ const TrendingThisWeek = () => {
                 className="absolute top-4 right-4 bg-nike-red text-white z-10"
                 variant="secondary"
               >
+                <TrendingUp className="w-4 h-4 mr-1" />
                 Trending
               </Badge>
               <div className="aspect-square overflow-hidden">
@@ -42,10 +49,16 @@ const TrendingThisWeek = () => {
               <div className="p-6">
                 <h3 className="font-bold text-lg">{product.name}</h3>
                 <p className="text-nike-gray mt-2">{product.price}</p>
+                <div className="flex items-center gap-2 mt-4">
+                  <Eye className="w-4 h-4 text-nike-gray" />
+                  <span className="text-sm text-nike-gray">
+                    {product.views?.toLocaleString()} people viewed this item
+                  </span>
+                </div>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-sm text-green-600">{product.stock} in stock</span>
                   <span className="text-nike-gray">•</span>
-                  <span className="text-sm text-nike-gray">{Math.floor(Math.random() * 100)} sold</span>
+                  <span className="text-sm text-nike-gray">{product.salesVolume} sold</span>
                 </div>
               </div>
             </Card>
