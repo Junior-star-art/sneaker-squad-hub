@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { Eye, ShoppingBag } from "lucide-react";
+import { Eye, ShoppingBag, Star, Heart } from "lucide-react";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import ProductQuickView from "@/components/ProductQuickView";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Product } from "@/data/products";
+import { Badge } from "@/components/ui/badge";
 
 type SearchResultsProps = {
   results: Product[];
@@ -18,6 +19,8 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
 
   if (!searchQuery) {
     return null;
@@ -46,58 +49,100 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addToRecentlyViewed(product);
   };
 
+  const toggleWishlist = (productId: number) => {
+    setWishlist(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+    
+    toast({
+      title: wishlist.includes(productId) ? "Removed from wishlist" : "Added to wishlist",
+      description: `Item has been ${wishlist.includes(productId) ? "removed from" : "added to"} your wishlist.`,
+    });
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-        {results.map((product) => (
-          <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="group relative"
-          >
-            <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-full w-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleAddToBag(product)}
-                  className="bg-white text-black hover:bg-white/90"
-                >
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Add to Bag
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={() => handleQuickView(product)}
-                  className="bg-white text-black hover:bg-white/90"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+        <AnimatePresence>
+          {results.map((product) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="group relative"
+              onMouseEnter={() => setHoveredProduct(product.id)}
+              onMouseLeave={() => setHoveredProduct(null)}
+            >
+              <div className="aspect-square overflow-hidden rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className={`h-full w-full object-cover object-center transform transition-transform duration-500 ${
+                    hoveredProduct === product.id ? 'scale-110' : ''
+                  }`}
+                  loading="lazy"
+                />
+                {product.rating && (
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <span className="text-sm font-medium">{product.rating}</span>
+                  </div>
+                )}
+                <div className="absolute top-4 right-4">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="bg-white/90 backdrop-blur-sm hover:bg-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(product.id);
+                    }}
+                  >
+                    <Heart className={`h-4 w-4 ${wishlist.includes(product.id) ? "fill-red-500 text-red-500" : ""}`} />
+                  </Button>
+                </div>
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleAddToBag(product)}
+                    className="bg-white text-black hover:bg-white/90"
+                  >
+                    <ShoppingBag className="h-4 w-4 mr-2" />
+                    Add to Bag
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={() => handleQuickView(product)}
+                    className="bg-white text-black hover:bg-white/90"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-sm font-medium">{product.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{product.price}</p>
-              {product.stock < 5 && product.stock > 0 && (
-                <p className="text-xs text-red-500 mt-1">
-                  Only {product.stock} left in stock!
-                </p>
-              )}
-              {product.stock === 0 && (
-                <p className="text-xs text-red-500 mt-1">Out of stock</p>
-              )}
-            </div>
-          </motion.div>
-        ))}
+              <div className="mt-4 space-y-2">
+                <h3 className="text-sm font-medium line-clamp-1">{product.name}</h3>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">{product.price}</p>
+                  {product.stock < 5 && (
+                    <Badge variant={product.stock === 0 ? "destructive" : "secondary"}>
+                      {product.stock === 0 ? "Out of Stock" : `${product.stock} left`}
+                    </Badge>
+                  )}
+                </div>
+                {product.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {product.description}
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {selectedProduct && (
