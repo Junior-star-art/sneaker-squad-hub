@@ -6,6 +6,10 @@ import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import StyleCommunity from "@/components/community/StyleCommunity";
+import LatestAndGreatest from "@/components/sections/LatestAndGreatest";
+import ShopIcons from "@/components/sections/ShopIcons";
+import TrendingThisWeek from "@/components/sections/TrendingThisWeek";
+import ExploreMore from "@/components/sections/ExploreMore";
 import { useState } from "react";
 
 const Index = () => {
@@ -15,6 +19,10 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar onCartClick={() => setCartOpen(true)} />
       <Hero />
+      <LatestAndGreatest />
+      <ShopIcons />
+      <TrendingThisWeek />
+      <ExploreMore />
       <ComfortSection />
       <ProductGrid />
       <StyleCommunity />
