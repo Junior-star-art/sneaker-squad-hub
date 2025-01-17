@@ -18,7 +18,7 @@ type NavbarProps = {
   onCartClick: () => void;
 };
 
-const Navbar = ({ onCartClick }: NavbarProps) => {
+export const Navbar = ({ onCartClick }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
