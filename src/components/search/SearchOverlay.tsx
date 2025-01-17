@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/use-toast";
 import FilterSection from "./FilterSection";
 import SearchResults from "./SearchResults";
 import VisualSearch from "./VisualSearch";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Filter = {
   category?: string;
@@ -59,6 +60,7 @@ export function SearchOverlay({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchButtonHovered, setSearchButtonHovered] = useState(false);
+  const isMobile = useIsMobile();
 
   const categories = ["Shoes", "Clothing", "Equipment"];
   const genders = ["Men", "Women", "Kids"];
@@ -211,7 +213,10 @@ export function SearchOverlay({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className={cn(
+        "sm:max-w-2xl",
+        isMobile && "w-full h-[100dvh] p-4"
+      )}>
         <div className="space-y-6">
           <div className="flex items-center gap-2">
             <div className="relative flex-1 group">
@@ -224,7 +229,8 @@ export function SearchOverlay({
                 className={cn(
                   "pl-10 pr-10 transition-all duration-200",
                   "focus:ring-2 focus:ring-primary focus:border-transparent",
-                  searchQuery && "border-primary"
+                  searchQuery && "border-primary",
+                  isMobile && "text-lg h-12"
                 )}
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -247,10 +253,11 @@ export function SearchOverlay({
               <SheetTrigger asChild>
                 <Button 
                   variant="outline" 
-                  size="icon"
+                  size={isMobile ? "lg" : "icon"}
                   className={cn(
                     "transition-all duration-200",
-                    showFilters && "bg-primary text-primary-foreground"
+                    showFilters && "bg-primary text-primary-foreground",
+                    isMobile && "h-12"
                   )}
                   onMouseEnter={() => setSearchButtonHovered(true)}
                   onMouseLeave={() => setSearchButtonHovered(false)}
@@ -259,9 +266,12 @@ export function SearchOverlay({
                     "h-4 w-4 transition-transform duration-200",
                     searchButtonHovered && "scale-110"
                   )} />
+                  {isMobile && <span className="ml-2">Filters</span>}
                 </Button>
               </SheetTrigger>
-              <SheetContent>
+              <SheetContent side={isMobile ? "bottom" : "right"} className={cn(
+                isMobile && "h-[80vh] rounded-t-xl"
+              )}>
                 <SheetHeader>
                   <SheetTitle>Filters</SheetTitle>
                 </SheetHeader>
@@ -382,13 +392,15 @@ export function SearchOverlay({
             />
           )}
 
-          <div className="text-xs text-muted-foreground flex items-center gap-2">
-            <span>Press</span>
-            <kbd className="rounded-md border px-2 py-0.5 bg-muted">ESC</kbd>
-            <span>to close or</span>
-            <kbd className="rounded-md border px-2 py-0.5 bg-muted">⌘K</kbd>
-            <span>to open search</span>
-          </div>
+          {!isMobile && (
+            <div className="text-xs text-muted-foreground flex items-center gap-2">
+              <span>Press</span>
+              <kbd className="rounded-md border px-2 py-0.5 bg-muted">ESC</kbd>
+              <span>to close or</span>
+              <kbd className="rounded-md border px-2 py-0.5 bg-muted">⌘K</kbd>
+              <span>to open search</span>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
