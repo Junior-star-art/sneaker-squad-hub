@@ -114,7 +114,7 @@ const ProductGrid = () => {
                 product={{
                   id: selectedProduct.id,
                   name: selectedProduct.name,
-                  price: `$${selectedProduct.price.toFixed(2)}`,
+                  price: selectedProduct.price,  // Pass the numeric price directly
                   description: selectedProduct.description || '',
                   features: [],
                   materials: '',

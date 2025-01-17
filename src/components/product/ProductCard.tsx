@@ -9,7 +9,7 @@ interface ProductCardProps {
   product: {
     id: string;
     name: string;
-    price: number;
+    price: number;  // Explicitly typed as number
     description: string | null;
     images: string[] | null;
     stock: number | null;

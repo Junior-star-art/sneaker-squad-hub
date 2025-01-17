@@ -16,9 +16,9 @@ interface Color {
 }
 
 interface Product {
-  id: string; // Changed from number to string to match Supabase UUID
+  id: string;
   name: string;
-  price: string;
+  price: number;  // Changed from string to number
   description: string;
   features: string[];
   materials: string;
@@ -37,6 +37,10 @@ interface ProductQuickViewProps {
 }
 
 const SIZES = ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"];
+
+const formatPrice = (price: number) => {
+  return `$${price.toFixed(2)}`;
+};
 
 const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps) => {
   const { addItem } = useCart();
@@ -83,7 +87,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
           <div className="space-y-6">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <p className="text-2xl font-bold">{product.price}</p>
+                <p className="text-2xl font-bold">{formatPrice(product.price)}</p>
                 <Badge variant={status.color as "default" | "destructive" | "secondary"}>{status.label}</Badge>
               </div>
               {product.stock > 0 && product.stock < 5 && (
@@ -151,7 +155,12 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
             <Button
               className="w-full"
               onClick={() => {
-                addItem(product);
+                addItem({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: selectedImage || product.image
+                });
                 onOpenChange(false);
               }}
               disabled={product.stock === 0 || !selectedSize}
