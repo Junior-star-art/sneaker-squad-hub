@@ -374,7 +374,6 @@ const ProductGrid = () => {
                   shipping: '',
                   angles: selectedProduct.images || [],
                   colors: [],
-                  releaseDate: new Date().toISOString()
                 }}
                 open={Boolean(selectedProduct)}
                 onOpenChange={(open) => !open && setSelectedProduct(null)}
