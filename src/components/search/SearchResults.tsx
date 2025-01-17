@@ -67,7 +67,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addToRecentlyViewed({
       id: product.id,
       name: product.name,
-      price: formatPrice(product.price),
+      price: formatPrice(product.price),  // Convert to string format for display
       image: product.image
     });
   };
@@ -173,7 +173,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
           product={{
             id: selectedProduct.id,
             name: selectedProduct.name,
-            price: formatPrice(selectedProduct.price),
+            price: formatPrice(selectedProduct.price),  // Convert to string format for display
             description: selectedProduct.description,
             features: [],
             materials: '',
