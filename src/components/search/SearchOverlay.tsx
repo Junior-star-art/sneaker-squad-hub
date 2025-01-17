@@ -1,18 +1,10 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Slider } from "@/components/ui/slider";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
 import FilterSection from "./FilterSection";
 import SearchResults from "./SearchResults";
@@ -21,7 +13,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import VoiceSearch from "./VoiceSearch";
 import RecentSearches from "./RecentSearches";
 import ImageSearchUpload from "./ImageSearchUpload";
-import ColorSearch from "./ColorSearch";
 import CameraSearch from "./CameraSearch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -56,13 +47,10 @@ export function SearchOverlay({
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [searchButtonHovered, setSearchButtonHovered] = useState(false);
   const isMobile = useIsMobile();
 
   const handleVisualSearch = ({ type, data }: { type: string; data: string }) => {
-    // Handle the visual search based on type (image, color, camera)
     console.log(`Performing ${type} search with data:`, data);
-    // Add your search logic here
   };
 
   useEffect(() => {
@@ -86,7 +74,6 @@ export function SearchOverlay({
     }
 
     setIsSearching(true);
-    // Mock search results - replace with actual API call
     const mockResults = [
       {
         id: 1,
@@ -165,7 +152,7 @@ export function SearchOverlay({
                   onClick={() => {
                     setSearchQuery("");
                     setSearchResults([]);
-                    navigator.vibrate(50); // Haptic feedback
+                    navigator.vibrate(50);
                   }}
                 >
                   <X className="h-4 w-4" />
@@ -184,16 +171,12 @@ export function SearchOverlay({
           )}
 
           <Tabs defaultValue="image" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="image">Image Search</TabsTrigger>
-              <TabsTrigger value="color">Color Search</TabsTrigger>
               <TabsTrigger value="camera">Camera Search</TabsTrigger>
             </TabsList>
             <TabsContent value="image">
               <ImageSearchUpload onImageSelect={(image) => handleVisualSearch({ type: 'image', data: image })} />
-            </TabsContent>
-            <TabsContent value="color">
-              <ColorSearch onColorSelect={(colors) => handleVisualSearch({ type: 'color', data: colors.join(',') })} />
             </TabsContent>
             <TabsContent value="camera">
               <CameraSearch onCapture={(image) => handleVisualSearch({ type: 'camera', data: image })} />
