@@ -84,7 +84,7 @@ const ProductGrid = () => {
     window.location.reload();
   };
 
-  const toggleWishlist = (productId: string) => {
+  const toggleWishlist = (productId: string) => { // Changed from number to string
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)

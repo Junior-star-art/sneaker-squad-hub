@@ -19,8 +19,8 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [wishlist, setWishlist] = useState<number[]>([]);
-  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
+  const [wishlist, setWishlist] = useState<string[]>([]); // Changed from number[] to string[]
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null); // Changed from number to string
 
   if (!searchQuery) {
     return null;
@@ -37,7 +37,12 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   }
 
   const handleAddToBag = (product: Product) => {
-    addItem(product);
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image
+    });
     toast({
       title: "Added to bag",
       description: `${product.name} has been added to your shopping bag.`,
@@ -46,10 +51,15 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
 
   const handleQuickView = (product: Product) => {
     setSelectedProduct(product);
-    addToRecentlyViewed(product);
+    addToRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image
+    });
   };
 
-  const toggleWishlist = (productId: number) => {
+  const toggleWishlist = (productId: string) => { // Changed from number to string
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)

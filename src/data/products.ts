@@ -1,5 +1,5 @@
 export interface Product {
-  id: number;
+  id: string; // Changed from number to string to match Supabase UUID
   name: string;
   price: string;
   description: string;
@@ -31,7 +31,7 @@ export interface Product {
 
 export const products: Product[] = [
   {
-    id: 1,
+    id: "1",
     name: "Nike Air Max 270",
     price: "$150",
     description: "The Nike Air Max 270 delivers unrivaled comfort with the largest Air unit yet.",
@@ -73,7 +73,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 2,
+    id: "2",
     name: "Nike Air Force 1",
     price: "$100",
     description: "The radiance lives on in the Nike Air Force 1, the basketball original that puts a fresh spin on what you know best: durably stitched overlays, clean finishes and the perfect amount of flash to make you shine.",
@@ -110,7 +110,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 3,
+    id: "3",
     name: "Nike ZoomX Vaporfly",
     price: "$250",
     description: "Continue the next evolution of speed with a racing shoe made to help you chase new goals and records. The Nike ZoomX Vaporfly 3 builds on the model racers everywhere love.",
@@ -145,7 +145,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 4,
+    id: "4",
     name: "Nike Dunk Low",
     price: "$110",
     description: "Created for the hardwood but taken to the streets, this '80s b-ball icon returns with classic details and throwback hoops flair. Channeling vintage style back onto the streets, its padded, low-cut collar lets you take your game anywhere—in comfort.",
@@ -180,7 +180,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 5,
+    id: "5",
     name: "Nike Air Zoom Pegasus",
     price: "$120",
     description: "The Nike Air Zoom Pegasus is your trusted training companion, offering exceptional comfort and responsiveness for your daily runs. With its breathable mesh upper and Zoom Air cushioning, it delivers a smooth ride mile after mile.",
@@ -215,7 +215,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 6,
+    id: "6",
     name: "Nike Metcon 8",
     price: "$130",
     description: "The Nike Metcon 8 is built to help you tackle any workout in the gym. From lifting to sprinting to rope climbs, this training shoe delivers stability and durability.",
@@ -250,7 +250,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 7,
+    id: "7",
     name: "Nike Free Run 5.0",
     price: "$100",
     description: "The Nike Free Run 5.0 returns to its roots with a flexible design that moves with your foot. The lightweight upper combines with a minimal midsole for a barefoot-like feel that delivers a natural ride.",
@@ -285,7 +285,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 8,
+    id: "8",
     name: "Nike React Infinity",
     price: "$160",
     description: "The Nike React Infinity is designed to help reduce injury and keep you running. More foam and improved upper details provide a secure and cushioned feel.",
@@ -320,7 +320,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 9,
+    id: "9",
     name: "Nike Air Jordan 1",
     price: "$180",
     description: "The Air Jordan 1 is a classic basketball shoe that transcends the court. With its iconic design and premium materials, it delivers both style and comfort for everyday wear.",
@@ -355,7 +355,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 10,
+    id: "10",
     name: "Nike LeBron XXI",
     price: "$200",
     description: "The LeBron XXI is built for the next generation of basketball excellence. With its innovative cushioning system and supportive fit, it helps you perform at your best on the court.",
@@ -390,7 +390,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 11,
+    id: "11",
     name: "Nike Zoom Fly 5",
     price: "$160",
     description: "The Nike Zoom Fly 5 is designed for speed and comfort during your training runs. With responsive cushioning and a streamlined design, it helps you maintain your pace mile after mile.",
@@ -425,7 +425,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: 12,
+    id: "12",
     name: "Nike SB Dunk Low Pro",
     price: "$100",
     description: "The Nike SB Dunk Low Pro delivers classic skate style with modern performance features. The durable design and responsive cushioning help you push your limits on the board.",
