@@ -1,1 +1,8 @@
 project_id = "sllihrbacnavuodegwxd"
+
+[api]
+enabled = true
+url = "https://sllihrbacnavuodegwxd.supabase.co"
+
+[functions.create-checkout]
+verify_jwt = true
