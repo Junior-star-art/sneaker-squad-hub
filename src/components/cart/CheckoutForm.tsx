@@ -37,6 +37,14 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
 
       if (error) throw error;
 
+      // Send order notification
+      const orderId = new URL(url).searchParams.get('order_id');
+      if (orderId) {
+        await supabase.functions.invoke('order-notification', {
+          body: { orderId },
+        });
+      }
+
       // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (error) {

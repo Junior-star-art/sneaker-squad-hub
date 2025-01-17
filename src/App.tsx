@@ -4,6 +4,8 @@ import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import Index from "@/pages/Index";
+import OrderSuccess from "@/pages/OrderSuccess";
+import OrderHistory from "@/pages/OrderHistory";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -22,6 +24,8 @@ function App() {
             <RecentlyViewedProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/order/success" element={<OrderSuccess />} />
+                <Route path="/orders" element={<OrderHistory />} />
               </Routes>
               <SearchOverlay 
                 open={isSearchOpen} 
