@@ -68,7 +68,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
               />
             </div>
             <div className="flex gap-2 overflow-x-auto">
-              {product.angles.map((angle, index) => (
+              {product.angles?.map((angle, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(angle)}
@@ -93,7 +93,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
             <div>
               <h4 className="font-medium mb-2">Select Color</h4>
               <div className="flex gap-2">
-                {product.colors.map((color) => (
+                {product.colors?.map((color) => (
                   <button
                     key={color.name}
                     onClick={() => {
@@ -103,7 +103,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
                     className="w-8 h-8 rounded-full border-2 transition-colors"
                     style={{
                       backgroundColor: color.code,
-                      borderColor: selectedColor.name === color.name ? '#000' : 'transparent'
+                      borderColor: selectedColor?.name === color.name ? '#000' : 'transparent'
                     }}
                     title={color.name}
                   />
@@ -133,7 +133,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
               <div>
                 <h4 className="font-medium mb-2">Features</h4>
                 <ul className="text-sm text-gray-600 list-disc pl-4">
-                  {product.features.map((feature, index) => (
+                  {product.features?.map((feature, index) => (
                     <li key={index}>{feature}</li>
                   ))}
                 </ul>
