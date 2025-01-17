@@ -176,17 +176,16 @@ const ProductGrid = () => {
                   <ProductSkeleton key={index} />
                 ))
               ) : (
-                products?.slice(0, page * 8).map((product, index) => (
+                products?.slice(0, page * 8).map((product) => (
                   <div 
                     key={product.id} 
-                    className={`group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl
-                      ${index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''}`}
+                    className={`group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl`}
                     role="gridcell"
                     tabIndex={0}
                     aria-label={`${product.name} - ${formatPrice(product.price)}`}
                   >
                     <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
-                      <div className={`aspect-square overflow-hidden ${index === 0 ? 'sm:aspect-[4/3]' : ''}`}>
+                      <div className={`aspect-square overflow-hidden`}>
                         <img
                           src={product.images?.[0] || '/placeholder.svg'}
                           alt={product.name}
@@ -238,7 +237,7 @@ const ProductGrid = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               addItem({
-                                id: product.id,
+                                id: parseInt(product.id),
                                 name: product.name,
                                 price: formatPrice(product.price),
                                 image: product.images?.[0] || '/placeholder.svg'
@@ -362,12 +361,15 @@ const ProductGrid = () => {
             {selectedProduct && (
               <ProductQuickView
                 product={{
-                  ...selectedProduct,
+                  id: parseInt(selectedProduct.id),
+                  name: selectedProduct.name,
                   price: formatPrice(selectedProduct.price),
+                  description: selectedProduct.description || '',
                   features: [],
                   materials: '',
                   care: '',
                   shipping: '',
+                  stock: selectedProduct.stock || 0,
                   angles: selectedProduct.images || [],
                   colors: [],
                   image: selectedProduct.images?.[0] || '/placeholder.svg'
