@@ -290,7 +290,7 @@ const ProductGrid = () => {
                 product={{
                   id: selectedProduct.id,
                   name: selectedProduct.name,
-                  price: selectedProduct.price,
+                  price: formatPrice(selectedProduct.price),
                   description: selectedProduct.description || '',
                   features: [],
                   materials: '',

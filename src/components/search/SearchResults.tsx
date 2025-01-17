@@ -173,7 +173,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
           product={{
             id: selectedProduct.id,
             name: selectedProduct.name,
-            price: selectedProduct.price, // Now passing the number directly
+            price: formatPrice(selectedProduct.price),
             description: selectedProduct.description,
             features: [],
             materials: '',
