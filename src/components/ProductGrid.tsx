@@ -1,7 +1,7 @@
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useState, useEffect, useRef } from "react";
-import { Eye, Heart, Share2, Ruler, Facebook, Twitter, Instagram } from "lucide-react";
+import { Eye, Heart, Share2, Ruler, Facebook, Twitter, Instagram, View360, Star } from "lucide-react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,7 @@ const ProductGrid = () => {
     }
   };
 
-  const handleSocialShare = async (product: typeof products[0], platform: 'facebook' | 'twitter' | 'instagram') => {
+  const handleSocialShare = async (product: Product, platform: 'facebook' | 'twitter' | 'instagram') => {
     const url = encodeURIComponent(window.location.href);
     const text = encodeURIComponent(`Check out ${product.name}!`);
     
@@ -128,7 +128,6 @@ const ProductGrid = () => {
                     ${index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''}`}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
                 >
                   <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
                     <div className={`aspect-square overflow-hidden ${index === 0 ? 'sm:aspect-[4/3]' : ''}`}>
@@ -143,6 +142,12 @@ const ProductGrid = () => {
                         onMouseMove={(e) => handleMouseMove(e, product.id)}
                         loading="lazy"
                       />
+                      {product.rating && (
+                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                          <span className="text-sm font-medium">{product.rating}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <button

@@ -20,6 +20,8 @@ export interface Product {
   heritage?: string;
   views?: number;
   salesVolume?: number;
+  rating?: number;
+  reviews?: number;
   category?: {
     sport: string;
     context: string[];
