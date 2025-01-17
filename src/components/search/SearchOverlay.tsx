@@ -23,6 +23,7 @@ import RecentSearches from "./RecentSearches";
 import ImageSearchUpload from "./ImageSearchUpload";
 import ColorSearch from "./ColorSearch";
 import CameraSearch from "./CameraSearch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Filter = {
   category?: string;
@@ -34,16 +35,6 @@ type Filter = {
   isNewArrival?: boolean;
   sortBy?: 'price-asc' | 'price-desc' | 'newest' | 'popular';
 };
-
-const COLORS = [
-  { name: "Black", hex: "#000000" },
-  { name: "White", hex: "#FFFFFF" },
-  { name: "Red", hex: "#FF0000" },
-  { name: "Blue", hex: "#0000FF" },
-  { name: "Green", hex: "#00FF00" },
-];
-
-const SIZES = ["6", "7", "8", "9", "10", "11", "12"];
 
 export function SearchOverlay({
   open,
@@ -67,6 +58,12 @@ export function SearchOverlay({
   const [isSearching, setIsSearching] = useState(false);
   const [searchButtonHovered, setSearchButtonHovered] = useState(false);
   const isMobile = useIsMobile();
+
+  const handleVisualSearch = ({ type, data }: { type: string; data: string }) => {
+    // Handle the visual search based on type (image, color, camera)
+    console.log(`Performing ${type} search with data:`, data);
+    // Add your search logic here
+  };
 
   useEffect(() => {
     const savedSearches = localStorage.getItem('recentSearches');

@@ -36,19 +36,23 @@ const CameraSearch = ({ onCapture }: CameraSearchProps) => {
   };
 
   const toggleFlash = () => {
-    // Note: Flash control is device dependent and may not work on all devices
     setIsFlashOn(!isFlashOn);
     navigator.vibrate(50); // Haptic feedback
     
-    const track = webcamRef.current?.video?.srcObject?.getVideoTracks()[0];
-    if (track?.getCapabilities?.()?.torch) {
-      track.applyConstraints({
-        advanced: [{ torch: !isFlashOn }]
-      }).catch(() => {
-        toast.error("Flash control not supported on this device");
-      });
-    } else {
-      toast.error("Flash control not supported on this device");
+    if (webcamRef.current && webcamRef.current.video) {
+      const stream = webcamRef.current.video.srcObject as MediaStream;
+      if (stream) {
+        const track = stream.getVideoTracks()[0];
+        if (track?.getCapabilities?.()?.torch) {
+          track.applyConstraints({
+            advanced: [{ torch: !isFlashOn }]
+          }).catch(() => {
+            toast.error("Flash control not supported on this device");
+          });
+        } else {
+          toast.error("Flash control not supported on this device");
+        }
+      }
     }
   };
 
