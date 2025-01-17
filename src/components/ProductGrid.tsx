@@ -232,6 +232,114 @@ const products = [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png"
     ],
     image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png"
+  },
+  {
+    id: 9,
+    name: "Nike Air Jordan 1",
+    price: "$180",
+    description: "The Air Jordan 1 is a classic basketball shoe that transcends the court. With its iconic design and premium materials, it delivers both style and comfort for everyday wear.",
+    features: [
+      "Premium leather upper",
+      "Air-Sole cushioning",
+      "Rubber cupsole",
+      "Iconic Wings logo"
+    ],
+    materials: "Upper: Premium leather, Midsole: Air cushioning, Outsole: Rubber",
+    care: "Clean with a soft brush and mild soap. Air dry naturally.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 10,
+    colors: [
+      {
+        name: "Chicago",
+        code: "#FF0000",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/f49d18f3-7f72-4529-9c5a-0a1f6a752613/air-jordan-1-mid-shoes-SQf7DM.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/f49d18f3-7f72-4529-9c5a-0a1f6a752613/air-jordan-1-mid-shoes-SQf7DM.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/f49d18f3-7f72-4529-9c5a-0a1f6a752613/air-jordan-1-mid-shoes-SQf7DM.png"
+  },
+  {
+    id: 10,
+    name: "Nike LeBron XXI",
+    price: "$200",
+    description: "The LeBron XXI is built for the next generation of basketball excellence. With its innovative cushioning system and supportive fit, it helps you perform at your best on the court.",
+    features: [
+      "Zoom Air cushioning",
+      "Engineered upper",
+      "Durable rubber outsole",
+      "Dynamic fit system"
+    ],
+    materials: "Upper: Engineered textiles, Midsole: Zoom Air cushioning, Outsole: Rubber",
+    care: "Spot clean with mild detergent. Air dry away from direct heat.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 15,
+    colors: [
+      {
+        name: "Black/Gold",
+        code: "#000000",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/lebron-xxi-nxxt-gen-basketball-shoes-lnhK3h.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/lebron-xxi-nxxt-gen-basketball-shoes-lnhK3h.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/lebron-xxi-nxxt-gen-basketball-shoes-lnhK3h.png"
+  },
+  {
+    id: 11,
+    name: "Nike Zoom Fly 5",
+    price: "$160",
+    description: "The Nike Zoom Fly 5 is designed for speed and comfort during your training runs. With responsive cushioning and a streamlined design, it helps you maintain your pace mile after mile.",
+    features: [
+      "React foam cushioning",
+      "Mesh upper for breathability",
+      "Carbon fiber plate",
+      "Lightweight design"
+    ],
+    materials: "Upper: Engineered mesh, Midsole: React foam with carbon plate, Outsole: Rubber",
+    care: "Hand wash with cold water and mild detergent. Air dry only.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 20,
+    colors: [
+      {
+        name: "White/Black",
+        code: "#FFFFFF",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/zoom-fly-5-road-running-shoes-lnhK3h.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/zoom-fly-5-road-running-shoes-lnhK3h.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/zoom-fly-5-road-running-shoes-lnhK3h.png"
+  },
+  {
+    id: 12,
+    name: "Nike SB Dunk Low Pro",
+    price: "$100",
+    description: "The Nike SB Dunk Low Pro delivers classic skate style with modern performance features. The durable design and responsive cushioning help you push your limits on the board.",
+    features: [
+      "Zoom Air unit in heel",
+      "Durable suede upper",
+      "Padded tongue and collar",
+      "Flexible rubber outsole"
+    ],
+    materials: "Upper: Suede and leather, Midsole: Zoom Air cushioning, Outsole: Rubber",
+    care: "Clean with suede brush and specialized cleaner. Air dry naturally.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 8,
+    colors: [
+      {
+        name: "Black/White",
+        code: "#000000",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/sb-dunk-low-pro-skate-shoes-p9rQzn.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/sb-dunk-low-pro-skate-shoes-p9rQzn.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/sb-dunk-low-pro-skate-shoes-p9rQzn.png"
   }
 ];
 
