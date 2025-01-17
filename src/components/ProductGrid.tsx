@@ -8,9 +8,23 @@ import { Button } from "@/components/ui/button";
 import ProductSkeleton from "./ProductSkeleton";
 import { useToast } from "@/components/ui/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
-import { products } from "@/data/products";
 import PullToRefresh from 'react-pull-to-refresh';
 import BackToTop from './BackToTop';
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
+const fetchProducts = async () => {
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      *,
+      category:categories(name)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
 
 const ProductGrid = () => {
   const { addItem } = useCart();
@@ -18,21 +32,16 @@ const ProductGrid = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [wishlist, setWishlist] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [zoomedImageId, setZoomedImageId] = useState<number | null>(null);
+  const [zoomedImageId, setZoomedImageId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const { data: products, isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  });
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -56,17 +65,10 @@ const ProductGrid = () => {
   }, []);
 
   const handleRefresh = async () => {
-    setIsLoading(true);
-    // Simulate refresh
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    toast({
-      title: "Refreshed",
-      description: "Product list has been updated",
-    });
+    window.location.reload();
   };
 
-  const toggleWishlist = (productId: number) => {
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
@@ -128,6 +130,14 @@ const ProductGrid = () => {
     window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Error loading products. Please try again later.</p>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -153,7 +163,7 @@ const ProductGrid = () => {
                   <ProductSkeleton key={index} />
                 ))
               ) : (
-                products.slice(0, page * 8).map((product, index) => (
+                products?.slice(0, page * 8).map((product, index) => (
                   <div 
                     key={product.id} 
                     className={`group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl
@@ -165,20 +175,19 @@ const ProductGrid = () => {
                     <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
                       <div className={`aspect-square overflow-hidden ${index === 0 ? 'sm:aspect-[4/3]' : ''}`}>
                         <img
-                          src={product.image}
+                          src={product.images?.[0] || '/placeholder.svg'}
                           alt={product.name}
                           className={`w-full h-full object-cover transform transition-all duration-500 ${
                             zoomedImageId === product.id ? 'scale-150' : 'group-hover:scale-110'
                           }`}
                           onMouseEnter={() => setZoomedImageId(product.id)}
                           onMouseLeave={() => setZoomedImageId(null)}
-                          onMouseMove={(e) => handleMouseMove(e, product.id)}
                           loading="lazy"
                         />
-                        {product.rating && (
+                        {product.featured && (
                           <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                            <span className="text-sm font-medium">{product.rating}</span>
+                            <span className="text-sm font-medium">Featured</span>
                           </div>
                         )}
                       </div>
@@ -199,32 +208,12 @@ const ProductGrid = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleSocialShare(product, 'facebook');
+                              handleShare(product);
                             }}
                             className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            aria-label="Share on Facebook"
+                            aria-label="Share product"
                           >
-                            <Facebook className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSocialShare(product, 'twitter');
-                            }}
-                            className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            aria-label="Share on Twitter"
-                          >
-                            <Twitter className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSocialShare(product, 'instagram');
-                            }}
-                            className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            aria-label="Share on Instagram"
-                          >
-                            <Instagram className="w-5 h-5" />
+                            <Share2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
@@ -265,11 +254,15 @@ const ProductGrid = () => {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <h3 className="text-lg font-medium text-left line-clamp-1">{product.name}</h3>
-                          <p className="text-nike-gray mt-1 text-left font-medium">{product.price}</p>
+                          <p className="text-nike-gray mt-1 text-left font-medium">${product.price}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <p className="text-sm text-green-600">{product.stock} in stock</p>
-                            <span className="text-nike-gray">•</span>
-                            <p className="text-sm text-nike-gray">{Math.floor(Math.random() * 100)} sold</p>
+                            {product.category?.name && (
+                              <>
+                                <span className="text-nike-gray">•</span>
+                                <p className="text-sm text-nike-gray">{product.category.name}</p>
+                              </>
+                            )}
                           </div>
                         </div>
                         <Button
