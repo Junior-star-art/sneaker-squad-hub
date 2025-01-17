@@ -15,7 +15,6 @@ export interface Product {
   }>;
   angles: string[];
   image: string;
-  // New fields
   releaseDate: string;
   isIconic?: boolean;
   heritage?: string;
@@ -96,7 +95,17 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e6da41fa-1be4-4ce5-b89c-22be4f1f02d4/air-force-1-07-shoes-WrLlWX.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e6da41fa-1be4-4ce5-b89c-22be4f1f02d4/air-force-1-07-shoes-WrLlWX.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e6da41fa-1be4-4ce5-b89c-22be4f1f02d4/air-force-1-07-shoes-WrLlWX.png",
+    releaseDate: "2024-01-15",
+    isIconic: true,
+    heritage: "First released in 1982, the Air Force 1 revolutionized basketball footwear.",
+    views: 1500,
+    salesVolume: 95,
+    category: {
+      sport: "Basketball",
+      context: ["Lifestyle", "Street"],
+      technology: ["Air"]
+    }
   },
   {
     id: 3,
@@ -123,7 +132,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd17b420-b388-4c8a-aaaa-e0a98ddf175f/zoomx-vaporfly-3-road-racing-shoes-xsDgvM.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd17b420-b388-4c8a-aaaa-e0a98ddf175f/zoomx-vaporfly-3-road-racing-shoes-xsDgvM.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd17b420-b388-4c8a-aaaa-e0a98ddf175f/zoomx-vaporfly-3-road-racing-shoes-xsDgvM.png",
+    releaseDate: "2024-03-01",
+    views: 800,
+    salesVolume: 45,
+    category: {
+      sport: "Running",
+      context: ["Competition", "Racing"],
+      technology: ["ZoomX", "Carbon Plate"]
+    }
   },
   {
     id: 4,
@@ -150,7 +167,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/5939882e-c875-4ed9-a229-fe3c1c16634e/dunk-low-shoes-t4Vk4P.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/5939882e-c875-4ed9-a229-fe3c1c16634e/dunk-low-shoes-t4Vk4P.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/5939882e-c875-4ed9-a229-fe3c1c16634e/dunk-low-shoes-t4Vk4P.png",
+    releaseDate: "2024-04-10",
+    views: 600,
+    salesVolume: 30,
+    category: {
+      sport: "Basketball",
+      context: ["Lifestyle"],
+      technology: ["Dunk"]
+    }
   },
   {
     id: 5,
@@ -177,7 +202,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/389b709e-5102-4e55-aa5d-07099b500831/pegasus-40-road-running-shoes-50CtF7.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/389b709e-5102-4e55-aa5d-07099b500831/pegasus-40-road-running-shoes-50CtF7.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/389b709e-5102-4e55-aa5d-07099b500831/pegasus-40-road-running-shoes-50CtF7.png",
+    releaseDate: "2024-05-05",
+    views: 500,
+    salesVolume: 70,
+    category: {
+      sport: "Running",
+      context: ["Training"],
+      technology: ["Zoom Air"]
+    }
   },
   {
     id: 6,
@@ -204,7 +237,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/metcon-8-workout-shoes-p9rQzn.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/metcon-8-workout-shoes-p9rQzn.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/metcon-8-workout-shoes-p9rQzn.png",
+    releaseDate: "2024-06-20",
+    views: 300,
+    salesVolume: 40,
+    category: {
+      sport: "Training",
+      context: ["CrossFit"],
+      technology: ["Metcon"]
+    }
   },
   {
     id: 7,
@@ -231,7 +272,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b05afb11-db22-461d-b94e-49bdc316b445/free-run-5-road-running-shoes-m8L9mr.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b05afb11-db22-461d-b94e-49bdc316b445/free-run-5-road-running-shoes-m8L9mr.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b05afb11-db22-461d-b94e-49bdc316b445/free-run-5-road-running-shoes-m8L9mr.png",
+    releaseDate: "2024-07-15",
+    views: 400,
+    salesVolume: 60,
+    category: {
+      sport: "Running",
+      context: ["Lifestyle"],
+      technology: ["Free"]
+    }
   },
   {
     id: 8,
@@ -258,7 +307,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png",
+    releaseDate: "2024-08-01",
+    views: 350,
+    salesVolume: 50,
+    category: {
+      sport: "Running",
+      context: ["Training"],
+      technology: ["React"]
+    }
   },
   {
     id: 9,
@@ -285,7 +342,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/f49d18f3-7f72-4529-9c5a-0a1f6a752613/air-jordan-1-mid-shoes-SQf7DM.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/f49d18f3-7f72-4529-9c5a-0a1f6a752613/air-jordan-1-mid-shoes-SQf7DM.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/f49d18f3-7f72-4529-9c5a-0a1f6a752613/air-jordan-1-mid-shoes-SQf7DM.png",
+    releaseDate: "2024-09-10",
+    views: 900,
+    salesVolume: 75,
+    category: {
+      sport: "Basketball",
+      context: ["Lifestyle"],
+      technology: ["Air"]
+    }
   },
   {
     id: 10,
@@ -312,7 +377,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/lebron-xxi-nxxt-gen-basketball-shoes-lnhK3h.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/lebron-xxi-nxxt-gen-basketball-shoes-lnhK3h.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/lebron-xxi-nxxt-gen-basketball-shoes-lnhK3h.png",
+    releaseDate: "2024-10-05",
+    views: 1100,
+    salesVolume: 65,
+    category: {
+      sport: "Basketball",
+      context: ["Performance"],
+      technology: ["Zoom Air"]
+    }
   },
   {
     id: 11,
@@ -339,7 +412,15 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/zoom-fly-5-road-running-shoes-lnhK3h.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/zoom-fly-5-road-running-shoes-lnhK3h.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/c6d47d6e-e0c8-4a18-97b6-5a26ad2d27e3/zoom-fly-5-road-running-shoes-lnhK3h.png",
+    releaseDate: "2024-11-20",
+    views: 700,
+    salesVolume: 55,
+    category: {
+      sport: "Running",
+      context: ["Training"],
+      technology: ["React"]
+    }
   },
   {
     id: 12,
@@ -366,6 +447,14 @@ export const products: Product[] = [
     angles: [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/sb-dunk-low-pro-skate-shoes-p9rQzn.png"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/sb-dunk-low-pro-skate-shoes-p9rQzn.png"
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/sb-dunk-low-pro-skate-shoes-p9rQzn.png",
+    releaseDate: "2024-12-01",
+    views: 200,
+    salesVolume: 20,
+    category: {
+      sport: "Skateboarding",
+      context: ["Lifestyle"],
+      technology: ["Dunk"]
+    }
   }
 ];
