@@ -60,14 +60,16 @@ const ProductGrid = () => {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
-    onError: (error) => {
-      console.error('Query error:', error);
-      toast({
-        title: "Error loading products",
-        description: "There was a problem loading the products. Please try again later.",
-        variant: "destructive",
-      });
-    },
+    meta: {
+      onError: (error: Error) => {
+        console.error('Query error:', error);
+        toast({
+          title: "Error loading products",
+          description: "There was a problem loading the products. Please try again later.",
+          variant: "destructive",
+        });
+      }
+    }
   });
 
   useEffect(() => {

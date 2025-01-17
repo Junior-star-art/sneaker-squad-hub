@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,7 @@ const fetchOrders = async (userId: string) => {
 const OrderHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -56,7 +57,7 @@ const OrderHistory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar onCartClick={() => setIsCartOpen(true)} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-sm rounded-lg">
           <div className="px-4 py-5 sm:p-6">

@@ -8,28 +8,18 @@ import ProductQuickView from "@/components/ProductQuickView";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
-interface Product {
+interface SearchProduct {
   id: string;
   name: string;
   price: string;
   description: string;
-  features?: string[];
-  materials?: string;
-  care?: string;
-  shipping?: string;
-  stock?: number;
-  colors?: Array<{
-    name: string;
-    code: string;
-    image: string;
-  }>;
-  angles?: string[];
   image: string;
+  stock?: number;
   rating?: number;
 }
 
 type SearchResultsProps = {
-  results: Product[];
+  results: SearchProduct[];
   searchQuery: string;
 };
 
@@ -37,7 +27,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
   const { addItem } = useCart();
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { toast } = useToast();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<SearchProduct | null>(null);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
@@ -55,13 +45,12 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     );
   }
 
-  const handleAddToBag = (product: Product) => {
+  const handleAddToBag = (product: SearchProduct) => {
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.image,
-      quantity: 1
+      image: product.image
     });
     toast({
       title: "Added to bag",
@@ -69,7 +58,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     });
   };
 
-  const handleQuickView = (product: Product) => {
+  const handleQuickView = (product: SearchProduct) => {
     setSelectedProduct(product);
     addToRecentlyViewed({
       id: product.id,

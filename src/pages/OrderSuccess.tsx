@@ -13,6 +13,7 @@ const OrderSuccess = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [order, setOrder] = useState<any>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -72,7 +73,7 @@ const OrderSuccess = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar onCartClick={() => setIsCartOpen(true)} />
       <div className="max-w-3xl mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
