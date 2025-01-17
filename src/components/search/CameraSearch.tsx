@@ -1,110 +1,111 @@
 import { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { Button } from '@/components/ui/button';
-import { Camera, Flashlight, RotateCcw } from 'lucide-react';
+import { Camera, FlipCamera } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CameraSearchProps {
   onCapture: (image: string) => void;
 }
 
-// Extended type definitions for MediaTrackCapabilities and MediaTrackConstraintSet
+// Define custom types for MediaStream API
 interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
   torch?: boolean;
 }
 
-interface ExtendedMediaTrackConstraintSet extends MediaTrackConstraintSet {
-  torch?: boolean;
-  advanced?: { torch?: boolean }[];
+interface ExtendedMediaTrackConstraints extends MediaTrackConstraints {
+  advanced?: Array<{
+    torch?: boolean;
+  }>;
 }
 
 const CameraSearch = ({ onCapture }: CameraSearchProps) => {
-  const [isFrontCamera, setIsFrontCamera] = useState(false);
-  const [isFlashOn, setIsFlashOn] = useState(false);
   const webcamRef = useRef<Webcam>(null);
+  const [isFrontCamera, setIsFrontCamera] = useState(true);
+  const [hasFlash, setHasFlash] = useState(false);
+  const [isFlashOn, setIsFlashOn] = useState(false);
 
-  const videoConstraints = {
-    facingMode: isFrontCamera ? "user" : "environment",
-    width: 1280,
-    height: 720
-  };
-
-  const capture = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (imageSrc) {
-        onCapture(imageSrc);
-        navigator.vibrate(100); // Haptic feedback
-        toast.success("Photo captured!");
-      }
+  const handleCapture = useCallback(() => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (imageSrc) {
+      onCapture(imageSrc);
+      navigator.vibrate(50); // Haptic feedback
+      toast.success("Image captured successfully");
     }
   }, [onCapture]);
 
-  const toggleCamera = () => {
+  const handleCameraSwitch = useCallback(() => {
     setIsFrontCamera(!isFrontCamera);
     navigator.vibrate(50); // Haptic feedback
-  };
+  }, [isFrontCamera]);
 
-  const toggleFlash = () => {
-    setIsFlashOn(!isFlashOn);
-    navigator.vibrate(50); // Haptic feedback
+  const checkFlashAvailability = useCallback(async (stream: MediaStream) => {
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities() as ExtendedMediaTrackCapabilities;
+    setHasFlash(!!capabilities.torch);
+  }, []);
+
+  const toggleFlash = useCallback(async () => {
+    if (!webcamRef.current) return;
     
-    if (webcamRef.current && webcamRef.current.video) {
-      const stream = webcamRef.current.video.srcObject as MediaStream;
-      if (stream) {
-        const track = stream.getVideoTracks()[0];
-        const capabilities = track?.getCapabilities() as ExtendedMediaTrackCapabilities;
-        
-        if (capabilities?.torch) {
-          const constraints: ExtendedMediaTrackConstraintSet = {
-            advanced: [{ torch: !isFlashOn }]
-          };
-          
-          track.applyConstraints(constraints as MediaTrackConstraints).catch(() => {
-            toast.error("Flash control not supported on this device");
-          });
-        } else {
-          toast.error("Flash control not supported on this device");
-        }
-      }
+    const stream = webcamRef.current.stream;
+    if (!stream) return;
+
+    const track = stream.getVideoTracks()[0];
+    const constraints: ExtendedMediaTrackConstraints = {
+      advanced: [{ torch: !isFlashOn }]
+    };
+
+    try {
+      await track.applyConstraints(constraints);
+      setIsFlashOn(!isFlashOn);
+      navigator.vibrate(50); // Haptic feedback
+    } catch (err) {
+      console.error('Error toggling flash:', err);
+      toast.error("Failed to toggle flash");
     }
-  };
+  }, [isFlashOn]);
 
   return (
     <div className="space-y-4">
-      <div className="relative rounded-lg overflow-hidden">
+      <div className="relative rounded-lg overflow-hidden bg-black">
         <Webcam
-          audio={false}
           ref={webcamRef}
+          audio={false}
           screenshotFormat="image/jpeg"
-          videoConstraints={videoConstraints}
+          videoConstraints={{
+            facingMode: isFrontCamera ? 'user' : 'environment'
+          }}
+          onUserMedia={checkFlashAvailability}
           className="w-full"
         />
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-4">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4">
           <Button
             variant="secondary"
             size="icon"
-            onClick={toggleFlash}
-            className="rounded-full bg-black/50 backdrop-blur-sm"
+            onClick={handleCameraSwitch}
+            className="rounded-full"
           >
-            <Flashlight className={`h-5 w-5 ${isFlashOn ? 'text-yellow-300' : 'text-white'}`} />
+            <FlipCamera className="h-4 w-4" />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            onClick={capture}
-            className="rounded-full bg-black/50 backdrop-blur-sm"
+            onClick={handleCapture}
+            className="rounded-full"
           >
-            <Camera className="h-5 w-5 text-white" />
+            <Camera className="h-4 w-4" />
           </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={toggleCamera}
-            className="rounded-full bg-black/50 backdrop-blur-sm"
-          >
-            <RotateCcw className="h-5 w-5 text-white" />
-          </Button>
+          {hasFlash && (
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={toggleFlash}
+              className={`rounded-full ${isFlashOn ? 'bg-yellow-400' : ''}`}
+            >
+              <span className="block h-4 w-4">⚡</span>
+            </Button>
+          )}
         </div>
       </div>
     </div>
