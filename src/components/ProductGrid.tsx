@@ -228,7 +228,7 @@ const ProductGrid = () => {
                               addItem({
                                 id: product.id,
                                 name: product.name,
-                                price: Number(product.price),
+                                price: product.price.toString(),
                                 image: product.images?.[0] || '/placeholder.svg'
                               });
                               toast({

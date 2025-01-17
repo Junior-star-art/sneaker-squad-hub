@@ -49,7 +49,7 @@ const SearchResults = ({ results, searchQuery }: SearchResultsProps) => {
     addItem({
       id: product.id,
       name: product.name,
-      price: Number(product.price),
+      price: product.price,
       image: product.image
     });
     toast({
