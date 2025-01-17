@@ -15,6 +15,7 @@ interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
 
 interface ExtendedMediaTrackConstraintSet extends MediaTrackConstraintSet {
   torch?: boolean;
+  advanced?: { torch?: boolean }[];
 }
 
 const CameraSearch = ({ onCapture }: CameraSearchProps) => {
