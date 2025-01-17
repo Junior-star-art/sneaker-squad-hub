@@ -124,6 +124,114 @@ const products = [
       "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/5939882e-c875-4ed9-a229-fe3c1c16634e/dunk-low-shoes-t4Vk4P.png"
     ],
     image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/5939882e-c875-4ed9-a229-fe3c1c16634e/dunk-low-shoes-t4Vk4P.png"
+  },
+  {
+    id: 5,
+    name: "Nike Air Zoom Pegasus",
+    price: "$120",
+    description: "The Nike Air Zoom Pegasus is your trusted training companion, offering exceptional comfort and responsiveness for your daily runs. With its breathable mesh upper and Zoom Air cushioning, it delivers a smooth ride mile after mile.",
+    features: [
+      "Nike Zoom Air cushioning",
+      "Engineered mesh upper",
+      "Durable rubber outsole",
+      "Dynamic Fit technology"
+    ],
+    materials: "Upper: Engineered mesh, Midsole: Nike Zoom Air cushioning, Outsole: Rubber",
+    care: "Clean with a soft brush and mild soap. Air dry naturally.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 25,
+    colors: [
+      {
+        name: "Blue/White",
+        code: "#0000FF",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/389b709e-5102-4e55-aa5d-07099b500831/pegasus-40-road-running-shoes-50CtF7.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/389b709e-5102-4e55-aa5d-07099b500831/pegasus-40-road-running-shoes-50CtF7.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/389b709e-5102-4e55-aa5d-07099b500831/pegasus-40-road-running-shoes-50CtF7.png"
+  },
+  {
+    id: 6,
+    name: "Nike Metcon 8",
+    price: "$130",
+    description: "The Nike Metcon 8 is built to help you tackle any workout in the gym. From lifting to sprinting to rope climbs, this training shoe delivers stability and durability.",
+    features: [
+      "Wide, flat heel for stability",
+      "Rubber wrap-up for durability",
+      "Breathable upper mesh",
+      "Flexible forefoot"
+    ],
+    materials: "Upper: Mesh and synthetic materials, Midsole: Foam, Outsole: Rubber",
+    care: "Spot clean with mild detergent. Air dry away from direct heat.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 18,
+    colors: [
+      {
+        name: "Black/Red",
+        code: "#000000",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/metcon-8-workout-shoes-p9rQzn.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/metcon-8-workout-shoes-p9rQzn.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd88656c-0f5f-46f7-a31f-b4044187353b/metcon-8-workout-shoes-p9rQzn.png"
+  },
+  {
+    id: 7,
+    name: "Nike Free Run 5.0",
+    price: "$100",
+    description: "The Nike Free Run 5.0 returns to its roots with a flexible design that moves with your foot. The lightweight upper combines with a minimal midsole for a barefoot-like feel that delivers a natural ride.",
+    features: [
+      "Flexible design",
+      "Minimal cushioning",
+      "Lightweight construction",
+      "Strategic traction pattern"
+    ],
+    materials: "Upper: Lightweight mesh, Midsole: Foam, Outsole: Rubber pods",
+    care: "Hand wash with cold water and mild soap. Air dry.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 30,
+    colors: [
+      {
+        name: "Grey/White",
+        code: "#808080",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b05afb11-db22-461d-b94e-49bdc316b445/free-run-5-road-running-shoes-m8L9mr.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b05afb11-db22-461d-b94e-49bdc316b445/free-run-5-road-running-shoes-m8L9mr.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b05afb11-db22-461d-b94e-49bdc316b445/free-run-5-road-running-shoes-m8L9mr.png"
+  },
+  {
+    id: 8,
+    name: "Nike React Infinity",
+    price: "$160",
+    description: "The Nike React Infinity is designed to help reduce injury and keep you running. More foam and improved upper details provide a secure and cushioned feel.",
+    features: [
+      "Nike React foam",
+      "Wider forefoot base",
+      "Rocker geometry",
+      "Reinforced upper"
+    ],
+    materials: "Upper: Flyknit and synthetic materials, Midsole: Nike React foam, Outsole: Rubber",
+    care: "Clean with soft brush and mild soap. Air dry naturally.",
+    shipping: "Free standard shipping on orders over $100",
+    stock: 22,
+    colors: [
+      {
+        name: "White/Blue",
+        code: "#FFFFFF",
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png"
+      }
+    ],
+    angles: [
+      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png"
+    ],
+    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/e8e530a3-2317-4783-819b-40860281daaf/invincible-3-road-running-shoes-Wwmmlp.png"
   }
 ];
 
