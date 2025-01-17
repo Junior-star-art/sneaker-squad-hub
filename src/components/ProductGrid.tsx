@@ -121,16 +121,17 @@ const ProductGrid = () => {
                 <ProductSkeleton key={index} />
               ))
             ) : (
-              products.slice(0, page * 8).map((product) => (
+              products.slice(0, page * 8).map((product, index) => (
                 <div 
                   key={product.id} 
-                  className="group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl"
+                  className={`group animate-fade-up transition-all duration-300 hover:shadow-xl rounded-xl
+                    ${index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''}`}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => handleKeyPress(e, () => setSelectedProduct(product))}
                 >
-                  <div className="relative overflow-hidden rounded-xl bg-gray-100">
-                    <div className="aspect-square overflow-hidden">
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
+                    <div className={`aspect-square overflow-hidden ${index === 0 ? 'sm:aspect-[4/3]' : ''}`}>
                       <img
                         src={product.image}
                         alt={product.name}
