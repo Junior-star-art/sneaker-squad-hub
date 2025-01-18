@@ -1,6 +1,6 @@
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductSkeleton from "./ProductSkeleton";
@@ -9,8 +9,10 @@ import ErrorBoundary from "./ErrorBoundary";
 import PullToRefresh from 'react-pull-to-refresh';
 import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { ProductCard } from "./product/ProductCard";
+import { Button } from "./ui/button";
+import { useInView } from "react-intersection-observer";
 
 interface SupabaseProduct {
   id: string;
@@ -23,16 +25,23 @@ interface SupabaseProduct {
   category: {
     name: string;
   } | null;
+  category_id: string | null;
 }
 
-const fetchProducts = async () => {
-  console.log('Starting to fetch products...');
-  const { data, error } = await supabase
+const PRODUCTS_PER_PAGE = 8;
+
+const fetchProducts = async ({ pageParam = 0 }) => {
+  console.log('Fetching products page:', pageParam);
+  const from = pageParam * PRODUCTS_PER_PAGE;
+  const to = from + PRODUCTS_PER_PAGE - 1;
+  
+  const { data, error, count } = await supabase
     .from('products')
     .select(`
       *,
       category:categories(name)
     `)
+    .range(from, to)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -42,33 +51,61 @@ const fetchProducts = async () => {
   
   console.log('Products fetched successfully:', data);
   console.log('Number of products:', data?.length || 0);
+  return { products: data as SupabaseProduct[], nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined };
+};
+
+const fetchSimilarProducts = async (categoryId: string | null) => {
+  if (!categoryId) return [];
+  
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      *,
+      category:categories(name)
+    `)
+    .eq('category_id', categoryId)
+    .limit(4);
+
+  if (error) throw error;
   return data as SupabaseProduct[];
 };
 
 const ProductGrid = () => {
   const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
-  const [page, setPage] = useState(1);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { ref: loadMoreRef, inView } = useInView();
 
-  const { data: products, isLoading, error, refetch } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchProducts,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000,   // 30 minutes
-    retry: 2,
-    meta: {
-      errorMessage: "Failed to load products"
-    }
-  });
-
-  console.log('Current products state:', {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     error,
-    productsLength: products?.length || 0,
-    products
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
   });
+
+  const { data: similarProducts } = useQuery({
+    queryKey: ['similar-products', selectedProduct?.category_id],
+    queryFn: () => fetchSimilarProducts(selectedProduct?.category_id || null),
+    enabled: !!selectedProduct?.category_id,
+  });
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleRefresh = async () => {
     try {
@@ -87,6 +124,8 @@ const ProductGrid = () => {
       });
     }
   };
+
+  const allProducts = data?.pages.flatMap(page => page.products) || [];
 
   if (error) {
     console.error('Product grid error:', error);
@@ -138,7 +177,7 @@ const ProductGrid = () => {
                 Array.from({ length: 8 }).map((_, index) => (
                   <ProductSkeleton key={index} />
                 ))
-              ) : !products?.length ? (
+              ) : !allProducts?.length ? (
                 <div className="col-span-full text-center py-12">
                   <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
                     <svg
@@ -159,7 +198,7 @@ const ProductGrid = () => {
                   <p className="text-gray-500">Check back later for new arrivals.</p>
                 </div>
               ) : (
-                products.slice(0, page * 8).map((product) => (
+                allProducts.map((product) => (
                   <ProductCard 
                     key={product.id}
                     product={product}
@@ -168,6 +207,35 @@ const ProductGrid = () => {
                 ))
               )}
             </div>
+
+            {/* Infinite Scroll Trigger */}
+            {!isLoading && hasNextPage && (
+              <div ref={loadMoreRef} className="flex justify-center mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? 'Loading more...' : 'Load more products'}
+                </Button>
+              </div>
+            )}
+
+            {/* Similar Products Section */}
+            {selectedProduct && similarProducts && similarProducts.length > 0 && (
+              <div className="mt-16">
+                <h3 className="text-2xl font-bold mb-6">Similar Products</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {similarProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onQuickView={(product) => setSelectedProduct(product)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {selectedProduct && (
               <ProductQuickView
