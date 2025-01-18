@@ -30,7 +30,18 @@ export const UserPreferences = () => {
         .single();
 
       if (error) throw error;
-      return data as UserPreferences;
+      
+      // Transform the JSON data to match our interface
+      const transformedData: UserPreferences = {
+        preferred_sizes: data.preferred_sizes as Record<string, string[]>,
+        email_preferences: data.email_preferences as {
+          order_updates: boolean;
+          recommendations: boolean;
+          stock_notifications: boolean;
+        }
+      };
+      
+      return transformedData;
     },
     enabled: !!user,
   });

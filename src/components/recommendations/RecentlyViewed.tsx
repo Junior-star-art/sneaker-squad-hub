@@ -13,6 +13,7 @@ interface Product {
   category: {
     name: string;
   } | null;
+  category_id: string | null;
 }
 
 export const RecentlyViewed = () => {
