@@ -82,6 +82,9 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
                 >
                   <Search className="h-5 w-5" />
                 </Button>
+                <a href="/wishlist" className="hover:text-nike-red">
+                  <Heart className="h-5 w-5" />
+                </a>
                 <HoverCard>
                   <HoverCardTrigger asChild>
                     <div className="relative">
@@ -201,7 +204,7 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
             <Search className="h-5 w-5" />
             <span className="text-xs mt-1">Search</span>
           </Button>
-          <Button variant="ghost" size="icon" className="flex flex-col items-center">
+          <Button variant="ghost" size="icon" className="flex flex-col items-center" onClick={() => navigate("/wishlist")}>
             <Heart className="h-5 w-5" />
             <span className="text-xs mt-1">Wishlist</span>
           </Button>

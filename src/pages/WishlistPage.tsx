@@ -17,14 +17,18 @@ export default function WishlistPage() {
     }
   }, [user, navigate]);
 
-  const wishlistProducts = products.filter(product => 
+  const wishlistProducts = products.filter((product) => 
     wishlistItems.some(item => item.product_id === product.id)
-  );
+  ).map(product => ({
+    ...product,
+    images: product.images || [],
+    featured: product.featured || false
+  }));
 
   if (!user) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-24">
       <div className="flex items-center gap-2 mb-8">
         <Heart className="w-6 h-6" />
         <h1 className="text-2xl font-bold">My Wishlist</h1>
