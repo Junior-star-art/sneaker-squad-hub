@@ -5,6 +5,9 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { products } from "@/data/products";
 import { Heart } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 export default function WishlistPage() {
   const { user } = useAuth();
@@ -17,13 +20,20 @@ export default function WishlistPage() {
     }
   }, [user, navigate]);
 
-  const wishlistProducts = products.filter((product) => 
+  const wishlistProducts = products.map(product => ({
+    id: product.id,
+    name: product.name,
+    description: product.description || null,
+    price: parseFloat(product.price.replace('$', '')),
+    images: [product.image],
+    stock: product.stock,
+    featured: false,
+    category: {
+      name: product.category?.sport || ''
+    }
+  })).filter((product) => 
     wishlistItems.some(item => item.product_id === product.id)
-  ).map(product => ({
-    ...product,
-    images: product.images || [],
-    featured: product.featured || false
-  }));
+  );
 
   if (!user) return null;
 
@@ -51,7 +61,11 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {wishlistProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard 
+              key={product.id} 
+              product={product}
+              onQuickView={() => {}} 
+            />
           ))}
         </div>
       )}

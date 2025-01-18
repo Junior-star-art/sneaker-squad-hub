@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Menu, X, Search, ShoppingBag, UserRound, Home, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   HoverCard,
   HoverCardContent,
@@ -8,8 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SearchOverlay } from "./search/SearchOverlay";
 import { AuthForms } from "./auth/AuthForms";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +23,7 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const { items, total } = useCart();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <>
