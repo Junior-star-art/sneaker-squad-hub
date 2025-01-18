@@ -42,20 +42,16 @@ export const YouMayAlsoLike = () => {
     retry: 3,
     meta: {
       errorMessage: "Error loading recommendations"
-    },
-    onSettled: (data, error) => {
-      if (error) {
-        toast({
-          title: "Error loading recommendations",
-          description: "Please try again later.",
-          variant: "destructive",
-        });
-        console.error('Error fetching recommendations:', error);
-      }
     }
   });
 
   if (error) {
+    toast({
+      title: "Error loading recommendations",
+      description: "Please try again later.",
+      variant: "destructive",
+    });
+    console.error('Error fetching recommendations:', error);
     return (
       <div className="p-4 bg-red-50 text-red-800 rounded-lg">
         <p>Unable to load recommendations. Please try again later.</p>
