@@ -18,7 +18,6 @@ interface Product {
   category: {
     name: string;
   } | null;
-  category_id: string | null;
   created_at?: string;
 }
 
