@@ -37,9 +37,11 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   const fetchWishlistItems = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('wishlist_items')
         .select('*')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -68,9 +70,13 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
+      setLoading(true);
       const { error } = await supabase
         .from('wishlist_items')
-        .insert([{ product_id: productId }]);
+        .insert([{ 
+          product_id: productId,
+          user_id: user.id 
+        }]);
 
       if (error) throw error;
 
@@ -87,15 +93,21 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const removeFromWishlist = async (productId: string) => {
+    if (!user) return;
+
     try {
+      setLoading(true);
       const { error } = await supabase
         .from('wishlist_items')
         .delete()
-        .eq('product_id', productId);
+        .eq('product_id', productId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -112,6 +124,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
