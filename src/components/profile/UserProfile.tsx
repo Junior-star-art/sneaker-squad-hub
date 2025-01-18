@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
+import { AddressList } from "@/components/address/AddressList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function UserProfile() {
   const { user } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name || "");
-  const [shippingAddress, setShippingAddress] = useState(user?.shipping_address || "");
-  const [billingAddress, setBillingAddress] = useState(user?.billing_address || "");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -24,8 +24,6 @@ export function UserProfile() {
         .upsert({
           id: user?.id,
           full_name: fullName,
-          shipping_address: shippingAddress,
-          billing_address: billingAddress,
           updated_at: new Date().toISOString(),
         });
 
@@ -47,43 +45,36 @@ export function UserProfile() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name</Label>
-          <Input
-            id="fullName"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Enter your full name"
-          />
-        </div>
+    <div className="max-w-4xl mx-auto p-6">
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="addresses">Addresses</TabsTrigger>
+        </TabsList>
 
-        <div className="space-y-2">
-          <Label htmlFor="shippingAddress">Shipping Address</Label>
-          <Input
-            id="shippingAddress"
-            value={shippingAddress}
-            onChange={(e) => setShippingAddress(e.target.value)}
-            placeholder="Enter your shipping address"
-          />
-        </div>
+        <TabsContent value="profile" className="space-y-6">
+          <h2 className="text-2xl font-bold">Profile Settings</h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter your full name"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="billingAddress">Billing Address</Label>
-          <Input
-            id="billingAddress"
-            value={billingAddress}
-            onChange={(e) => setBillingAddress(e.target.value)}
-            placeholder="Enter your billing address"
-          />
-        </div>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Updating..." : "Update Profile"}
+            </Button>
+          </form>
+        </TabsContent>
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Updating..." : "Update Profile"}
-        </Button>
-      </form>
+        <TabsContent value="addresses">
+          <AddressList />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
