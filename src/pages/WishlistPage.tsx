@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { ProductCard } from "@/components/product/ProductCard";
-import { products } from "@/data/products";
 import { Heart } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type Product = Database['public']['Tables']['products']['Row'];
 
@@ -20,20 +21,24 @@ export default function WishlistPage() {
     }
   }, [user, navigate]);
 
-  const wishlistProducts = products.map(product => ({
-    id: product.id,
-    name: product.name,
-    description: product.description || null,
-    price: parseFloat(product.price.replace('$', '')),
-    images: [product.image],
-    stock: product.stock,
-    featured: false,
-    category: {
-      name: product.category?.sport || ''
-    }
-  })).filter((product) => 
-    wishlistItems.some(item => item.product_id === product.id)
-  );
+  const { data: wishlistProducts, isLoading } = useQuery({
+    queryKey: ['wishlist-products', wishlistItems],
+    queryFn: async () => {
+      if (!wishlistItems.length) return [];
+      
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories(name)
+        `)
+        .in('id', wishlistItems.map(item => item.product_id));
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!wishlistItems.length,
+  });
 
   if (!user) return null;
 
@@ -44,7 +49,11 @@ export default function WishlistPage() {
         <h1 className="text-2xl font-bold">My Wishlist</h1>
       </div>
 
-      {wishlistProducts.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p>Loading wishlist...</p>
+        </div>
+      ) : !wishlistProducts?.length ? (
         <div className="text-center py-12">
           <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
           <h2 className="text-xl font-semibold mb-2">Your wishlist is empty</h2>
