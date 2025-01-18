@@ -6,6 +6,15 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface OrderTracking {
+  id: string;
+  status: string;
+  description: string | null;
+  location: string | null;
+  created_at: string;
+}
 
 const OrderSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -13,6 +22,7 @@ const OrderSuccess = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [order, setOrder] = useState<any>(null);
+  const [tracking, setTracking] = useState<OrderTracking[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
@@ -38,6 +48,9 @@ const OrderSuccess = () => {
               name,
               images
             )
+          ),
+          order_tracking (
+            *
           )
         `)
         .eq('id', orderId)
@@ -55,9 +68,35 @@ const OrderSuccess = () => {
       }
 
       setOrder(data);
+      if (data.order_tracking) {
+        setTracking(data.order_tracking.sort((a: OrderTracking, b: OrderTracking) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ));
+      }
     };
 
     fetchOrder();
+
+    // Set up real-time subscription for tracking updates
+    const channel = supabase
+      .channel('order-tracking')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'order_tracking',
+          filter: `order_id=eq.${searchParams.get('order_id')}`,
+        },
+        (payload) => {
+          setTracking(current => [payload.new as OrderTracking, ...current]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, searchParams, navigate, toast]);
 
   if (!order) {
@@ -92,6 +131,34 @@ const OrderSuccess = () => {
                 </p>
               </div>
             </div>
+
+            {tracking.length > 0 && (
+              <div className="mt-6 border-t border-gray-200 pt-6">
+                <h4 className="text-sm font-medium text-gray-900">Order Status Updates</h4>
+                <ScrollArea className="h-[200px] mt-2">
+                  <div className="space-y-4">
+                    {tracking.map((update) => (
+                      <div key={update.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-sm">{update.status}</p>
+                            {update.description && (
+                              <p className="text-sm text-gray-500 mt-1">{update.description}</p>
+                            )}
+                            {update.location && (
+                              <p className="text-sm text-gray-500">{update.location}</p>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {new Date(update.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
 
             <div className="mt-6 border-t border-gray-200 pt-6">
               <div className="space-y-4">
