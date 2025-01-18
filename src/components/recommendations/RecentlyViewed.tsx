@@ -14,6 +14,7 @@ interface Product {
     name: string;
   } | null;
   category_id: string | null;
+  created_at?: string;
 }
 
 export const RecentlyViewed = () => {
