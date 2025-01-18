@@ -190,8 +190,7 @@ export function SearchOverlay({
             </div>
           ) : (
             <SearchResults 
-              results={searchResults} 
-              searchQuery={searchQuery}
+              query={searchQuery} 
               onClose={() => onOpenChange(false)}
             />
           )}

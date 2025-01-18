@@ -18,7 +18,7 @@ interface Color {
 interface Product {
   id: string;
   name: string;
-  price: number;  // Changed from string to number
+  price: number;
   description: string;
   features: string[];
   materials: string;
@@ -39,7 +39,10 @@ interface ProductQuickViewProps {
 const SIZES = ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"];
 
 const formatPrice = (price: number) => {
-  return `$${price.toFixed(2)}`;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(price);
 };
 
 const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps) => {

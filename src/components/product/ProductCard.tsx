@@ -24,6 +24,13 @@ interface ProductCardProps {
 export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const { addItem } = useCart();
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
+
   return (
     <Card className="group overflow-hidden">
       <div className="aspect-square overflow-hidden relative">
@@ -45,7 +52,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         <h3 className="font-medium truncate">{product.name}</h3>
         <p className="text-sm text-muted-foreground mt-1">{product.category?.name}</p>
         <div className="flex items-center justify-between mt-4">
-          <span className="font-medium">${product.price.toFixed(2)}</span>
+          <span className="font-medium">{formatPrice(product.price)}</span>
           <Button
             size="sm"
             onClick={() => addItem({
