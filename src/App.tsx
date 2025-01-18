@@ -7,6 +7,7 @@ import { useState } from "react";
 import Index from "@/pages/Index";
 import OrderSuccess from "@/pages/OrderSuccess";
 import OrderHistory from "@/pages/OrderHistory";
+import WishlistPage from "@/pages/WishlistPage";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -28,6 +29,7 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/order/success" element={<OrderSuccess />} />
                   <Route path="/orders" element={<OrderHistory />} />
+                  <Route path="/wishlist" element={<WishlistPage />} />
                 </Routes>
                 <SearchOverlay 
                   open={isSearchOpen} 
