@@ -26,7 +26,7 @@ interface SupabaseProduct {
 }
 
 const fetchProducts = async () => {
-  console.log('Fetching products...');
+  console.log('Starting to fetch products...');
   const { data, error } = await supabase
     .from('products')
     .select(`
@@ -40,7 +40,8 @@ const fetchProducts = async () => {
     throw error;
   }
   
-  console.log('Products fetched:', data);
+  console.log('Products fetched successfully:', data);
+  console.log('Number of products:', data?.length || 0);
   return data as SupabaseProduct[];
 };
 
@@ -56,12 +57,19 @@ const ProductGrid = () => {
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
-    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
-    gcTime: 30 * 60 * 1000,   // Cache persists for 30 minutes (previously cacheTime)
-    retry: 2, // Retry failed requests twice
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
     meta: {
       errorMessage: "Failed to load products"
     }
+  });
+
+  console.log('Current products state:', {
+    isLoading,
+    error,
+    productsLength: products?.length || 0,
+    products
   });
 
   const handleRefresh = async () => {
@@ -73,6 +81,7 @@ const ProductGrid = () => {
         description: "Products refreshed successfully",
       });
     } catch (error) {
+      console.error('Refresh error:', error);
       toast({
         title: "Error",
         description: "Failed to refresh products",
@@ -82,6 +91,7 @@ const ProductGrid = () => {
   };
 
   if (error) {
+    console.error('Product grid error:', error);
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <div className="text-red-500 mb-4">
