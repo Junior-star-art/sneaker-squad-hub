@@ -57,7 +57,7 @@ const ProductGrid = () => {
     queryKey: ['products'],
     queryFn: fetchProducts,
     staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
-    cacheTime: 30 * 60 * 1000, // Cache persists for 30 minutes
+    gcTime: 30 * 60 * 1000,   // Cache persists for 30 minutes (previously cacheTime)
     retry: 2, // Retry failed requests twice
     meta: {
       errorMessage: "Failed to load products"
