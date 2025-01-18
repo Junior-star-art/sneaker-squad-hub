@@ -78,6 +78,41 @@ export type Database = {
           },
         ]
       }
+      order_tracking: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          order_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          order_id?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          order_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_tracking_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           billing_address: Json | null
@@ -85,6 +120,7 @@ export type Database = {
           id: string
           payment_intent_id: string | null
           shipping_address: Json | null
+          shipping_method_id: string | null
           status: string
           total_amount: number
           updated_at: string
@@ -96,6 +132,7 @@ export type Database = {
           id?: string
           payment_intent_id?: string | null
           shipping_address?: Json | null
+          shipping_method_id?: string | null
           status?: string
           total_amount: number
           updated_at?: string
@@ -107,12 +144,20 @@ export type Database = {
           id?: string
           payment_intent_id?: string | null
           shipping_address?: Json | null
+          shipping_method_id?: string | null
           status?: string
           total_amount?: number
           updated_at?: string
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_shipping_method_id_fkey"
+            columns: ["shipping_method_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_methods"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_user_id_fkey"
             columns: ["user_id"]
@@ -198,6 +243,83 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      shipping_methods: {
+        Row: {
+          created_at: string
+          description: string | null
+          estimated_days: number
+          id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          estimated_days: number
+          id?: string
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          estimated_days?: number
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          address_line1: string
+          address_line2: string | null
+          city: string
+          country: string
+          created_at: string
+          id: string
+          is_default: boolean | null
+          postal_code: string
+          state: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address_line1: string
+          address_line2?: string | null
+          city: string
+          country: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          postal_code: string
+          state: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          postal_code?: string
+          state?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

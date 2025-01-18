@@ -13,27 +13,42 @@ serve(async (req) => {
   }
 
   try {
-    const { items, userId } = await req.json();
+    const { items, userId, shippingMethodId } = await req.json();
     
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Get user profile
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    // Get user profile and shipping method
+    const [profileResponse, shippingMethodResponse] = await Promise.all([
+      supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single(),
+      supabaseClient
+        .from('shipping_methods')
+        .select('*')
+        .eq('id', shippingMethodId)
+        .single()
+    ]);
 
-    if (!profile) {
-      throw new Error('User profile not found');
-    }
+    if (profileResponse.error) throw profileResponse.error;
+    if (shippingMethodResponse.error) throw shippingMethodResponse.error;
+
+    const profile = profileResponse.data;
+    const shippingMethod = shippingMethodResponse.data;
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
+
+    // Calculate total amount including shipping
+    const subtotal = items.reduce((sum: number, item: any) => 
+      sum + (parseFloat(item.price.replace('$', '')) * item.quantity), 0
+    );
+    const total = subtotal + shippingMethod.price;
 
     // Create order in database
     const { data: order, error: orderError } = await supabaseClient
@@ -41,7 +56,8 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         status: 'pending',
-        total_amount: items.reduce((sum: number, item: any) => sum + (parseFloat(item.price.replace('$', '')) * item.quantity), 0),
+        total_amount: total,
+        shipping_method_id: shippingMethodId
       })
       .select()
       .single();
@@ -71,12 +87,32 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/order-success?order_id=${order.id}`,
+      success_url: `${req.headers.get('origin')}/order/success?order_id=${order.id}`,
       cancel_url: `${req.headers.get('origin')}/cart`,
       customer_email: profile.email,
       metadata: {
         order_id: order.id,
       },
+      shipping_options: [{
+        shipping_rate_data: {
+          type: 'fixed_amount',
+          fixed_amount: {
+            amount: Math.round(shippingMethod.price * 100),
+            currency: 'usd',
+          },
+          display_name: shippingMethod.name,
+          delivery_estimate: {
+            minimum: {
+              unit: 'business_day',
+              value: Math.max(1, shippingMethod.estimated_days - 2),
+            },
+            maximum: {
+              unit: 'business_day',
+              value: shippingMethod.estimated_days,
+            },
+          },
+        },
+      }],
       line_items: items.map((item: any) => ({
         price_data: {
           currency: 'usd',
