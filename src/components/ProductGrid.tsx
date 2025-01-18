@@ -9,7 +9,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import PullToRefresh from 'react-pull-to-refresh';
 import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ProductCard } from "./product/ProductCard";
 
 interface SupabaseProduct {
@@ -51,30 +51,54 @@ const ProductGrid = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: products, isLoading, error } = useQuery({
+  const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
+    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
+    cacheTime: 30 * 60 * 1000, // Cache persists for 30 minutes
+    retry: 2, // Retry failed requests twice
     meta: {
-      onError: (error: Error) => {
-        console.error('Query error:', error);
-        toast({
-          title: "Error loading products",
-          description: "There was a problem loading the products. Please try again later.",
-          variant: "destructive",
-        });
-      }
+      errorMessage: "Failed to load products"
+    },
+    onError: (error: Error) => {
+      console.error('Query error:', error);
+      toast({
+        title: "Error loading products",
+        description: "There was a problem loading the products. Please try again later.",
+        variant: "destructive",
+      });
     }
   });
 
   const handleRefresh = async () => {
-    window.location.reload();
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await refetch();
+      toast({
+        title: "Success",
+        description: "Products refreshed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh products",
+        variant: "destructive",
+      });
+    }
   };
 
   if (error) {
     return (
       <div className="text-center py-12">
         <p className="text-red-500">Error loading products. Please try again later.</p>
+        <button 
+          onClick={() => refetch()} 
+          className="mt-4 px-4 py-2 bg-nike-red text-white rounded hover:bg-red-700 transition-colors"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -114,7 +138,7 @@ const ProductGrid = () => {
                 product={{
                   id: selectedProduct.id,
                   name: selectedProduct.name,
-                  price: selectedProduct.price,  // Pass the numeric price directly
+                  price: selectedProduct.price,
                   description: selectedProduct.description || '',
                   features: [],
                   materials: '',
