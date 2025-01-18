@@ -70,11 +70,17 @@ export default {
           "100%": {
             transform: "rotate(360deg)"
           }
+        },
+        "shimmer": {
+          "100%": {
+            transform: "translateX(100%)"
+          }
         }
       },
       animation: {
         "fade-up": "fade-up 0.5s ease-out",
-        "spin-slow": "spin-slow 10s linear infinite"
+        "spin-slow": "spin-slow 10s linear infinite",
+        "shimmer": "shimmer 1.5s infinite"
       },
     },
   },

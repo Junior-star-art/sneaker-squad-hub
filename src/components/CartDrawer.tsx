@@ -12,7 +12,7 @@ import { AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import CartItem from "./cart/CartItem";
 import CheckoutForm from "./cart/CheckoutForm";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, PackageOpen, ShoppingBasket } from "lucide-react";
 
 type CartDrawerProps = {
   open: boolean;
@@ -27,29 +27,43 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="h-[96vh]">
         <DrawerHeader>
-          <DrawerTitle>Your Cart</DrawerTitle>
+          <DrawerTitle className="flex items-center gap-2">
+            <ShoppingBasket className="h-5 w-5" />
+            Your Cart
+          </DrawerTitle>
         </DrawerHeader>
         <div className="flex-1 overflow-y-auto px-4">
           {!isCheckingOut ? (
             <>
               {items.length === 0 && savedItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center mb-4 animate-fade-up">
                     <ShoppingBag className="h-12 w-12 text-gray-400" />
                   </div>
-                  <p className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</p>
-                  <p className="text-gray-500 text-center mb-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2 animate-fade-up">
+                    Your cart is empty
+                  </h3>
+                  <p className="text-gray-500 max-w-[240px] mb-6 animate-fade-up">
                     Looks like you haven't added any items to your cart yet.
+                    Start shopping to fill it up!
                   </p>
                   <DrawerClose asChild>
-                    <Button variant="outline">Start Shopping</Button>
+                    <Button 
+                      variant="outline"
+                      className="animate-fade-up"
+                    >
+                      Browse Products
+                    </Button>
                   </DrawerClose>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {items.length > 0 && (
                     <div className="space-y-4">
-                      <h3 className="font-medium">Cart Items</h3>
+                      <h3 className="font-medium flex items-center gap-2">
+                        <ShoppingBasket className="h-4 w-4" />
+                        Cart Items ({items.length})
+                      </h3>
                       <AnimatePresence>
                         {items.map((item) => (
                           <CartItem
@@ -66,7 +80,10 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                   
                   {savedItems.length > 0 && (
                     <div className="space-y-4">
-                      <h3 className="font-medium">Saved for Later</h3>
+                      <h3 className="font-medium flex items-center gap-2">
+                        <PackageOpen className="h-4 w-4" />
+                        Saved for Later ({savedItems.length})
+                      </h3>
                       <AnimatePresence>
                         {savedItems.map((item) => (
                           <CartItem
