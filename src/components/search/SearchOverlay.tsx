@@ -192,6 +192,7 @@ export function SearchOverlay({
             <SearchResults 
               results={searchResults} 
               searchQuery={searchQuery}
+              onClose={() => onOpenChange(false)}
             />
           )}
 
