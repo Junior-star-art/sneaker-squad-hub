@@ -43,13 +43,21 @@ export function AddressForm({ onSuccess, defaultValues, addressId }: AddressForm
     try {
       if (!user) throw new Error("User not authenticated")
 
+      const addressData = {
+        address_line1: data.address_line1,
+        address_line2: data.address_line2,
+        city: data.city,
+        state: data.state,
+        postal_code: data.postal_code,
+        country: data.country,
+        is_default: data.is_default,
+        user_id: user.id
+      };
+
       if (addressId) {
         const { error } = await supabase
           .from("user_addresses")
-          .update({
-            ...data,
-            updated_at: new Date().toISOString(),
-          })
+          .update(addressData)
           .eq("id", addressId)
 
         if (error) throw error
@@ -61,10 +69,7 @@ export function AddressForm({ onSuccess, defaultValues, addressId }: AddressForm
       } else {
         const { error } = await supabase
           .from("user_addresses")
-          .insert({
-            ...data,
-            user_id: user.id,
-          })
+          .insert(addressData)
 
         if (error) throw error
 

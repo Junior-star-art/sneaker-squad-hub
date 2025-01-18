@@ -87,7 +87,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
           <div className="space-y-6">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <p className="text-2xl font-bold">{formatPrice(product.price)}</p>
+                <p className="text-2xl font-bold">${product.price.toFixed(2)}</p>
                 <Badge variant={status.color as "default" | "destructive" | "secondary"}>{status.label}</Badge>
               </div>
               {product.stock > 0 && product.stock < 5 && (
