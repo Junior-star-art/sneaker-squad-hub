@@ -2,6 +2,19 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  images: string[] | null;
+  stock: number | null;
+  featured: boolean | null;
+  category: {
+    name: string;
+  } | null;
+}
+
 export const RecentlyViewed = () => {
   const { recentlyViewed } = useRecentlyViewed();
 

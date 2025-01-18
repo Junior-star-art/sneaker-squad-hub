@@ -1,98 +1,55 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface OrderStatusUpdate {
-  orderId: string;
-  status: string;
-  description?: string;
-  location?: string;
-}
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    );
+    const { orderId, status, userEmail } = await req.json();
 
-    const { orderId, status, description, location }: OrderStatusUpdate = await req.json();
-
-    // Insert order tracking update
-    const { data: trackingData, error: trackingError } = await supabaseClient
-      .from('order_tracking')
-      .insert({
-        order_id: orderId,
-        status,
-        description,
-        location,
-      })
-      .select('*, orders(user_id)');
-
-    if (trackingError) {
-      console.error('Error inserting tracking data:', trackingError);
-      throw trackingError;
+    if (!orderId || !status || !userEmail) {
+      throw new Error('Missing required fields');
     }
 
-    // Get user email
-    const { data: userData, error: userError } = await supabaseClient
-      .from('profiles')
-      .select('*')
-      .eq('id', trackingData[0].orders.user_id)
-      .single();
-
-    if (userError) {
-      console.error('Error fetching user data:', userError);
-      throw userError;
-    }
-
-    // Send email using Resend
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
+    // Send email notification using Resend
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "orders@yourdomain.com",
-        to: [userData.email],
+        from: 'orders@yourdomain.com',
+        to: userEmail,
         subject: `Order Status Update - ${status}`,
         html: `
           <h1>Order Status Update</h1>
-          <p>Your order #${orderId.slice(0, 8)} has been updated:</p>
-          <p><strong>Status:</strong> ${status}</p>
-          ${description ? `<p><strong>Details:</strong> ${description}</p>` : ''}
-          ${location ? `<p><strong>Location:</strong> ${location}</p>` : ''}
-          <p>Track your order anytime by visiting your order history.</p>
+          <p>Your order (${orderId}) status has been updated to: ${status}</p>
+          <p>Track your order here: <a href="https://yourdomain.com/orders/${orderId}">View Order</a></p>
         `,
       }),
     });
 
-    if (!emailResponse.ok) {
-      const error = await emailResponse.text();
-      console.error('Error sending email:', error);
-      throw new Error('Failed to send email');
-    }
-
-    return new Response(JSON.stringify({ message: "Order status updated and notification sent" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const data = await res.json();
+    
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
-  } catch (error: any) {
-    console.error("Error:", error);
+  } catch (error) {
+    console.error('Error sending notification:', error);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
   }
-};
-
-serve(handler);
+});

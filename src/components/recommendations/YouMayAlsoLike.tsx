@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,19 +7,24 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  images: string[];
-  description: string;
+  description: string | null;
+  images: string[] | null;
+  stock: number | null;
+  featured: boolean | null;
+  category: {
+    name: string;
+  } | null;
 }
 
 const fetchRecommendations = async () => {
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select('*, category:categories(name)')
     .order('recommendation_score', { ascending: false })
     .limit(10);
 
   if (error) throw error;
-  return data;
+  return data as Product[];
 };
 
 export const YouMayAlsoLike = () => {
