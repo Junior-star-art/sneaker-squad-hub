@@ -10,8 +10,9 @@ import OrderHistory from "@/pages/OrderHistory";
 import WishlistPage from "@/pages/WishlistPage";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Toaster } from "@/components/ui/toaster";
 
-// Create a client
 const queryClient = new QueryClient();
 
 function App() {
@@ -27,14 +28,36 @@ function App() {
               <RecentlyViewedProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/order/success" element={<OrderSuccess />} />
-                  <Route path="/orders" element={<OrderHistory />} />
-                  <Route path="/wishlist" element={<WishlistPage />} />
+                  <Route 
+                    path="/order/success" 
+                    element={
+                      <ProtectedRoute>
+                        <OrderSuccess />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/orders" 
+                    element={
+                      <ProtectedRoute>
+                        <OrderHistory />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/wishlist" 
+                    element={
+                      <ProtectedRoute>
+                        <WishlistPage />
+                      </ProtectedRoute>
+                    } 
+                  />
                 </Routes>
                 <SearchOverlay 
                   open={isSearchOpen} 
                   onOpenChange={setIsSearchOpen}
                 />
+                <Toaster />
               </RecentlyViewedProvider>
             </CartProvider>
           </WishlistProvider>

@@ -1,16 +1,26 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 export function AuthForms() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { loading, error } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-md mx-auto space-y-6 p-6">
+        <div className="flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6 p-6">
@@ -30,6 +40,12 @@ export function AuthForms() {
       <h2 className="text-2xl font-bold text-center mb-6">
         Join Nike Member Profile
       </h2>
+
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <Auth
         supabaseClient={supabase}
