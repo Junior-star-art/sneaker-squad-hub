@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
-import { Eye } from "lucide-react";
+import { Eye, AlertTriangle, CheckCircle, XCircle, Star } from "lucide-react";
 import { WishlistButton } from "./WishlistButton";
+import { differenceInDays } from "date-fns";
 
 interface Product {
   id: string;
@@ -15,6 +17,7 @@ interface Product {
   category: {
     name: string;
   } | null;
+  created_at?: string;
 }
 
 interface ProductCardProps {
@@ -32,14 +35,42 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     }).format(price);
   };
 
+  const getStockStatus = (stock: number | null) => {
+    if (!stock) return { label: "Out of Stock", icon: XCircle, variant: "destructive" as const };
+    if (stock < 5) return { label: "Low Stock", icon: AlertTriangle, variant: "warning" as const };
+    return { label: "In Stock", icon: CheckCircle, variant: "success" as const };
+  };
+
+  const isNewArrival = (createdAt?: string) => {
+    if (!createdAt) return false;
+    return differenceInDays(new Date(), new Date(createdAt)) <= 30;
+  };
+
+  const stockStatus = getStockStatus(product.stock);
+  const StockIcon = stockStatus.icon;
+
   return (
-    <Card className="group overflow-hidden">
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg">
       <div className="aspect-square overflow-hidden relative">
         <img
           src={product.images?.[0] || '/placeholder.svg'}
           alt={product.name}
-          className="object-cover w-full h-full transition-transform group-hover:scale-105"
+          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
         />
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+          {isNewArrival(product.created_at) && (
+            <Badge className="bg-nike-red text-white">
+              <Star className="w-3 h-3 mr-1" />
+              New Arrival
+            </Badge>
+          )}
+          {product.stock !== null && product.stock < 5 && (
+            <Badge variant="warning" className="bg-yellow-500 text-white">
+              <AlertTriangle className="w-3 h-3 mr-1" />
+              Only {product.stock} left
+            </Badge>
+          )}
+        </div>
         <div className="absolute top-4 right-4 flex gap-2">
           <WishlistButton productId={product.id} />
           <Button
@@ -53,7 +84,16 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         </div>
       </div>
       <div className="p-4">
-        <h3 className="font-medium truncate">{product.name}</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-medium truncate">{product.name}</h3>
+          <Badge 
+            variant={stockStatus.variant}
+            className="flex items-center gap-1"
+          >
+            <StockIcon className="w-3 h-3" />
+            <span className="text-xs">{stockStatus.label}</span>
+          </Badge>
+        </div>
         <p className="text-sm text-muted-foreground mt-1">{product.category?.name}</p>
         <div className="flex items-center justify-between mt-4">
           <span className="font-medium">{formatPrice(product.price)}</span>
@@ -65,6 +105,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               price: product.price,
               image: product.images?.[0] || '/placeholder.svg'
             })}
+            disabled={!product.stock}
           >
             Add to Cart
           </Button>
