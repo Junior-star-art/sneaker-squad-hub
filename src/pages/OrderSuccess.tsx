@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import Navbar from "@/components/Navbar";
+import { Navbar } from "@/components/Navbar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface OrderTracking {
@@ -23,7 +23,6 @@ const OrderSuccess = () => {
   const { toast } = useToast();
   const [order, setOrder] = useState<any>(null);
   const [tracking, setTracking] = useState<OrderTracking[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -102,7 +101,7 @@ const OrderSuccess = () => {
   if (!order) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar onCartClick={() => setIsCartOpen(true)} />
+        <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
@@ -112,7 +111,7 @@ const OrderSuccess = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onCartClick={() => setIsCartOpen(true)} />
+      <Navbar />
       <div className="max-w-3xl mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">

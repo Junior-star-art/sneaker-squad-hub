@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { Product } from "@/types/product";
-import ProductCard from "@/components/product/ProductCard";
+import { ProductCard } from "@/components/product/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
@@ -63,7 +62,11 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                product={product}
+                onQuickView={() => {}} 
+              />
             ))}
           </div>
         )}

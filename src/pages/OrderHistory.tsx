@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Package } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -39,7 +39,6 @@ const fetchOrders = async (userId: string) => {
 const OrderHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -57,7 +56,7 @@ const OrderHistory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onCartClick={() => setIsCartOpen(true)} />
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-sm rounded-lg">
           <div className="px-4 py-5 sm:p-6">
