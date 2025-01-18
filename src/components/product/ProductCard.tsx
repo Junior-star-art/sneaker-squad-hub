@@ -37,8 +37,8 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
 
   const getStockStatus = (stock: number | null) => {
     if (!stock) return { label: "Out of Stock", icon: XCircle, variant: "destructive" as const };
-    if (stock < 5) return { label: "Low Stock", icon: AlertTriangle, variant: "warning" as const };
-    return { label: "In Stock", icon: CheckCircle, variant: "success" as const };
+    if (stock < 5) return { label: "Low Stock", icon: AlertTriangle, variant: "secondary" as const };
+    return { label: "In Stock", icon: CheckCircle, variant: "outline" as const };
   };
 
   const isNewArrival = (createdAt?: string) => {
@@ -65,7 +65,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
             </Badge>
           )}
           {product.stock !== null && product.stock < 5 && (
-            <Badge variant="warning" className="bg-yellow-500 text-white">
+            <Badge variant="secondary" className="bg-yellow-500 text-white">
               <AlertTriangle className="w-3 h-3 mr-1" />
               Only {product.stock} left
             </Badge>
@@ -88,7 +88,11 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           <h3 className="font-medium truncate">{product.name}</h3>
           <Badge 
             variant={stockStatus.variant}
-            className="flex items-center gap-1"
+            className={`flex items-center gap-1 ${
+              !product.stock ? 'bg-red-100 text-red-700' :
+              product.stock < 5 ? 'bg-yellow-100 text-yellow-700' :
+              'bg-green-100 text-green-700'
+            }`}
           >
             <StockIcon className="w-3 h-3" />
             <span className="text-xs">{stockStatus.label}</span>
