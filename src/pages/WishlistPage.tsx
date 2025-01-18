@@ -7,13 +7,17 @@ import { Heart } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import { useState } from "react";
+import CartDrawer from "@/components/CartDrawer";
 
 type Product = Database['public']['Tables']['products']['Row'];
 
 export default function WishlistPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { wishlistItems } = useWishlist();
+  const { wishlistItems, loading: wishlistLoading } = useWishlist();
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -21,7 +25,7 @@ export default function WishlistPage() {
     }
   }, [user, navigate]);
 
-  const { data: wishlistProducts, isLoading } = useQuery({
+  const { data: wishlistProducts, isLoading: productsLoading } = useQuery({
     queryKey: ['wishlist-products', wishlistItems],
     queryFn: async () => {
       if (!wishlistItems.length) return [];
@@ -37,47 +41,54 @@ export default function WishlistPage() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!wishlistItems.length,
+    enabled: !!wishlistItems.length && !wishlistLoading,
   });
 
   if (!user) return null;
 
-  return (
-    <div className="container mx-auto px-4 py-24">
-      <div className="flex items-center gap-2 mb-8">
-        <Heart className="w-6 h-6" />
-        <h1 className="text-2xl font-bold">My Wishlist</h1>
-      </div>
+  const isLoading = wishlistLoading || productsLoading;
 
-      {isLoading ? (
-        <div className="text-center py-12">
-          <p>Loading wishlist...</p>
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar onCartClick={() => setCartOpen(true)} />
+      <div className="container mx-auto px-4 py-24">
+        <div className="flex items-center gap-2 mb-8">
+          <Heart className="w-6 h-6" />
+          <h1 className="text-2xl font-bold">My Wishlist</h1>
         </div>
-      ) : !wishlistProducts?.length ? (
-        <div className="text-center py-12">
-          <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <h2 className="text-xl font-semibold mb-2">Your wishlist is empty</h2>
-          <p className="text-gray-500 mb-4">
-            Add items to your wishlist by clicking the heart icon on products you love.
-          </p>
-          <button
-            onClick={() => navigate("/")}
-            className="text-nike-red hover:underline"
-          >
-            Continue Shopping
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {wishlistProducts.map((product) => (
-            <ProductCard 
-              key={product.id} 
-              product={product}
-              onQuickView={() => {}} 
-            />
-          ))}
-        </div>
-      )}
+
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading wishlist...</p>
+          </div>
+        ) : !wishlistProducts?.length ? (
+          <div className="text-center py-12">
+            <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h2 className="text-xl font-semibold mb-2">Your wishlist is empty</h2>
+            <p className="text-gray-500 mb-4">
+              Add items to your wishlist by clicking the heart icon on products you love.
+            </p>
+            <button
+              onClick={() => navigate("/")}
+              className="text-nike-red hover:underline"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {wishlistProducts.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={product}
+                onQuickView={() => {}} 
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </div>
   );
 }
