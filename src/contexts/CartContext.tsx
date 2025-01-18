@@ -2,10 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { supabase } from "@/lib/supabase";
 
-type CartItem = {
+export type CartItem = {
   id: string;
   name: string;
-  price: number;  // Changed from string to number
+  price: number;
   image: string;
   quantity: number;
 };
@@ -29,7 +29,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [savedItems, setSavedItems] = useState<CartItem[]>([]);
   const { user } = useAuth();
 
-  // Load cart items when user changes
   useEffect(() => {
     if (user) {
       loadUserCart();

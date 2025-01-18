@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu, X, Search, ShoppingBag, UserRound, Heart } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -25,6 +25,7 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const { items, total } = useCart();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <>
