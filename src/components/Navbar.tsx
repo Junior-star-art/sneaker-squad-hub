@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import CartDrawer from "@/components/CartDrawer";
 import { useState } from "react";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
+import { useToast } from "@/hooks/use-toast";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -17,6 +18,24 @@ export function Navbar() {
   const { wishlistItems } = useWishlist();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleAuthenticatedAction = (action: () => void, redirectPath?: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to continue",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+    if (redirectPath) {
+      navigate(redirectPath);
+    } else {
+      action();
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
@@ -36,46 +55,48 @@ export function Navbar() {
               <Search className="h-5 w-5" />
             </Button>
 
-            {user && (
-              <>
-                <Link to="/wishlist">
-                  <Button variant="ghost" size="icon" title="Wishlist">
-                    <Heart className="h-5 w-5" />
-                    {wishlistItems.length > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0"
-                      >
-                        {wishlistItems.length}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsCartOpen(true)}
-                  title="Cart"
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleAuthenticatedAction(() => {}, "/wishlist")}
+              title="Wishlist"
+            >
+              <Heart className="h-5 w-5" />
+              {wishlistItems.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0"
                 >
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartItems.length > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0"
-                    >
-                      {cartItems.length}
-                    </Badge>
-                  )}
-                </Button>
+                  {wishlistItems.length}
+                </Badge>
+              )}
+            </Button>
 
-                <Link to="/orders">
-                  <Button variant="ghost" size="icon" title="Orders">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
-              </>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleAuthenticatedAction(() => setIsCartOpen(true))}
+              title="Cart"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartItems.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0"
+                >
+                  {cartItems.length}
+                </Badge>
+              )}
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleAuthenticatedAction(() => {}, "/orders")}
+              title="Orders"
+            >
+              <User className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
