@@ -12,6 +12,7 @@ import { AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import CartItem from "./cart/CartItem";
 import CheckoutForm from "./cart/CheckoutForm";
+import { ShoppingBag } from "lucide-react";
 
 type CartDrawerProps = {
   open: boolean;
@@ -32,9 +33,18 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
           {!isCheckingOut ? (
             <>
               {items.length === 0 && savedItems.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Your cart is empty
-                </p>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                    <ShoppingBag className="h-12 w-12 text-gray-400" />
+                  </div>
+                  <p className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</p>
+                  <p className="text-gray-500 text-center mb-6">
+                    Looks like you haven't added any items to your cart yet.
+                  </p>
+                  <DrawerClose asChild>
+                    <Button variant="outline">Start Shopping</Button>
+                  </DrawerClose>
+                </div>
               ) : (
                 <div className="space-y-6">
                   {items.length > 0 && (
@@ -78,7 +88,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
             <CheckoutForm onBack={() => setIsCheckingOut(false)} />
           )}
         </div>
-        {!isCheckingOut && (
+        {!isCheckingOut && items.length > 0 && (
           <DrawerFooter>
             <div className="flex justify-between items-center mb-4">
               <span className="font-medium">Total</span>
@@ -86,7 +96,6 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
             </div>
             <Button 
               className="w-full" 
-              disabled={items.length === 0}
               onClick={() => setIsCheckingOut(true)}
             >
               Proceed to Checkout

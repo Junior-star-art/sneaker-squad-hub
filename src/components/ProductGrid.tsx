@@ -61,14 +61,6 @@ const ProductGrid = () => {
     retry: 2, // Retry failed requests twice
     meta: {
       errorMessage: "Failed to load products"
-    },
-    onError: (error: Error) => {
-      console.error('Query error:', error);
-      toast({
-        title: "Error loading products",
-        description: "There was a problem loading the products. Please try again later.",
-        variant: "destructive",
-      });
     }
   });
 
@@ -91,11 +83,29 @@ const ProductGrid = () => {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Error loading products. Please try again later.</p>
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <div className="text-red-500 mb-4">
+          <svg
+            className="h-12 w-12 mx-auto mb-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        <p className="text-lg font-medium text-gray-900 mb-2">Unable to load products</p>
+        <p className="text-gray-500 text-center mb-6">
+          There was a problem loading the products. Please try again.
+        </p>
         <button 
           onClick={() => refetch()} 
-          className="mt-4 px-4 py-2 bg-nike-red text-white rounded hover:bg-red-700 transition-colors"
+          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
         >
           Try Again
         </button>
@@ -120,8 +130,28 @@ const ProductGrid = () => {
                 Array.from({ length: 8 }).map((_, index) => (
                   <ProductSkeleton key={index} />
                 ))
+              ) : !products?.length ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
+                    <svg
+                      className="w-full h-full"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                  <p className="text-gray-500">Check back later for new arrivals.</p>
+                </div>
               ) : (
-                products?.slice(0, page * 8).map((product) => (
+                products.slice(0, page * 8).map((product) => (
                   <ProductCard 
                     key={product.id}
                     product={product}
