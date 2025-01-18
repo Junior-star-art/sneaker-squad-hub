@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
 import { Eye } from "lucide-react";
+import { WishlistButton } from "./WishlistButton";
 
 interface Product {
   id: string;
@@ -39,14 +40,17 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           alt={product.name}
           className="object-cover w-full h-full transition-transform group-hover:scale-105"
         />
-        <Button
-          variant="secondary"
-          size="icon"
-          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => onQuickView(product)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
+        <div className="absolute top-4 right-4 flex gap-2">
+          <WishlistButton productId={product.id} />
+          <Button
+            variant="secondary"
+            size="icon"
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => onQuickView(product)}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       <div className="p-4">
         <h3 className="font-medium truncate">{product.name}</h3>

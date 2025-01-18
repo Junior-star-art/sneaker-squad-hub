@@ -1,6 +1,7 @@
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import Index from "@/pages/Index";
@@ -20,19 +21,21 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <CartProvider>
-            <RecentlyViewedProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/order/success" element={<OrderSuccess />} />
-                <Route path="/orders" element={<OrderHistory />} />
-              </Routes>
-              <SearchOverlay 
-                open={isSearchOpen} 
-                onOpenChange={setIsSearchOpen}
-              />
-            </RecentlyViewedProvider>
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <RecentlyViewedProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/order/success" element={<OrderSuccess />} />
+                  <Route path="/orders" element={<OrderHistory />} />
+                </Routes>
+                <SearchOverlay 
+                  open={isSearchOpen} 
+                  onOpenChange={setIsSearchOpen}
+                />
+              </RecentlyViewedProvider>
+            </CartProvider>
+          </WishlistProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
