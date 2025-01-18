@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 type CartItem = {
   id: string;
   name: string;
-  price: string;
+  price: number;  // Changed from string to number
   image: string;
   quantity: number;
 };
@@ -120,8 +120,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const total = items
     .reduce((sum, item) => {
-      const price = parseFloat(item.price.replace("$", ""));
-      return sum + price * item.quantity;
+      return sum + item.price * item.quantity;
     }, 0)
     .toLocaleString("en-US", { style: "currency", currency: "USD" });
 

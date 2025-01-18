@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import FilterSection from "./FilterSection";
-import SearchResults from "./SearchResults";
+import { SearchResults } from "./SearchResults";  // Changed to named import
 import VisualSearch from "./VisualSearch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import VoiceSearch from "./VoiceSearch";
