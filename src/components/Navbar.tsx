@@ -6,14 +6,14 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { Heart, Search, ShoppingCart, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { CartSheet } from "@/components/cart/CartSheet";
+import CartDrawer from "@/components/CartDrawer";
 import { useState } from "react";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 
 export function Navbar() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { cartItems } = useCart();
+  const { items: cartItems } = useCart();
   const { wishlistItems } = useWishlist();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -80,8 +80,10 @@ export function Navbar() {
         </div>
       </div>
 
-      <CartSheet open={isCartOpen} onOpenChange={setIsCartOpen} />
+      <CartDrawer open={isCartOpen} onOpenChange={setIsCartOpen} />
       <SearchOverlay open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </nav>
   );
 }
+
+export default Navbar;
