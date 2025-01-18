@@ -49,16 +49,14 @@ const ProductGrid = () => {
   const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000,   // 30 minutes
     retry: 2,
     meta: {
       errorMessage: "Failed to load products"
@@ -170,8 +168,6 @@ const ProductGrid = () => {
                 ))
               )}
             </div>
-
-            <div ref={loadMoreRef} className="h-10 mt-8" />
 
             {selectedProduct && (
               <ProductQuickView
