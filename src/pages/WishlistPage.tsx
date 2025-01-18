@@ -19,8 +19,9 @@ export default function WishlistPage() {
   const { wishlistItems, loading: wishlistLoading } = useWishlist();
   const [cartOpen, setCartOpen] = useState(false);
 
+  // Only redirect if we're sure there's no user and we're not still loading
   useEffect(() => {
-    if (!user) {
+    if (user === null) {
       navigate("/");
     }
   }, [user, navigate]);
@@ -28,7 +29,7 @@ export default function WishlistPage() {
   const { data: wishlistProducts, isLoading: productsLoading } = useQuery({
     queryKey: ['wishlist-products', wishlistItems],
     queryFn: async () => {
-      if (!wishlistItems.length) return [];
+      if (!wishlistItems?.length) return [];
       
       const { data, error } = await supabase
         .from('products')
@@ -38,12 +39,33 @@ export default function WishlistPage() {
         `)
         .in('id', wishlistItems.map(item => item.product_id));
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching wishlist products:', error);
+        return [];
+      }
+      
       return data || [];
     },
-    enabled: !!wishlistItems.length && !wishlistLoading,
+    enabled: Boolean(user) && !wishlistLoading && Array.isArray(wishlistItems),
   });
 
+  // Show loading state while checking authentication
+  if (user === undefined) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navbar onCartClick={() => setCartOpen(true)} />
+        <div className="container mx-auto px-4 py-24">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+        <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      </div>
+    );
+  }
+
+  // Redirect if no user
   if (!user) return null;
 
   const isLoading = wishlistLoading || productsLoading;
