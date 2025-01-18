@@ -1,112 +1,231 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Menu, X, Search, ShoppingBag, UserRound, Home, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { SearchOverlay } from "./search/SearchOverlay";
+import { AuthForms } from "./auth/AuthForms";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useMediaQuery } from "@/hooks/use-mobile";
 
-const Navbar = ({ onCartClick }: { onCartClick: () => void }) => {
-  const { user } = useAuth();
+type NavbarProps = {
+  onCartClick: () => void;
+};
+
+export const Navbar = ({ onCartClick }: NavbarProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const { items, total } = useCart();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
-  const handleAuthenticatedAction = (action: () => void, redirectPath?: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to continue",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-    if (redirectPath) {
-      navigate(redirectPath);
-    } else {
-      action();
-    }
-  };
-
-  if (isMobile) {
-    return (
-      <>
-        <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-white border-b">
-          <Link to="/" className="text-xl font-bold">
-            NIKE
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/search")}
-            className="ml-auto"
-          >
-            <Search className="w-5 h-5" />
-          </Button>
-        </nav>
-        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around py-2 bg-white border-t">
-          <Button
-            variant="ghost"
-            onClick={() => handleAuthenticatedAction(() => navigate("/wishlist"))}
-            className="flex flex-col items-center"
-          >
-            <span className="material-icons">favorite_border</span>
-            <span className="text-xs">Wishlist</span>
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => handleAuthenticatedAction(onCartClick)}
-            className="flex flex-col items-center"
-          >
-            <span className="material-icons">shopping_cart</span>
-            <span className="text-xs">Cart</span>
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => handleAuthenticatedAction(() => navigate("/orders"))}
-            className="flex flex-col items-center"
-          >
-            <span className="material-icons">receipt_long</span>
-            <span className="text-xs">Orders</span>
-          </Button>
-        </div>
-      </>
-    );
-  }
 
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 bg-white border-b">
-      <Link to="/" className="text-xl font-bold">
-        NIKE
-      </Link>
-      <div className="flex items-center space-x-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/search")}
-        >
-          <Search className="w-5 h-5" />
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => handleAuthenticatedAction(() => navigate("/wishlist"))}
-        >
-          <span className="material-icons">favorite_border</span>
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => handleAuthenticatedAction(onCartClick)}
-        >
-          <span className="material-icons">shopping_cart</span>
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => handleAuthenticatedAction(() => navigate("/orders"))}
-        >
-          <span className="material-icons">receipt_long</span>
-        </Button>
+    <>
+      <nav className="fixed top-0 w-full bg-white z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <a href="/" className="flex-shrink-0">
+                <img
+                  className="h-8 w-auto"
+                  src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg"
+                  alt="Nike"
+                />
+              </a>
+              <div className="hidden md:ml-6 md:flex md:space-x-8">
+                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                  New & Featured
+                </a>
+                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                  Men
+                </a>
+                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                  Women
+                </a>
+                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                  Kids
+                </a>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Dialog open={showRegister} onOpenChange={setShowRegister}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-sm font-medium">
+                    <UserRound className="h-5 w-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  {user ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold">Welcome, {user.full_name || 'Member'}</h2>
+                        <Button variant="ghost" onClick={signOut}>Sign Out</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <AuthForms />
+                  )}
+                </DialogContent>
+              </Dialog>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:text-nike-red"
+                  onClick={() => setShowSearch(true)}
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+                <a href="/wishlist" className="hover:text-nike-red">
+                  <Heart className="h-5 w-5" />
+                </a>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <div className="relative">
+                      <ShoppingBag 
+                        className="h-5 w-5 text-gray-900 cursor-pointer hover:text-nike-red" 
+                        onClick={onCartClick}
+                      />
+                      {items.length > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-nike-red text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                          {items.length}
+                        </span>
+                      )}
+                    </div>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80 p-4">
+                    <div className="space-y-4">
+                      <h3 className="font-bold text-lg">Bag</h3>
+                      {items.length === 0 ? (
+                        <p>There are no items in your bag.</p>
+                      ) : (
+                        <>
+                          {items.slice(0, 2).map((item) => (
+                            <div key={item.id} className="flex items-center gap-4">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-16 w-16 object-cover"
+                              />
+                              <div>
+                                <p className="font-medium">{item.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Qty: {item.quantity}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                          {items.length > 2 && (
+                            <p className="text-sm text-muted-foreground">
+                              +{items.length - 2} more items
+                            </p>
+                          )}
+                          <div className="border-t pt-4">
+                            <div className="flex justify-between mb-2">
+                              <span>Subtotal</span>
+                              <span className="font-medium">{total}</span>
+                            </div>
+                            <div className="flex justify-between mb-4">
+                              <span>Estimated Delivery & Handling</span>
+                              <span>Free</span>
+                            </div>
+                            <Button onClick={onCartClick} className="w-full rounded-full">
+                              Go to Checkout
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                      <div className="border-t pt-4">
+                        <h4 className="font-medium mb-2">Favourites</h4>
+                        <p className="text-sm text-gray-600">
+                          Want to view your favourites?{" "}
+                          <button className="text-black underline" onClick={() => setShowRegister(true)}>
+                            Join us
+                          </button>{" "}
+                          or{" "}
+                          <button className="text-black underline" onClick={() => setShowRegister(true)}>
+                            Sign in
+                          </button>
+                        </p>
+                      </div>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
+              <div className="md:hidden">
+                <button
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-900 hover:text-nike-red focus:outline-none"
+                >
+                  {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {isOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+                New & Featured
+              </a>
+              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+                Men
+              </a>
+              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+                Women
+              </a>
+              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+                Kids
+              </a>
+            </div>
+          </div>
+        )}
+
+        <SearchOverlay open={showSearch} onOpenChange={setShowSearch} />
+      </nav>
+
+      {/* Bottom Navigation for Mobile */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-top z-50">
+        <div className="flex justify-around items-center h-16 px-4">
+          <Button variant="ghost" size="icon" className="flex flex-col items-center">
+            <Home className="h-5 w-5" />
+            <span className="text-xs mt-1">Home</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="flex flex-col items-center" onClick={() => setShowSearch(true)}>
+            <Search className="h-5 w-5" />
+            <span className="text-xs mt-1">Search</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="flex flex-col items-center" onClick={() => navigate("/wishlist")}>
+            <Heart className="h-5 w-5" />
+            <span className="text-xs mt-1">Wishlist</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="flex flex-col items-center" onClick={onCartClick}>
+            <div className="relative">
+              <ShoppingBag className="h-5 w-5" />
+              {items.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-nike-red text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {items.length}
+                </span>
+              )}
+            </div>
+            <span className="text-xs mt-1">Cart</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="flex flex-col items-center" onClick={() => setShowRegister(true)}>
+            <UserRound className="h-5 w-5" />
+            <span className="text-xs mt-1">Account</span>
+          </Button>
+        </div>
       </div>
-    </nav>
+    </>
   );
 };
 

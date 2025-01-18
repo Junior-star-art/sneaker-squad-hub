@@ -11,14 +11,12 @@ import ShopIcons from "@/components/sections/ShopIcons";
 import TrendingThisWeek from "@/components/sections/TrendingThisWeek";
 import ExploreMore from "@/components/sections/ExploreMore";
 import { useState } from "react";
-import { useMediaQuery } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [cartOpen, setCartOpen] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 768px)");
 
   return (
-    <div className={`min-h-screen ${isMobile ? "pb-16" : ""}`}>
+    <div className="min-h-screen">
       <Navbar onCartClick={() => setCartOpen(true)} />
       <Hero />
       <LatestAndGreatest />
