@@ -26,6 +26,7 @@ interface SupabaseProduct {
     name: string;
   } | null;
   category_id: string | null;
+  created_at?: string;
 }
 
 const PRODUCTS_PER_PAGE = 8;
@@ -160,6 +161,10 @@ const ProductGrid = () => {
     );
   }
 
+  const handleQuickView = (product: SupabaseProduct) => {
+    setSelectedProduct(product);
+  };
+
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -202,7 +207,7 @@ const ProductGrid = () => {
                   <ProductCard 
                     key={product.id}
                     product={product}
-                    onQuickView={(product) => setSelectedProduct(product)}
+                    onQuickView={() => handleQuickView(product)}
                   />
                 ))
               )}
@@ -230,7 +235,7 @@ const ProductGrid = () => {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      onQuickView={(product) => setSelectedProduct(product)}
+                      onQuickView={() => handleQuickView(product)}
                     />
                   ))}
                 </div>
