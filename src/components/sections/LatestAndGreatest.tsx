@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { differenceInDays } from "date-fns";
 
 const LatestAndGreatest = () => {
-  // Sort products by release date
   const latestProducts = [...products]
     .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
     .slice(0, 4);
@@ -16,22 +15,23 @@ const LatestAndGreatest = () => {
   };
 
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
+    <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-nike-red" />
-            <div>
-              <h2 className="text-3xl font-bold">Latest & Greatest</h2>
-              <p className="text-nike-gray mt-2">Fresh drops and bestsellers</p>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 sm:mb-12">
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left mb-6 sm:mb-0">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-nike-red" />
+              <span className="text-sm font-medium text-nike-red">New Arrivals</span>
             </div>
+            <h2 className="text-3xl sm:text-4xl font-bold">Latest & Greatest</h2>
+            <p className="text-gray-600 mt-2">Fresh drops and bestsellers</p>
           </div>
-          <Button variant="ghost" className="group">
+          <Button variant="ghost" className="group hidden sm:flex">
             View All
             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {latestProducts.map((product, index) => (
             <Card 
               key={product.id} 
@@ -53,9 +53,9 @@ const LatestAndGreatest = () => {
                 )}
               </div>
               <div className="p-6">
-                <h3 className="font-semibold text-lg">{product.name}</h3>
+                <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
                 <p className="text-nike-gray mt-1">{product.price}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-4">
                   <Clock className="w-4 h-4 text-nike-gray" />
                   <p className="text-sm text-nike-gray">
                     Released {new Date(product.releaseDate).toLocaleDateString()}
@@ -65,6 +65,10 @@ const LatestAndGreatest = () => {
             </Card>
           ))}
         </div>
+        <Button variant="ghost" className="w-full mt-6 sm:hidden">
+          View All
+          <ArrowRight className="ml-2 w-4 h-4" />
+        </Button>
       </div>
     </section>
   );
