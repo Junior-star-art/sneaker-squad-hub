@@ -3,19 +3,7 @@ import { Card } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
 import { Eye } from "lucide-react";
 import { WishlistButton } from "./WishlistButton";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  description: string | null;
-  images: string[] | null;
-  stock: number | null;
-  featured: boolean | null;
-  category: {
-    name: string;
-  } | null;
-}
+import { Product } from "@/types/product";
 
 interface ProductCardProps {
   product: Product;
