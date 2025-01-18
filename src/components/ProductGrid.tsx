@@ -1,12 +1,11 @@
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductSkeleton from "./ProductSkeleton";
 import { useToast } from "@/components/ui/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
-import PullToRefresh from 'react-pull-to-refresh';
 import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
@@ -129,7 +128,6 @@ const ProductGrid = () => {
   const allProducts = data?.pages.flatMap(page => page.products) || [];
 
   if (error) {
-    console.error('Product grid error:', error);
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <div className="text-red-500 mb-4">
@@ -151,12 +149,12 @@ const ProductGrid = () => {
         <p className="text-gray-500 text-center mb-6">
           There was a problem loading the products. Please try again.
         </p>
-        <button 
+        <Button 
           onClick={() => refetch()} 
-          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
+          variant="outline"
         >
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }
@@ -168,107 +166,105 @@ const ProductGrid = () => {
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <PullToRefresh onRefresh={handleRefresh} distanceToRefresh={70}>
-          <div>
-            <h2 className="text-4xl font-bold mb-4 text-left animate-fade-up">
-              Trending Now
-            </h2>
-            <p className="text-nike-gray mb-8 text-left animate-fade-up delay-100">
-              Discover our latest collection of innovative Nike footwear
-            </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, index) => (
-                  <ProductSkeleton key={index} />
-                ))
-              ) : !allProducts?.length ? (
-                <div className="col-span-full text-center py-12">
-                  <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
-                    <svg
-                      className="w-full h-full"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                  <p className="text-gray-500">Check back later for new arrivals.</p>
+        <div>
+          <h2 className="text-4xl font-bold mb-4 text-left animate-fade-up">
+            Trending Now
+          </h2>
+          <p className="text-nike-gray mb-8 text-left animate-fade-up delay-100">
+            Discover our latest collection of innovative Nike footwear
+          </p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
+            {isLoading ? (
+              Array.from({ length: 8 }).map((_, index) => (
+                <ProductSkeleton key={index} />
+              ))
+            ) : !allProducts?.length ? (
+              <div className="col-span-full text-center py-12">
+                <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
+                  <svg
+                    className="w-full h-full"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
                 </div>
-              ) : (
-                allProducts.map((product) => (
-                  <ProductCard 
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                <p className="text-gray-500">Check back later for new arrivals.</p>
+              </div>
+            ) : (
+              allProducts.map((product) => (
+                <ProductCard 
+                  key={product.id}
+                  product={product}
+                  onQuickView={() => handleQuickView(product)}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Infinite Scroll Trigger */}
+          {!isLoading && hasNextPage && (
+            <div ref={loadMoreRef} className="flex justify-center mt-8">
+              <Button
+                variant="outline"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Loading more...' : 'Load more products'}
+              </Button>
+            </div>
+          )}
+
+          {/* Similar Products Section */}
+          {selectedProduct && similarProducts && similarProducts.length > 0 && (
+            <div className="mt-16">
+              <h3 className="text-2xl font-bold mb-6">Similar Products</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {similarProducts.map((product) => (
+                  <ProductCard
                     key={product.id}
                     product={product}
                     onQuickView={() => handleQuickView(product)}
                   />
-                ))
-              )}
+                ))}
+              </div>
             </div>
+          )}
 
-            {/* Infinite Scroll Trigger */}
-            {!isLoading && hasNextPage && (
-              <div ref={loadMoreRef} className="flex justify-center mt-8">
-                <Button
-                  variant="outline"
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                >
-                  {isFetchingNextPage ? 'Loading more...' : 'Load more products'}
-                </Button>
-              </div>
-            )}
-
-            {/* Similar Products Section */}
-            {selectedProduct && similarProducts && similarProducts.length > 0 && (
-              <div className="mt-16">
-                <h3 className="text-2xl font-bold mb-6">Similar Products</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {similarProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onQuickView={() => handleQuickView(product)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {selectedProduct && (
-              <ProductQuickView
-                product={{
-                  id: selectedProduct.id,
-                  name: selectedProduct.name,
-                  price: selectedProduct.price,
-                  description: selectedProduct.description || '',
-                  features: [],
-                  materials: '',
-                  care: '',
-                  shipping: '',
-                  stock: selectedProduct.stock || 0,
-                  angles: selectedProduct.images || [],
-                  colors: [],
-                  image: selectedProduct.images?.[0] || '/placeholder.svg'
-                }}
-                open={Boolean(selectedProduct)}
-                onOpenChange={(open) => !open && setSelectedProduct(null)}
-              />
-            )}
-            
-            <SizeGuide 
-              open={sizeGuideOpen}
-              onOpenChange={setSizeGuideOpen}
+          {selectedProduct && (
+            <ProductQuickView
+              product={{
+                id: selectedProduct.id,
+                name: selectedProduct.name,
+                price: selectedProduct.price,
+                description: selectedProduct.description || '',
+                features: [],
+                materials: '',
+                care: '',
+                shipping: '',
+                stock: selectedProduct.stock || 0,
+                angles: selectedProduct.images || [],
+                colors: [],
+                image: selectedProduct.images?.[0] || '/placeholder.svg'
+              }}
+              open={Boolean(selectedProduct)}
+              onOpenChange={(open) => !open && setSelectedProduct(null)}
             />
-          </div>
-        </PullToRefresh>
+          )}
+          
+          <SizeGuide 
+            open={sizeGuideOpen}
+            onOpenChange={setSizeGuideOpen}
+          />
+        </div>
         <BackToTop />
       </div>
     </ErrorBoundary>
