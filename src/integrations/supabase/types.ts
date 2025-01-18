@@ -222,6 +222,8 @@ export type Database = {
           images: string[] | null
           name: string
           price: number
+          recommendation_score: number | null
+          related_products: string[] | null
           sizes: string[] | null
           slug: string
           stock: number | null
@@ -236,6 +238,8 @@ export type Database = {
           images?: string[] | null
           name: string
           price: number
+          recommendation_score?: number | null
+          related_products?: string[] | null
           sizes?: string[] | null
           slug: string
           stock?: number | null
@@ -250,6 +254,8 @@ export type Database = {
           images?: string[] | null
           name?: string
           price?: number
+          recommendation_score?: number | null
+          related_products?: string[] | null
           sizes?: string[] | null
           slug?: string
           stock?: number | null
@@ -288,6 +294,90 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      recently_viewed_products: {
+        Row: {
+          id: string
+          product_id: string | null
+          user_id: string | null
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          product_id?: string | null
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string | null
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recently_viewed_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recently_viewed_products_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      return_requests: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          order_id: string | null
+          reason: string
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items: Json
+          order_id?: string | null
+          reason: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          order_id?: string | null
+          reason?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shipping_methods: {
         Row: {
@@ -361,6 +451,44 @@ export type Database = {
             foreignKeyName: "user_addresses_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          email_preferences: Json | null
+          id: string
+          preferred_categories: string[] | null
+          preferred_sizes: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_preferences?: Json | null
+          id?: string
+          preferred_categories?: string[] | null
+          preferred_sizes?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_preferences?: Json | null
+          id?: string
+          preferred_categories?: string[] | null
+          preferred_sizes?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
