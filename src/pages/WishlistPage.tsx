@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { useState } from "react";
 import CartDrawer from "@/components/CartDrawer";
+import { useToast } from "@/components/ui/use-toast";
 
 type Product = Database['public']['Tables']['products']['Row'];
 
@@ -18,15 +19,9 @@ export default function WishlistPage() {
   const navigate = useNavigate();
   const { wishlistItems, loading: wishlistLoading } = useWishlist();
   const [cartOpen, setCartOpen] = useState(false);
+  const { toast } = useToast();
 
-  // Only redirect if we're sure there's no user and we're not still loading
-  useEffect(() => {
-    if (user === null) {
-      navigate("/");
-    }
-  }, [user, navigate]);
-
-  const { data: wishlistProducts, isLoading: productsLoading } = useQuery({
+  const { data: wishlistProducts, isLoading: productsLoading, error } = useQuery({
     queryKey: ['wishlist-products', wishlistItems],
     queryFn: async () => {
       if (!wishlistItems?.length) return [];
@@ -41,6 +36,11 @@ export default function WishlistPage() {
 
       if (error) {
         console.error('Error fetching wishlist products:', error);
+        toast({
+          title: "Error loading wishlist",
+          description: "There was a problem loading your wishlist items.",
+          variant: "destructive",
+        });
         return [];
       }
       
@@ -49,15 +49,26 @@ export default function WishlistPage() {
     enabled: Boolean(user) && !wishlistLoading && Array.isArray(wishlistItems),
   });
 
+  // Only redirect if we're sure there's no user and we're not still loading
+  useEffect(() => {
+    if (user === null) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to view your wishlist",
+      });
+      navigate("/");
+    }
+  }, [user, navigate, toast]);
+
   // Show loading state while checking authentication
-  if (user === undefined) {
+  if (user === undefined || wishlistLoading) {
     return (
       <div className="min-h-screen bg-white">
         <Navbar onCartClick={() => setCartOpen(true)} />
         <div className="container mx-auto px-4 py-24">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <p className="mt-4 text-gray-600">Loading wishlist...</p>
           </div>
         </div>
         <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
@@ -79,7 +90,11 @@ export default function WishlistPage() {
           <h1 className="text-2xl font-bold">My Wishlist</h1>
         </div>
 
-        {isLoading ? (
+        {error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500">Error loading wishlist items. Please try again later.</p>
+          </div>
+        ) : isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading wishlist...</p>

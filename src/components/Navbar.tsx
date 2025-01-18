@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu, X, Search, ShoppingBag, UserRound, Home, Heart } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   HoverCard,
   HoverCardContent,
@@ -31,26 +31,26 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <a href="/" className="flex-shrink-0">
+              <Link to="/" className="flex-shrink-0">
                 <img
                   className="h-8 w-auto"
                   src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg"
                   alt="Nike"
                 />
-              </a>
+              </Link>
               <div className="hidden md:ml-6 md:flex md:space-x-8">
-                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                <Link to="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
                   New & Featured
-                </a>
-                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                </Link>
+                <Link to="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
                   Men
-                </a>
-                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                </Link>
+                <Link to="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
                   Women
-                </a>
-                <a href="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
+                </Link>
+                <Link to="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
                   Kids
-                </a>
+                </Link>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -82,9 +82,14 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
                 >
                   <Search className="h-5 w-5" />
                 </Button>
-                <a href="/wishlist" className="hover:text-nike-red">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:text-nike-red"
+                  onClick={() => navigate("/wishlist")}
+                >
                   <Heart className="h-5 w-5" />
-                </a>
+                </Button>
                 <HoverCard>
                   <HoverCardTrigger asChild>
                     <div className="relative">
@@ -174,18 +179,18 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
         {isOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+              <Link to="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
                 New & Featured
-              </a>
-              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+              </Link>
+              <Link to="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
                 Men
-              </a>
-              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+              </Link>
+              <Link to="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
                 Women
-              </a>
-              <a href="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
+              </Link>
+              <Link to="#" className="block px-3 py-2 text-base font-medium text-gray-900 hover:text-nike-red">
                 Kids
-              </a>
+              </Link>
             </div>
           </div>
         )}
@@ -196,7 +201,7 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
       {/* Bottom Navigation for Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-top z-50">
         <div className="flex justify-around items-center h-16 px-4">
-          <Button variant="ghost" size="icon" className="flex flex-col items-center">
+          <Button variant="ghost" size="icon" className="flex flex-col items-center" onClick={() => navigate("/")}>
             <Home className="h-5 w-5" />
             <span className="text-xs mt-1">Home</span>
           </Button>
