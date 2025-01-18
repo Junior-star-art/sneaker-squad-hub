@@ -37,7 +37,10 @@ const handler = async (req: Request): Promise<Response> => {
       })
       .select('*, orders(user_id)');
 
-    if (trackingError) throw trackingError;
+    if (trackingError) {
+      console.error('Error inserting tracking data:', trackingError);
+      throw trackingError;
+    }
 
     // Get user email
     const { data: userData, error: userError } = await supabaseClient
@@ -46,7 +49,10 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('id', trackingData[0].orders.user_id)
       .single();
 
-    if (userError) throw userError;
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+      throw userError;
+    }
 
     // Send email using Resend
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -71,6 +77,8 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (!emailResponse.ok) {
+      const error = await emailResponse.text();
+      console.error('Error sending email:', error);
       throw new Error('Failed to send email');
     }
 

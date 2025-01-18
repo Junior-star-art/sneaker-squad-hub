@@ -6,3 +6,6 @@ url = "https://sllihrbacnavuodegwxd.supabase.co"
 
 [functions.create-checkout]
 verify_jwt = true
+
+[functions.order-status-notification]
+verify_jwt = true
