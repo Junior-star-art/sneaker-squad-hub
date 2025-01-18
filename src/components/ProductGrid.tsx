@@ -1,6 +1,6 @@
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductSkeleton from "./ProductSkeleton";
