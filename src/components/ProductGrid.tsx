@@ -11,7 +11,6 @@ import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ProductCard } from "./product/ProductCard";
-import { Product } from "@/types/product";
 
 interface SupabaseProduct {
   id: string;
@@ -22,10 +21,7 @@ interface SupabaseProduct {
   stock: number | null;
   featured: boolean | null;
   category: {
-    id: string;
     name: string;
-    slug: string;
-    description?: string;
   } | null;
 }
 
@@ -35,7 +31,7 @@ const fetchProducts = async () => {
     .from('products')
     .select(`
       *,
-      category:categories(*)
+      category:categories(name)
     `)
     .order('created_at', { ascending: false });
 
@@ -47,17 +43,6 @@ const fetchProducts = async () => {
   console.log('Products fetched:', data);
   return data as SupabaseProduct[];
 };
-
-const mapSupabaseProductToProduct = (product: SupabaseProduct): Product => ({
-  id: product.id,
-  name: product.name,
-  description: product.description || undefined,
-  price: product.price,
-  category: product.category || undefined,
-  images: product.images || undefined,
-  stock: product.stock || undefined,
-  featured: product.featured || undefined
-});
 
 const ProductGrid = () => {
   const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
@@ -115,8 +100,8 @@ const ProductGrid = () => {
                 products?.slice(0, page * 8).map((product) => (
                   <ProductCard 
                     key={product.id}
-                    product={mapSupabaseProductToProduct(product)}
-                    onQuickView={() => setSelectedProduct(product)}
+                    product={product}
+                    onQuickView={(product) => setSelectedProduct(product)}
                   />
                 ))
               )}
@@ -129,7 +114,7 @@ const ProductGrid = () => {
                 product={{
                   id: selectedProduct.id,
                   name: selectedProduct.name,
-                  price: selectedProduct.price,
+                  price: selectedProduct.price,  // Pass the numeric price directly
                   description: selectedProduct.description || '',
                   features: [],
                   materials: '',
