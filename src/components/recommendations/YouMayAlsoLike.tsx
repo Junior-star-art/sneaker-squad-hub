@@ -40,14 +40,19 @@ export const YouMayAlsoLike = () => {
     queryFn: fetchRecommendations,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
-    onError: (error) => {
-      toast({
-        title: "Error loading recommendations",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-      console.error('Error fetching recommendations:', error);
+    meta: {
+      errorMessage: "Error loading recommendations"
     },
+    onSettled: (data, error) => {
+      if (error) {
+        toast({
+          title: "Error loading recommendations",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+        console.error('Error fetching recommendations:', error);
+      }
+    }
   });
 
   if (error) {

@@ -29,7 +29,6 @@ export const RecentlyViewed = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Handle online/offline status
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -57,7 +56,6 @@ export const RecentlyViewed = () => {
     };
   }, [toast]);
 
-  // Simulate loading state
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
