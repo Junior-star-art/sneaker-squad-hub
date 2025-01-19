@@ -48,14 +48,16 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           table: 'order_tracking',
           filter: `order_id=eq.${orderId}`,
         },
-        async (payload) => {
+        async (payload: { new: TrackingUpdate }) => {
           console.log('Received tracking update:', payload);
           
+          if (!payload.new) return;
+
           // Transform the payload into a TrackingUpdate
-          const transformedUpdate = {
+          const transformedUpdate: TrackingUpdate = {
             ...payload.new,
             created_at: new Date(payload.new.created_at).toISOString(),
-          } as TrackingUpdate;
+          };
 
           // Update the local state
           setUpdates(prev => [transformedUpdate, ...prev]);
