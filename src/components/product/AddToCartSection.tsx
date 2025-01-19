@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface Color {
   name: string;
@@ -27,25 +29,34 @@ export const AddToCartSection = ({
   onAddToCart,
   isOutOfStock
 }: AddToCartSectionProps) => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h4 className="font-medium mb-2">Select Color</h4>
-        <div className="flex gap-2">
-          {colors?.map((color) => (
-            <button
-              key={color.name}
-              onClick={() => onColorSelect(color)}
-              className="w-8 h-8 rounded-full border-2 transition-colors"
-              style={{
-                backgroundColor: color.code,
-                borderColor: selectedColor?.name === color.name ? '#000' : 'transparent'
-              }}
-              title={color.name}
-            />
-          ))}
+    <div className={cn(
+      "space-y-6",
+      isMobile && "fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-lg"
+    )}>
+      {colors?.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-2">Select Color</h4>
+          <div className="flex gap-2">
+            {colors?.map((color) => (
+              <button
+                key={color.name}
+                onClick={() => onColorSelect(color)}
+                className={cn(
+                  "w-8 h-8 rounded-full border-2 transition-colors",
+                  selectedColor?.name === color.name ? "border-primary" : "border-transparent"
+                )}
+                style={{
+                  backgroundColor: color.code,
+                }}
+                title={color.name}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       <div>
         <h4 className="font-medium mb-2">Select Size</h4>
         <div className="grid grid-cols-3 gap-2">
@@ -53,7 +64,10 @@ export const AddToCartSection = ({
             <Button
               key={size}
               variant={selectedSize === size ? "default" : "outline"}
-              className="hover:bg-black hover:text-white"
+              className={cn(
+                "hover:bg-primary hover:text-white",
+                selectedSize === size && "bg-primary text-white"
+              )}
               onClick={() => onSizeSelect(size)}
             >
               {size}
@@ -63,6 +77,7 @@ export const AddToCartSection = ({
       </div>
       <Button
         className="w-full"
+        size={isMobile ? "lg" : "default"}
         onClick={onAddToCart}
         disabled={isOutOfStock || !selectedSize}
       >

@@ -1,4 +1,6 @@
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProductInfoProps {
   name: string;
@@ -12,7 +14,6 @@ interface ProductInfoProps {
 }
 
 export const ProductInfo = ({ 
-  name, 
   price, 
   description, 
   features, 
@@ -21,6 +22,8 @@ export const ProductInfo = ({
   shipping,
   stock 
 }: ProductInfoProps) => {
+  const isMobile = useIsMobile();
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -38,7 +41,7 @@ export const ProductInfo = ({
   const formattedPrice = formatPrice(price);
 
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", isMobile && "pb-4")}>
       <div>
         <div className="flex justify-between items-center mb-2">
           <p className="text-2xl font-bold">{formattedPrice}</p>
@@ -48,24 +51,29 @@ export const ProductInfo = ({
           <p className="text-sm text-red-500">Only {stock} left in stock!</p>
         )}
       </div>
+      <Separator />
       <div className="space-y-4">
         <div>
           <h4 className="font-medium mb-2">Description</h4>
           <p className="text-sm text-gray-600">{description}</p>
         </div>
-        <div>
-          <h4 className="font-medium mb-2">Features</h4>
-          <ul className="text-sm text-gray-600 list-disc pl-4">
-            {features?.map((feature, index) => (
-              <li key={index}>{feature}</li>
-            ))}
-          </ul>
-        </div>
+        {features?.length > 0 && (
+          <div>
+            <h4 className="font-medium mb-2">Features</h4>
+            <ul className="text-sm text-gray-600 list-disc pl-4 space-y-1">
+              {features?.map((feature, index) => (
+                <li key={index}>{feature}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <Separator />
         <div>
           <h4 className="font-medium mb-2">Materials & Care</h4>
           <p className="text-sm text-gray-600">{materials}</p>
           <p className="text-sm text-gray-600 mt-1">{care}</p>
         </div>
+        <Separator />
         <div>
           <h4 className="font-medium mb-2">Shipping</h4>
           <p className="text-sm text-gray-600">{shipping}</p>
