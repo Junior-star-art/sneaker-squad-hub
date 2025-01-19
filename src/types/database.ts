@@ -7,6 +7,7 @@ export interface User {
   billing_address?: string;
   user_metadata?: {
     full_name?: string;
+    avatar_url?: string;
   };
 }
 
@@ -23,14 +24,14 @@ export interface Order {
 export interface OrderItem {
   id: string;
   order_id: string;
-  product_id: string; // Changed from number to string
+  product_id: string;
   quantity: number;
   price: number;
 }
 
 export interface ProductReview {
   id: string;
-  product_id: string; // Changed from number to string
+  product_id: string;
   user_id: string;
   rating: number;
   comment: string;
