@@ -7,6 +7,7 @@ import { WishlistProvider } from "@/contexts/WishlistContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { UpdatePassword } from "@/components/auth/UpdatePassword";
 import { ProfileManagement } from "@/components/profile/ProfileManagement";
+import OrderDetails from "@/pages/OrderDetails";
 import Index from "@/pages/Index";
 
 function App() {
@@ -27,6 +28,14 @@ function App() {
                   }
                 />
                 <Route path="/update-password" element={<UpdatePassword />} />
+                <Route
+                  path="/orders/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <OrderDetails />
+                    </ProtectedRoute>
+                  }
+                />
               </Routes>
               <Toaster />
             </RecentlyViewedProvider>
