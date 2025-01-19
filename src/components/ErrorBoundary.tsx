@@ -21,6 +21,10 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    console.error('Error caught by boundary:', {
+      error,
+      timestamp: new Date().toISOString()
+    });
     return { 
       hasError: true, 
       error,
@@ -29,7 +33,12 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    console.error('Uncaught error:', {
+      error,
+      errorInfo,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString()
+    });
     this.setState({
       error,
       errorInfo
@@ -37,6 +46,9 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleReset = () => {
+    console.log('Attempting error recovery...', {
+      timestamp: new Date().toISOString()
+    });
     this.setState({
       hasError: false,
       error: null,
