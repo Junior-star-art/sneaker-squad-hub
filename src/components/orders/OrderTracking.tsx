@@ -5,6 +5,8 @@ import { Package, Truck, CheckCircle, AlertCircle, Calendar } from "lucide-react
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect, useState } from "react";
+import OrderMap from "./OrderMap";
 
 interface OrderTrackingProps {
   orderId: string;
@@ -19,8 +21,9 @@ const statusIcons = {
 
 export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
   const { toast } = useToast();
+  const [trackingUpdates, setTrackingUpdates] = useState<any[]>([]);
 
-  const { data: tracking, isLoading } = useQuery({
+  const { data: initialTracking, isLoading } = useQuery({
     queryKey: ['order-tracking', orderId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -38,9 +41,47 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
         throw error;
       }
 
+      setTrackingUpdates(data || []);
       return data;
     },
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('order-tracking-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'order_tracking',
+          filter: `order_id=eq.${orderId}`,
+        },
+        (payload) => {
+          if (payload.new) {
+            setTrackingUpdates(current => {
+              const existing = current.find(update => update.id === payload.new.id);
+              if (existing) {
+                return current.map(update => 
+                  update.id === payload.new.id ? payload.new : update
+                );
+              }
+              return [payload.new, ...current];
+            });
+
+            toast({
+              title: "Tracking Updated",
+              description: `Order status: ${payload.new.status}`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderId, toast]);
 
   if (isLoading) {
     return (
@@ -50,12 +91,25 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
     );
   }
 
+  const latestUpdate = trackingUpdates[0];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h3 className="text-lg font-medium">Order Tracking</h3>
+      
+      {latestUpdate?.latitude && latestUpdate?.longitude && (
+        <OrderMap 
+          orderId={orderId}
+          initialLocation={{
+            latitude: latestUpdate.latitude,
+            longitude: latestUpdate.longitude
+          }}
+        />
+      )}
+
       <ScrollArea className="h-[300px] rounded-md border p-4">
         <div className="space-y-8">
-          {tracking?.map((update) => {
+          {trackingUpdates.map((update) => {
             const StatusIcon = statusIcons[update.status as keyof typeof statusIcons] || Package;
             return (
               <div key={update.id} className="relative">

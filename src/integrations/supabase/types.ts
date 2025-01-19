@@ -140,6 +140,36 @@ export type Database = {
           },
         ]
       }
+      notification_templates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          name: string
+          subject: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          name: string
+          subject: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -192,7 +222,9 @@ export type Database = {
           description: string | null
           estimated_delivery: string | null
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           order_id: string | null
           status: string
           tracking_number: string | null
@@ -203,7 +235,9 @@ export type Database = {
           description?: string | null
           estimated_delivery?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           order_id?: string | null
           status: string
           tracking_number?: string | null
@@ -214,7 +248,9 @@ export type Database = {
           description?: string | null
           estimated_delivery?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           order_id?: string | null
           status?: string
           tracking_number?: string | null
@@ -287,29 +323,41 @@ export type Database = {
         Row: {
           comment: string | null
           created_at: string
+          helpful_votes: number | null
           id: string
+          media_urls: string[] | null
+          not_helpful_votes: number | null
           product_id: string | null
           rating: number
           updated_at: string
           user_id: string | null
+          verified_purchase: boolean | null
         }
         Insert: {
           comment?: string | null
           created_at?: string
+          helpful_votes?: number | null
           id?: string
+          media_urls?: string[] | null
+          not_helpful_votes?: number | null
           product_id?: string | null
           rating: number
           updated_at?: string
           user_id?: string | null
+          verified_purchase?: boolean | null
         }
         Update: {
           comment?: string | null
           created_at?: string
+          helpful_votes?: number | null
           id?: string
+          media_urls?: string[] | null
+          not_helpful_votes?: number | null
           product_id?: string | null
           rating?: number
           updated_at?: string
           user_id?: string | null
+          verified_purchase?: boolean | null
         }
         Relationships: [
           {
@@ -525,6 +573,36 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: Json | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
