@@ -1,4 +1,8 @@
-interface Window {
-  SpeechRecognition: any;
-  webkitSpeechRecognition: any;
+declare global {
+  interface UserMetadata {
+    full_name?: string;
+    avatar_url?: string;
+  }
 }
+
+export {};
