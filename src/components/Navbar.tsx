@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, Search, ShoppingBag, UserRound, Heart } from "lucide-react";
+import { Menu, X, Search, ShoppingBag, UserRound, Heart, BookOpen, Palette, Leaf } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   HoverCard,
@@ -52,6 +52,18 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
                 </Link>
                 <Link to="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">
                   Kids
+                </Link>
+                <Link to="/blog" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium flex items-center gap-1">
+                  <BookOpen className="h-4 w-4" />
+                  Blog
+                </Link>
+                <Link to="/style-guide" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium flex items-center gap-1">
+                  <Palette className="h-4 w-4" />
+                  Style Guide
+                </Link>
+                <Link to="/sustainability" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium flex items-center gap-1">
+                  <Leaf className="h-4 w-4" />
+                  Sustainability
                 </Link>
               </div>
             </div>
