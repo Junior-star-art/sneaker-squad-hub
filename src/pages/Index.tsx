@@ -20,17 +20,19 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <Navbar onCartClick={() => setCartOpen(true)} />
-      <Hero />
-      <LatestAndGreatest />
-      <ShopIcons />
-      <TrendingThisWeek />
-      <ExploreMore />
-      <ComfortSection />
-      <ProductGrid />
-      <RecentlyViewed />
-      <YouMayAlsoLike />
-      <StyleCommunity />
-      <Newsletter />
+      <main>
+        <Hero />
+        <LatestAndGreatest />
+        <ShopIcons />
+        <TrendingThisWeek />
+        <ExploreMore />
+        <ComfortSection />
+        <ProductGrid />
+        <RecentlyViewed />
+        <YouMayAlsoLike />
+        <StyleCommunity />
+        <Newsletter />
+      </main>
       <Footer />
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </div>
