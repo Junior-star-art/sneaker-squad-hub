@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import CartItem from "./cart/CartItem";
-import CheckoutForm from "./cart/CheckoutForm";
+import { CheckoutForm } from "./cart/CheckoutForm";
 import { ShoppingBag, PackageOpen, ShoppingBasket } from "lucide-react";
 import { CartAuthDialog } from "./cart/CartAuthDialog";
 
