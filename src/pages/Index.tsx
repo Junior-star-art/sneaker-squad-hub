@@ -18,9 +18,9 @@ const Index = () => {
   const [cartOpen, setCartOpen] = useState(false);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Navbar onCartClick={() => setCartOpen(true)} />
-      <main>
+      <main className="flex-grow">
         <Hero />
         <LatestAndGreatest />
         <ShopIcons />
