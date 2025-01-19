@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -9,13 +8,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 interface InventoryLog {
   id: string;
   product_id: string;
   quantity_change: number;
   type: string;
-  notes: string;
+  notes: string | null;
   created_at: string;
   products: {
     name: string;
@@ -63,10 +64,16 @@ export function InventoryLogs() {
                 {format(new Date(log.created_at), "MMM d, yyyy HH:mm")}
               </TableCell>
               <TableCell>{log.products.name}</TableCell>
-              <TableCell className={log.quantity_change > 0 ? "text-green-600" : "text-red-600"}>
-                {log.quantity_change > 0 ? "+" : ""}{log.quantity_change}
+              <TableCell>
+                <span className={log.quantity_change > 0 ? "text-green-600" : "text-red-600"}>
+                  {log.quantity_change > 0 ? "+" : ""}{log.quantity_change}
+                </span>
               </TableCell>
-              <TableCell className="capitalize">{log.type}</TableCell>
+              <TableCell>
+                <Badge variant={log.type === "restock" ? "default" : "secondary"}>
+                  {log.type}
+                </Badge>
+              </TableCell>
               <TableCell>{log.notes || "-"}</TableCell>
             </TableRow>
           ))}

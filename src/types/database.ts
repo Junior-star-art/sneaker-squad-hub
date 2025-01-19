@@ -37,3 +37,34 @@ export interface ProductReview {
   comment: string;
   created_at: string;
 }
+
+export interface TrackingUpdate {
+  id: string;
+  order_id: string;
+  status: string;
+  location: string | null;
+  description: string | null;
+  created_at: string;
+  carrier: string | null;
+  tracking_number: string | null;
+  estimated_delivery: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  email_sent: boolean | null;
+}
+
+export interface InventoryLog {
+  id: string;
+  product_id: string;
+  quantity_change: number;
+  type: 'restock' | 'adjustment';
+  notes: string | null;
+  created_at: string;
+  created_by: string | null;
+}
+
+export interface InventoryStatus {
+  stock: number;
+  low_stock_threshold: number;
+  inventory_status: 'in_stock' | 'low_stock' | 'out_of_stock';
+}
