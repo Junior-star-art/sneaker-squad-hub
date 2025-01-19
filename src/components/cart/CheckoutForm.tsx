@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
+import { initiatePayFastPayment } from "@/utils/payfast";
 
 type CheckoutFormProps = {
   onBack: () => void;
@@ -75,26 +76,52 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
     try {
       setIsLoading(true);
       
-      const { data: { url }, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          items,
-          userId: user.id,
-          shippingMethodId: selectedShippingMethod,
-        },
-      });
+      // Create order in database
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          status: 'pending',
+          total_amount: parseFloat(total().replace('$', '')),
+          shipping_method_id: selectedShippingMethod,
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
-
-      // Send order notification
-      const orderId = new URL(url).searchParams.get('order_id');
-      if (orderId) {
-        await supabase.functions.invoke('order-notification', {
-          body: { orderId },
-        });
+      if (orderError || !order) {
+        throw new Error('Failed to create order');
       }
 
-      // Redirect to Stripe Checkout
-      window.location.href = url;
+      // Create order items
+      const orderItems = items.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price_at_time: parseFloat(item.price.toString()),
+        size: item.size
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) {
+        throw new Error('Failed to create order items');
+      }
+
+      // Send order notification
+      await supabase.functions.invoke('order-notification', {
+        body: { orderId: order.id },
+      });
+
+      // Initiate PayFast payment
+      initiatePayFastPayment({
+        amount: parseFloat(total().replace('$', '')),
+        customerName: user.user_metadata?.full_name || 'Customer',
+        customerEmail: user.email || '',
+        itemName: `Order #${order.id.slice(0, 8)}`,
+      });
+
     } catch (error) {
       console.error('Error:', error);
       toast({
