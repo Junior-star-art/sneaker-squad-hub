@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import ProductQuickView from "../ProductQuickView";
 import { useCart } from "@/contexts/CartContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const calculateTrendingScore = (product: typeof products[0]) => {
   const stockScore = Math.max(0, 100 - product.stock) * 0.4;

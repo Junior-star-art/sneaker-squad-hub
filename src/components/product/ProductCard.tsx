@@ -1,10 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useCart } from "@/contexts/CartContext";
 import { Eye, AlertTriangle, CheckCircle, XCircle, Star, ShoppingCart } from "lucide-react";
 import { WishlistButton } from "./WishlistButton";
 import { differenceInDays } from "date-fns";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -25,10 +24,10 @@ interface Product {
 interface ProductCardProps {
   product: Product;
   onQuickView: (product: Product) => void;
+  onAddToCart?: (e: React.MouseEvent) => void;
 }
 
-export function ProductCard({ product, onQuickView }: ProductCardProps) {
-  const { addItem } = useCart();
+export function ProductCard({ product, onQuickView, onAddToCart }: ProductCardProps) {
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -48,30 +47,6 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const isNewArrival = (createdAt?: string) => {
     if (!createdAt) return false;
     return differenceInDays(new Date(), new Date(createdAt)) <= 30;
-  };
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!product.stock) {
-      toast({
-        title: "Out of Stock",
-        description: "This product is currently unavailable",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images?.[0] || '/placeholder.svg'
-    });
-
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} has been added to your cart`,
-    });
   };
 
   const stockStatus = getStockStatus(product.stock);
@@ -141,7 +116,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           <Button
             size="sm"
             className="w-full md:w-auto flex items-center justify-center gap-2"
-            onClick={handleAddToCart}
+            onClick={onAddToCart}
             disabled={!product.stock}
           >
             <ShoppingCart className="h-4 w-4" />

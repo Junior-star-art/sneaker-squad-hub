@@ -6,10 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import ProductQuickView from "../ProductQuickView";
+import { useState } from "react";
+import { useCart } from "@/contexts/CartContext";
 
 interface Product {
   id: string;
@@ -39,6 +42,8 @@ export const YouMayAlsoLike = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { addItem } = useCart();
 
   const { data: recommendations, isLoading, error } = useQuery({
     queryKey: ['recommendations'],
@@ -49,6 +54,30 @@ export const YouMayAlsoLike = () => {
       errorMessage: "Error loading recommendations"
     }
   });
+
+  const handleAddToCart = (product: Product, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!product.stock) {
+      toast({
+        title: "Out of Stock",
+        description: "This product is currently unavailable",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0] || '/placeholder.svg'
+    });
+
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} has been added to your cart`,
+    });
+  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
@@ -66,20 +95,6 @@ export const YouMayAlsoLike = () => {
     });
     return null;
   }
-
-  const renderSkeletons = () => (
-    <div className="flex space-x-4">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="w-[250px] flex-none animate-pulse">
-          <Skeleton className="h-[300px] w-full rounded-lg" />
-          <div className="mt-4 space-y-3">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
 
   return (
     <ErrorBoundary>
@@ -140,7 +155,8 @@ export const YouMayAlsoLike = () => {
                   >
                     <ProductCard
                       product={product}
-                      onQuickView={() => {}}
+                      onQuickView={() => setSelectedProduct(product)}
+                      onAddToCart={(e) => handleAddToCart(product, e)}
                     />
                   </div>
                 ))
@@ -149,7 +165,42 @@ export const YouMayAlsoLike = () => {
             {!isMobile && <ScrollBar orientation="horizontal" />}
           </ScrollArea>
         </div>
+
+        {selectedProduct && (
+          <ProductQuickView
+            product={{
+              id: selectedProduct.id,
+              name: selectedProduct.name,
+              price: selectedProduct.price,
+              description: selectedProduct.description || '',
+              features: [],
+              materials: '',
+              care: '',
+              shipping: '',
+              stock: selectedProduct.stock || 0,
+              angles: selectedProduct.images || [],
+              colors: [],
+              image: selectedProduct.images?.[0] || '/placeholder.svg'
+            }}
+            open={Boolean(selectedProduct)}
+            onOpenChange={(open) => !open && setSelectedProduct(null)}
+          />
+        )}
       </section>
     </ErrorBoundary>
   );
 };
+
+const renderSkeletons = () => (
+  <div className="flex space-x-4">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div key={index} className="w-[250px] flex-none animate-pulse">
+        <Skeleton className="h-[300px] w-full rounded-lg" />
+        <div className="mt-4 space-y-3">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
