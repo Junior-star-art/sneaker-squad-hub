@@ -93,12 +93,7 @@ export const RecentlyViewed = () => {
                   className={`${isMobile ? 'w-[80vw]' : 'w-[250px]'} flex-none`}
                 >
                   <ProductCard
-                    product={{
-                      ...product,
-                      images: product.images || [],
-                      featured: product.featured || false,
-                      category: product.category || { name: 'Uncategorized' }
-                    }}
+                    product={product}
                     onQuickView={() => {}}
                   />
                 </div>
