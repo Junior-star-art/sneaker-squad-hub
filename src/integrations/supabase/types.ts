@@ -182,6 +182,107 @@ export type Database = {
           },
         ]
       }
+      layby_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          layby_plan_id: string | null
+          payment_date: string | null
+          payment_method: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          layby_plan_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          layby_plan_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layby_payments_layby_plan_id_fkey"
+            columns: ["layby_plan_id"]
+            isOneToOne: false
+            referencedRelation: "layby_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      layby_plans: {
+        Row: {
+          created_at: string
+          deposit_amount: number
+          end_date: string | null
+          id: string
+          installment_amount: number
+          installment_frequency: string
+          order_id: string | null
+          remaining_amount: number
+          start_date: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          deposit_amount: number
+          end_date?: string | null
+          id?: string
+          installment_amount: number
+          installment_frequency: string
+          order_id?: string | null
+          remaining_amount: number
+          start_date?: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          deposit_amount?: number
+          end_date?: string | null
+          id?: string
+          installment_amount?: number
+          installment_frequency?: string
+          order_id?: string | null
+          remaining_amount?: number
+          start_date?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layby_plans_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layby_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string

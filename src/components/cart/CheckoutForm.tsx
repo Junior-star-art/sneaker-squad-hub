@@ -11,6 +11,7 @@ import { initiatePayFastPayment } from "@/utils/payfast";
 import { PaymentMethodIcons } from "./PaymentMethodIcons";
 import { SecurityInfo } from "./SecurityInfo";
 import { DiscountCodeInput } from "./DiscountCodeInput";
+import { LaybyPlanForm } from "./LaybyPlanForm";
 
 type CheckoutFormProps = {
   onBack: () => void;
@@ -37,6 +38,7 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<string | null>(null);
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
+  const [isLayby, setIsLayby] = useState(false);
   const { toast } = useToast();
 
   // Fetch shipping methods
@@ -53,55 +55,18 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
     },
   });
 
-  // Calculate discount amount
-  const calculateDiscountAmount = () => {
-    if (!appliedDiscount) return 0;
-    
-    const subtotalValue = parseFloat(subtotal.replace('$', ''));
-    let discountAmount = appliedDiscount.type === 'percentage'
-      ? (subtotalValue * appliedDiscount.value) / 100
-      : appliedDiscount.value;
-
-    if (appliedDiscount.maxAmount && discountAmount > appliedDiscount.maxAmount) {
-      discountAmount = appliedDiscount.maxAmount;
-    }
-
-    return discountAmount;
-  };
-
   // Calculate total including shipping and discount
-  const total = () => {
+  const calculateTotal = () => {
     const subtotalValue = parseFloat(subtotal.replace('$', ''));
     const shippingCost = selectedShippingMethod 
       ? shippingMethods?.find(m => m.id === selectedShippingMethod)?.price || 0
       : 0;
     const discountAmount = calculateDiscountAmount();
 
-    return (subtotalValue + shippingCost - discountAmount).toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    });
+    return subtotalValue + shippingCost - discountAmount;
   };
 
-  const handleCheckout = async () => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Please sign in to continue with checkout",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!selectedShippingMethod) {
-      toast({
-        title: "Error",
-        description: "Please select a shipping method",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleLaybySuccess = async (planId: string) => {
     try {
       setIsLoading(true);
       
@@ -109,9 +74,9 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          user_id: user.id,
+          user_id: user?.id,
           status: 'pending',
-          total_amount: parseFloat(total().replace('$', '')),
+          total_amount: calculateTotal(),
           shipping_method_id: selectedShippingMethod,
         })
         .select()
@@ -119,6 +84,16 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
 
       if (orderError || !order) {
         throw new Error('Failed to create order');
+      }
+
+      // Update layby plan with order ID
+      const { error: updateError } = await supabase
+        .from('layby_plans')
+        .update({ order_id: order.id })
+        .eq('id', planId);
+
+      if (updateError) {
+        throw updateError;
       }
 
       // Create order items
@@ -138,39 +113,18 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
         throw new Error('Failed to create order items');
       }
 
-      // If discount was applied, create discount code record
-      if (appliedDiscount) {
-        const { error: discountError } = await supabase
-          .from('discount_codes')
-          .insert({
-            user_id: user.id,
-            code: appliedDiscount.code,
-            used_at: new Date().toISOString(),
-          });
-
-        if (discountError) {
-          console.error('Error recording discount usage:', discountError);
-        }
-      }
-
-      // Send order notification
-      await supabase.functions.invoke('order-notification', {
-        body: { orderId: order.id },
+      toast({
+        title: "Success",
+        description: "Your layby plan has been created and your order has been placed.",
       });
 
-      // Initiate PayFast payment
-      initiatePayFastPayment({
-        amount: parseFloat(total().replace('$', '')),
-        customerName: user.user_metadata?.full_name || 'Customer',
-        customerEmail: user.email || '',
-        itemName: `Order #${order.id.slice(0, 8)}`,
-      });
-
+      // Redirect to order confirmation
+      window.location.href = `/orders/${order.id}`;
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "There was a problem processing your checkout. Please try again.",
+        description: "There was a problem processing your order. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -178,85 +132,143 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
     }
   };
 
+  // Calculate discount amount
+  const calculateDiscountAmount = () => {
+    if (!appliedDiscount) return 0;
+    
+    const subtotalValue = parseFloat(subtotal.replace('$', ''));
+    let discountAmount = appliedDiscount.type === 'percentage'
+      ? (subtotalValue * appliedDiscount.value) / 100
+      : appliedDiscount.value;
+
+    if (appliedDiscount.maxAmount && discountAmount > appliedDiscount.maxAmount) {
+      discountAmount = appliedDiscount.maxAmount;
+    }
+
+    return discountAmount;
+  };
+
   return (
     <div className="space-y-6">
       <PaymentMethodIcons />
       
       <div className="space-y-4">
-        <h3 className="font-medium text-lg">Shipping Method</h3>
+        <h3 className="font-medium text-lg">Payment Method</h3>
         <RadioGroup
-          onValueChange={setSelectedShippingMethod}
+          onValueChange={(value) => setIsLayby(value === 'layby')}
+          defaultValue="immediate"
           className="space-y-4"
         >
-          {shippingMethods?.map((method) => (
-            <div key={method.id} className="flex items-center space-x-3 border p-4 rounded-lg">
-              <RadioGroupItem value={method.id} id={method.id} />
-              <Label htmlFor={method.id} className="flex-1">
-                <div className="flex justify-between">
-                  <div>
-                    <div className="font-medium">{method.name}</div>
-                    <div className="text-sm text-gray-500">{method.description}</div>
-                    <div className="text-sm text-gray-500">Estimated delivery: {method.estimated_days} days</div>
-                  </div>
-                  <div className="font-medium">
-                    ${method.price.toFixed(2)}
-                  </div>
+          <div className="flex items-center space-x-3 border p-4 rounded-lg">
+            <RadioGroupItem value="immediate" id="immediate" />
+            <Label htmlFor="immediate" className="flex-1">
+              <div className="flex justify-between">
+                <div>
+                  <div className="font-medium">Pay Now</div>
+                  <div className="text-sm text-gray-500">Pay the full amount immediately</div>
                 </div>
-              </Label>
-            </div>
-          ))}
+              </div>
+            </Label>
+          </div>
+          <div className="flex items-center space-x-3 border p-4 rounded-lg">
+            <RadioGroupItem value="layby" id="layby" />
+            <Label htmlFor="layby" className="flex-1">
+              <div className="flex justify-between">
+                <div>
+                  <div className="font-medium">Layby</div>
+                  <div className="text-sm text-gray-500">Pay over time with regular installments</div>
+                </div>
+              </div>
+            </Label>
+          </div>
         </RadioGroup>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="font-medium text-lg">Discount Code</h3>
-        <DiscountCodeInput 
-          subtotal={parseFloat(subtotal.replace('$', ''))}
-          onApplyDiscount={setAppliedDiscount}
+      {isLayby ? (
+        <LaybyPlanForm
+          total={calculateTotal()}
+          onSuccess={handleLaybySuccess}
+          onCancel={() => setIsLayby(false)}
         />
-      </div>
-
-      <div className="border-t pt-4">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Subtotal</span>
-            <span>{subtotal}</span>
+      ) : (
+        <>
+          <div className="space-y-4">
+            <h3 className="font-medium text-lg">Shipping Method</h3>
+            <RadioGroup
+              onValueChange={setSelectedShippingMethod}
+              className="space-y-4"
+            >
+              {shippingMethods?.map((method) => (
+                <div key={method.id} className="flex items-center space-x-3 border p-4 rounded-lg">
+                  <RadioGroupItem value={method.id} id={method.id} />
+                  <Label htmlFor={method.id} className="flex-1">
+                    <div className="flex justify-between">
+                      <div>
+                        <div className="font-medium">{method.name}</div>
+                        <div className="text-sm text-gray-500">{method.description}</div>
+                        <div className="text-sm text-gray-500">Estimated delivery: {method.estimated_days} days</div>
+                      </div>
+                      <div className="font-medium">
+                        ${method.price.toFixed(2)}
+                      </div>
+                    </div>
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
-          {appliedDiscount && (
-            <div className="flex justify-between text-sm text-green-600">
-              <span>Discount ({appliedDiscount.code})</span>
-              <span>-${calculateDiscountAmount().toFixed(2)}</span>
+
+          <div className="space-y-4">
+            <h3 className="font-medium text-lg">Discount Code</h3>
+            <DiscountCodeInput 
+              subtotal={parseFloat(subtotal.replace('$', ''))}
+              onApplyDiscount={setAppliedDiscount}
+            />
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal</span>
+                <span>{subtotal}</span>
+              </div>
+              {appliedDiscount && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount ({appliedDiscount.code})</span>
+                  <span>-${calculateDiscountAmount().toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span>Shipping</span>
+                <span>
+                  {selectedShippingMethod
+                    ? `$${shippingMethods?.find(m => m.id === selectedShippingMethod)?.price.toFixed(2)}`
+                    : '-'}
+                </span>
+              </div>
+              <div className="flex justify-between font-medium text-lg pt-2">
+                <span>Total</span>
+                <span>${calculateTotal().toFixed(2)}</span>
+              </div>
             </div>
-          )}
-          <div className="flex justify-between text-sm">
-            <span>Shipping</span>
-            <span>
-              {selectedShippingMethod
-                ? `$${shippingMethods?.find(m => m.id === selectedShippingMethod)?.price.toFixed(2)}`
-                : '-'}
-            </span>
-          </div>
-          <div className="flex justify-between font-medium text-lg pt-2">
-            <span>Total</span>
-            <span>{total()}</span>
-          </div>
-        </div>
 
-        <SecurityInfo />
+            <SecurityInfo />
 
-        <div className="space-y-2 mt-6">
-          <Button 
-            onClick={handleCheckout} 
-            className="w-full"
-            disabled={isLoading || !selectedShippingMethod}
-          >
-            {isLoading ? "Processing..." : "Proceed to Payment"}
-          </Button>
-          <Button variant="outline" className="w-full" onClick={onBack}>
-            Back to Cart
-          </Button>
-        </div>
-      </div>
+            <div className="space-y-2 mt-6">
+              <Button 
+                onClick={handleCheckout} 
+                className="w-full"
+                disabled={isLoading || !selectedShippingMethod}
+              >
+                {isLoading ? "Processing..." : "Proceed to Payment"}
+              </Button>
+              <Button variant="outline" className="w-full" onClick={onBack}>
+                Back to Cart
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
