@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AlertCircle, X } from 'lucide-react';
 import { trackEvent } from '@/utils/analytics';
+import { supabase } from "@/integrations/supabase/client";
 
 interface Promotion {
   id: string;

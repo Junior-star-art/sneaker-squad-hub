@@ -19,7 +19,10 @@ const Newsletter = () => {
       // Save to Supabase
       const { error } = await supabase
         .from('newsletter_subscribers')
-        .insert([{ email, subscribed_at: new Date() }]);
+        .insert({ 
+          email, 
+          subscribed_at: new Date().toISOString() 
+        });
 
       if (error) throw error;
 
