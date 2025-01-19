@@ -8,6 +8,7 @@ export type CartItem = {
   price: number;
   image: string;
   quantity: number;
+  size?: string; // Added optional size property
 };
 
 type CartContextType = {
@@ -149,3 +150,4 @@ export function useCart() {
   }
   return context;
 }
+

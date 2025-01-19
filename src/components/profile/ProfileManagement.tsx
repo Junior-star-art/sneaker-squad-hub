@@ -8,16 +8,21 @@ import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPreferences } from "@/components/preferences/UserPreferences";
 
+type UserMetadata = {
+  full_name?: string;
+  avatar_url?: string;
+}
+
 export function ProfileManagement() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [fullName, setFullName] = useState(user?.full_name || "");
+  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || "");
   const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || "");
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
-      setFullName(user.full_name || "");
+      setFullName(user.user_metadata?.full_name || "");
       setAvatarUrl(user.user_metadata?.avatar_url || "");
     }
   }, [user]);
