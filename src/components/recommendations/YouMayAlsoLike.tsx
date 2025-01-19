@@ -38,6 +38,7 @@ const fetchRecommendations = async () => {
 export const YouMayAlsoLike = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const { data: recommendations, isLoading, error } = useQuery({
     queryKey: ['recommendations'],
@@ -49,21 +50,22 @@ export const YouMayAlsoLike = () => {
     }
   });
 
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollContainerRef.current) return;
+    
+    const container = scrollContainerRef.current;
+    const scrollAmount = direction === 'left' ? -300 : 300;
+    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  };
+
   if (error) {
     toast({
       title: "Error loading recommendations",
       description: "Please try again later.",
       variant: "destructive",
     });
-    console.error('Error fetching recommendations:', error);
-    return (
-      <div className="p-4 bg-red-50 text-red-800 rounded-lg">
-        <p>Unable to load recommendations. Please try again later.</p>
-      </div>
-    );
+    return null;
   }
-
-  if (!recommendations?.length && !isLoading) return null;
 
   const renderSkeletons = () => (
     <div className="flex space-x-4">
@@ -78,16 +80,6 @@ export const YouMayAlsoLike = () => {
       ))}
     </div>
   );
-
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (!scrollContainerRef.current) return;
-    
-    const container = scrollContainerRef.current;
-    const scrollAmount = direction === 'left' ? -container.offsetWidth : container.offsetWidth;
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-  };
 
   return (
     <ErrorBoundary>
@@ -130,8 +122,9 @@ export const YouMayAlsoLike = () => {
               ref={scrollContainerRef}
               className={cn(
                 "flex gap-4 pb-4",
-                isMobile ? "overflow-x-auto snap-x snap-mandatory" : ""
+                isMobile ? "overflow-x-auto snap-x snap-mandatory -mx-4 px-4" : ""
               )}
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {isLoading ? (
                 renderSkeletons()

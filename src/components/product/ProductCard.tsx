@@ -1,12 +1,19 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
-import { Eye, AlertTriangle, CheckCircle, XCircle, Star, ShoppingCart } from "lucide-react";
+import { Eye, AlertTriangle, CheckCircle, XCircle, Star, ShoppingCart, Store } from "lucide-react";
 import { WishlistButton } from "./WishlistButton";
 import { differenceInDays } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 interface Product {
   id: string;
@@ -31,6 +38,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [showStoreInfo, setShowStoreInfo] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -51,7 +59,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the card click
+    e.stopPropagation();
     if (!product.stock) {
       toast({
         title: "Out of Stock",
@@ -74,85 +82,117 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     });
   };
 
-  const handleCardClick = () => {
-    onQuickView(product);
-  };
-
   const stockStatus = getStockStatus(product.stock);
   const StockIcon = stockStatus.icon;
 
   return (
-    <Card 
-      className="group overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer active:scale-[0.99]" 
-      onClick={handleCardClick}
-    >
-      <div className="aspect-square overflow-hidden relative">
-        <img
-          src={product.images?.[0] || '/placeholder.svg'}
-          alt={product.name}
-          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {isNewArrival(product.created_at) && (
-            <Badge className="bg-purple-600 text-white">
-              <Star className="w-3 h-3 mr-1" />
-              New Arrival
-            </Badge>
-          )}
-          {product.stock !== null && product.stock < 5 && (
-            <Badge variant="secondary" className="bg-yellow-500 text-white">
-              <AlertTriangle className="w-3 h-3 mr-1" />
-              Only {product.stock} left
-            </Badge>
-          )}
-        </div>
-        <div className="absolute top-4 right-4 flex gap-2">
-          <WishlistButton productId={product.id} />
-          {!isMobile && (
+    <>
+      <Card 
+        className="group overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer active:scale-[0.99]" 
+        onClick={() => onQuickView(product)}
+      >
+        <div className="aspect-square overflow-hidden relative">
+          <img
+            src={product.images?.[0] || '/placeholder.svg'}
+            alt={product.name}
+            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute top-4 left-4 flex flex-col gap-2">
+            {isNewArrival(product.created_at) && (
+              <Badge className="bg-purple-600 text-white">
+                <Star className="w-3 h-3 mr-1" />
+                New Arrival
+              </Badge>
+            )}
+            {product.stock !== null && product.stock < 5 && (
+              <Badge variant="secondary" className="bg-yellow-500 text-white">
+                <AlertTriangle className="w-3 h-3 mr-1" />
+                Only {product.stock} left
+              </Badge>
+            )}
+          </div>
+          <div className="absolute top-4 right-4 flex gap-2">
             <Button
               variant="secondary"
               size="icon"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              className="bg-white/80 hover:bg-white"
               onClick={(e) => {
                 e.stopPropagation();
-                onQuickView(product);
+                setShowStoreInfo(true);
               }}
             >
-              <Eye className="h-4 w-4" />
+              <Store className="h-4 w-4" />
             </Button>
-          )}
+            <WishlistButton productId={product.id} />
+            {!isMobile && (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onQuickView(product);
+                }}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium truncate text-base md:text-lg">{product.name}</h3>
-          <Badge 
-            variant={stockStatus.variant}
-            className={`hidden md:flex items-center gap-1 ${
-              !product.stock ? 'bg-red-100 text-red-700' :
-              product.stock < 5 ? 'bg-yellow-100 text-yellow-700' :
-              'bg-green-100 text-green-700'
-            }`}
-          >
-            <StockIcon className="w-3 h-3" />
-            <span className="text-xs">{stockStatus.label}</span>
-          </Badge>
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-medium truncate text-base md:text-lg">{product.name}</h3>
+            <Badge 
+              variant={stockStatus.variant}
+              className={`hidden md:flex items-center gap-1 ${
+                !product.stock ? 'bg-red-100 text-red-700' :
+                product.stock < 5 ? 'bg-yellow-100 text-yellow-700' :
+                'bg-green-100 text-green-700'
+              }`}
+            >
+              <StockIcon className="w-3 h-3" />
+              <span className="text-xs">{stockStatus.label}</span>
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">{product.category?.name}</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mt-4 gap-2">
+            <span className="font-medium text-lg">{formatPrice(product.price)}</span>
+            <Button
+              size="sm"
+              className="w-full md:w-auto flex items-center justify-center gap-2"
+              onClick={handleAddToCart}
+              disabled={!product.stock}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              <span>{!product.stock ? "Out of Stock" : "Add to Cart"}</span>
+            </Button>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">{product.category?.name}</p>
-        <div className="flex flex-col md:flex-row md:items-center justify-between mt-4 gap-2">
-          <span className="font-medium text-lg">{formatPrice(product.price)}</span>
-          <Button
-            size="sm"
-            className="w-full md:w-auto flex items-center justify-center gap-2"
-            onClick={handleAddToCart}
-            disabled={!product.stock}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            <span>{!product.stock ? "Out of Stock" : "Add to Cart"}</span>
-          </Button>
-        </div>
-      </div>
-    </Card>
+      </Card>
+
+      <Dialog open={showStoreInfo} onOpenChange={setShowStoreInfo}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>About Our Store</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Welcome to Sneakeralot! We're passionate about providing the best sneakers and sportswear to our customers. 
+              With a carefully curated selection of products, we ensure quality and authenticity in every purchase.
+            </p>
+            <div className="space-y-2">
+              <h4 className="font-medium">Store Features:</h4>
+              <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                <li>Authentic Products Guaranteed</li>
+                <li>Fast & Secure Shipping</li>
+                <li>Expert Customer Support</li>
+                <li>Easy Returns & Exchanges</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
