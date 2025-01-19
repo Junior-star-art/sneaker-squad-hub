@@ -68,7 +68,7 @@ export function AuthForms() {
             label: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
           },
         }}
-        providers={['google', 'github']}
+        providers={['google', 'facebook']}
         redirectTo={window.location.origin}
         onlyThirdPartyProviders={false}
       />
