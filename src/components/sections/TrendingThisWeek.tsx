@@ -1,8 +1,12 @@
 import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Eye, TrendingUp, ArrowRight } from "lucide-react";
+import { Flame, Eye, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import ProductQuickView from "../ProductQuickView";
+import { useCart } from "@/contexts/CartContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const calculateTrendingScore = (product: typeof products[0]) => {
   const stockScore = Math.max(0, 100 - product.stock) * 0.4;
@@ -12,9 +16,27 @@ const calculateTrendingScore = (product: typeof products[0]) => {
 };
 
 const TrendingThisWeek = () => {
+  const [selectedProduct, setSelectedProduct] = useState<(typeof products[0]) | null>(null);
+  const { addItem } = useCart();
+  const { toast } = useToast();
+  
   const trendingProducts = [...products]
     .sort((a, b) => calculateTrendingScore(b) - calculateTrendingScore(a))
     .slice(0, 3);
+
+  const handleAddToCart = (product: typeof products[0], e: React.MouseEvent) => {
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image
+    });
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} has been added to your cart`,
+    });
+  };
 
   return (
     <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
@@ -33,9 +55,10 @@ const TrendingThisWeek = () => {
           {trendingProducts.map((product, index) => (
             <Card 
               key={product.id} 
-              className={`group relative overflow-hidden animate-fade-up hover:shadow-xl transition-all duration-300 ${
+              className={`group relative overflow-hidden animate-fade-up hover:shadow-xl transition-all duration-300 cursor-pointer ${
                 index === 0 ? 'md:col-span-2' : ''
               }`}
+              onClick={() => setSelectedProduct(product)}
             >
               <Badge 
                 className="absolute top-4 right-4 bg-nike-red text-white z-10"
@@ -54,7 +77,7 @@ const TrendingThisWeek = () => {
               </div>
               <div className="p-6">
                 <h3 className="font-bold text-lg line-clamp-1">{product.name}</h3>
-                <p className="text-nike-gray mt-2">{product.price}</p>
+                <p className="text-nike-gray mt-2">${product.price}</p>
                 <div className="flex items-center gap-2 mt-4">
                   <Eye className="w-4 h-4 text-nike-gray" />
                   <span className="text-sm text-nike-gray">
@@ -65,16 +88,36 @@ const TrendingThisWeek = () => {
                   <span className="text-sm text-green-600">{product.stock} in stock</span>
                   <span className="text-sm text-nike-gray">{product.salesVolume} sold</span>
                 </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={(e) => handleAddToCart(product, e)}
+                >
+                  Add to Cart
+                </Button>
               </div>
             </Card>
           ))}
         </div>
-        <div className="flex justify-center mt-8">
-          <Button variant="outline" className="group">
-            View All Trending Items
-            <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </div>
+        {selectedProduct && (
+          <ProductQuickView
+            product={{
+              id: selectedProduct.id,
+              name: selectedProduct.name,
+              price: selectedProduct.price,
+              description: selectedProduct.description || '',
+              features: [],
+              materials: '',
+              care: '',
+              shipping: '',
+              stock: selectedProduct.stock || 0,
+              angles: [selectedProduct.image],
+              colors: [],
+              image: selectedProduct.image
+            }}
+            open={Boolean(selectedProduct)}
+            onOpenChange={(open) => !open && setSelectedProduct(null)}
+          />
+        )}
       </div>
     </section>
   );
