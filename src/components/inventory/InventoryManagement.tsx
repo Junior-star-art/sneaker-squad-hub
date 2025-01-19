@@ -86,7 +86,7 @@ export const InventoryManagement = () => {
       case 'in_stock':
         return <Badge className="bg-green-500"><CheckCircle className="w-4 h-4 mr-1" /> In Stock</Badge>;
       case 'low_stock':
-        return <Badge variant="warning"><AlertTriangle className="w-4 h-4 mr-1" /> Low Stock</Badge>;
+        return <Badge variant="secondary"><AlertTriangle className="w-4 h-4 mr-1" /> Low Stock</Badge>;
       case 'out_of_stock':
         return <Badge variant="destructive"><Package className="w-4 h-4 mr-1" /> Out of Stock</Badge>;
       default:
