@@ -1,3 +1,4 @@
+import React from 'react';
 import { ProductCard } from "@/components/product/ProductCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
