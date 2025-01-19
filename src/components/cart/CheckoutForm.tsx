@@ -8,6 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { initiatePayFastPayment } from "@/utils/payfast";
+import { PaymentMethodIcons } from "./PaymentMethodIcons";
+import { SecurityInfo } from "./SecurityInfo";
 
 type CheckoutFormProps = {
   onBack: () => void;
@@ -136,6 +138,8 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
 
   return (
     <div className="space-y-6">
+      <PaymentMethodIcons />
+      
       <div className="space-y-4">
         <h3 className="font-medium text-lg">Shipping Method</h3>
         <RadioGroup
@@ -181,6 +185,8 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
             <span>{total()}</span>
           </div>
         </div>
+
+        <SecurityInfo />
 
         <div className="space-y-2 mt-6">
           <Button 
