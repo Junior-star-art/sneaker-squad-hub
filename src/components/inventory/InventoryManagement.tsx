@@ -94,7 +94,7 @@ export function InventoryManagement() {
       case "out_of_stock":
         return <Badge variant="destructive">Out of Stock</Badge>;
       case "low_stock":
-        return <Badge variant="warning">Low Stock</Badge>;
+        return <Badge variant="secondary">Low Stock</Badge>;
       default:
         return <Badge variant="default">In Stock</Badge>;
     }
