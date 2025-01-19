@@ -25,11 +25,24 @@ interface TrackingUpdate {
   longitude?: number;
 }
 
+type SupabaseTrackingUpdate = Omit<TrackingUpdate, 'status'> & {
+  status: string;
+};
+
 const statusIcons = {
   pending: AlertCircle,
   processing: Package,
   shipped: Truck,
   delivered: CheckCircle,
+};
+
+const isValidStatus = (status: string): status is TrackingUpdate['status'] => {
+  return ['pending', 'processing', 'shipped', 'delivered'].includes(status);
+};
+
+const transformTrackingUpdate = (update: SupabaseTrackingUpdate): TrackingUpdate => {
+  const status = isValidStatus(update.status) ? update.status : 'pending';
+  return { ...update, status };
 };
 
 export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
@@ -54,8 +67,9 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
         throw error;
       }
 
-      setTrackingUpdates(data || []);
-      return data;
+      const transformedData = (data || []).map(transformTrackingUpdate);
+      setTrackingUpdates(transformedData);
+      return transformedData;
     },
   });
 
@@ -63,28 +77,29 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
     const channel = supabase
       .channel('order-tracking-updates')
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         {
           event: '*',
           schema: 'public',
           table: 'order_tracking',
           filter: `order_id=eq.${orderId}`,
         },
-        (payload: { new: TrackingUpdate }) => {
+        (payload: { new: SupabaseTrackingUpdate }) => {
           if (payload.new) {
+            const transformedUpdate = transformTrackingUpdate(payload.new);
             setTrackingUpdates(current => {
-              const existing = current.find(update => update.id === payload.new.id);
+              const existing = current.find(update => update.id === transformedUpdate.id);
               if (existing) {
                 return current.map(update => 
-                  update.id === payload.new.id ? payload.new : update
+                  update.id === transformedUpdate.id ? transformedUpdate : update
                 );
               }
-              return [payload.new, ...current];
+              return [transformedUpdate, ...current];
             });
 
             toast({
               title: "Tracking Updated",
-              description: `Order status: ${payload.new.status}`,
+              description: `Order status: ${transformedUpdate.status}`,
             });
           }
         }
