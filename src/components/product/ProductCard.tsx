@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCart } from "@/contexts/CartContext";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 interface Product {
   id: string;
@@ -32,6 +33,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { addItem } = useCart();
+  const [imageError, setImageError] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -66,7 +68,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images?.[0] || '/placeholder.svg'
+      image: !imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'
     });
 
     toast({
@@ -77,6 +79,11 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
 
   const stockStatus = getStockStatus(product.stock);
   const StockIcon = stockStatus.icon;
+
+  const handleImageError = () => {
+    console.log(`Image failed to load for product: ${product.name}`);
+    setImageError(true);
+  };
 
   return (
     <motion.div
@@ -90,10 +97,11 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
       >
         <div className="aspect-square overflow-hidden relative">
           <img
-            src={product.images?.[0] || '/placeholder.svg'}
+            src={!imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'}
             alt={product.name}
             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
+            onError={handleImageError}
           />
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             {isNewArrival(product.created_at) && (
