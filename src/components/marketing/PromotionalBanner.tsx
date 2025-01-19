@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AlertCircle, X } from 'lucide-react';
 import { trackEvent } from '@/utils/analytics';
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Promotion {
   id: string;
@@ -10,11 +11,20 @@ interface Promotion {
   type: 'discount' | 'free_shipping' | 'special_offer';
   discount_amount?: number;
   end_date?: string;
+  discount_type: string;
+  discount_value: number;
+  name: string;
+  description?: string;
+  min_purchase_amount?: number;
+  max_discount_amount?: number;
+  start_date: string;
+  active?: boolean;
 }
 
 export const PromotionalBanner = () => {
   const [currentPromotion, setCurrentPromotion] = useState<Promotion | null>(null);
   const [isVisible, setIsVisible] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchCurrentPromotion = async () => {
@@ -30,9 +40,29 @@ export const PromotionalBanner = () => {
           .single();
 
         if (error) throw error;
+        
         if (data) {
-          setCurrentPromotion(data);
-          trackEvent('promotion_view', 'marketing', data.code);
+          // Transform the data to match our Promotion interface
+          const promotion: Promotion = {
+            id: data.id,
+            message: data.description || 'Special offer!',
+            code: data.code,
+            type: data.discount_type === 'percentage' ? 'discount' : 
+                  data.discount_type === 'shipping' ? 'free_shipping' : 'special_offer',
+            discount_amount: data.discount_value,
+            end_date: data.end_date,
+            discount_type: data.discount_type,
+            discount_value: data.discount_value,
+            name: data.name,
+            description: data.description,
+            min_purchase_amount: data.min_purchase_amount,
+            max_discount_amount: data.max_discount_amount,
+            start_date: data.start_date,
+            active: data.active
+          };
+          
+          setCurrentPromotion(promotion);
+          trackEvent('promotion_view', 'marketing', promotion.code);
         }
       } catch (error) {
         console.error('Error fetching promotion:', error);
@@ -52,6 +82,10 @@ export const PromotionalBanner = () => {
   const handleCopyCode = () => {
     if (currentPromotion) {
       navigator.clipboard.writeText(currentPromotion.code);
+      toast({
+        title: "Code copied!",
+        description: "The promotion code has been copied to your clipboard.",
+      });
       trackEvent('promotion_code_copied', 'marketing', currentPromotion.code);
     }
   };
