@@ -3,6 +3,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css';
 
+// Performance monitoring
+const reportWebVitals = (metric: any) => {
+  console.log('Web Vitals:', metric);
+  // Here you can send the metric to your analytics service
+};
+
+// Monitor initial page load
+const pageLoadTime = performance.now();
+console.log('Page Load Time:', {
+  timestamp: new Date().toISOString(),
+  loadTime: `${pageLoadTime}ms`
+});
+
 console.log('Initializing application...', {
   environment: import.meta.env.MODE,
   timestamp: new Date().toISOString()
@@ -41,12 +54,22 @@ console.log('Mounting React application...', {
 });
 
 try {
+  const startTime = performance.now();
   createRoot(root).render(
     <QueryClientProvider client={queryClient}>
       <App />
     </QueryClientProvider>
   );
+  const endTime = performance.now();
   console.log('Application mounted successfully', {
+    mountTime: `${endTime - startTime}ms`,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Report performance metrics
+  reportWebVitals({
+    type: 'mount',
+    value: endTime - startTime,
     timestamp: new Date().toISOString()
   });
 } catch (error) {
