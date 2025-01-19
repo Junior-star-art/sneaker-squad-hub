@@ -1,76 +1,71 @@
-import { AuthProvider } from "@/contexts/AuthContext";
-import { CartProvider } from "@/contexts/CartContext";
-import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
-import { WishlistProvider } from "@/contexts/WishlistContext";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
-import Index from "@/pages/Index";
-import OrderSuccess from "@/pages/OrderSuccess";
-import OrderHistory from "@/pages/OrderHistory";
-import WishlistPage from "@/pages/WishlistPage";
-import Blog from "@/pages/Blog";
-import StyleGuide from "@/pages/StyleGuide";
-import Sustainability from "@/pages/Sustainability";
-import { SearchOverlay } from "@/components/search/SearchOverlay";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-
-const queryClient = new QueryClient();
+import { CartProvider } from "@/contexts/CartContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { UpdatePassword } from "@/components/auth/UpdatePassword";
+import { ProfileManagement } from "@/components/profile/ProfileManagement";
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import ProductGrid from "@/components/ProductGrid";
+import ComfortSection from "@/components/ComfortSection";
+import Newsletter from "@/components/Newsletter";
+import Footer from "@/components/Footer";
+import CartDrawer from "@/components/CartDrawer";
+import StyleCommunity from "@/components/community/StyleCommunity";
+import LatestAndGreatest from "@/components/sections/LatestAndGreatest";
+import ShopIcons from "@/components/sections/ShopIcons";
+import TrendingThisWeek from "@/components/sections/TrendingThisWeek";
+import ExploreMore from "@/components/sections/ExploreMore";
+import { RecentlyViewed } from "@/components/recommendations/RecentlyViewed";
+import { YouMayAlsoLike } from "@/components/recommendations/YouMayAlsoLike";
+import { useState } from "react";
 
 function App() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <RecentlyViewedProvider>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/style-guide" element={<StyleGuide />} />
-                  <Route path="/sustainability" element={<Sustainability />} />
-                  <Route 
-                    path="/order/success" 
-                    element={
-                      <ProtectedRoute>
-                        <OrderSuccess />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/orders" 
-                    element={
-                      <ProtectedRoute>
-                        <OrderHistory />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/wishlist" 
-                    element={
-                      <ProtectedRoute>
-                        <WishlistPage />
-                      </ProtectedRoute>
-                    } 
-                  />
-                </Routes>
-                <SearchOverlay 
-                  open={isSearchOpen} 
-                  onOpenChange={setIsSearchOpen}
-                />
-                <Toaster />
-              </RecentlyViewedProvider>
-            </CartProvider>
-          </WishlistProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <Router>
+      <AuthProvider>
+        <CartProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfileManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/update-password" element={<UpdatePassword />} />
+          </Routes>
+          <Toaster />
+        </CartProvider>
+      </AuthProvider>
+    </Router>
   );
 }
+
+const Index = () => {
+  const [cartOpen, setCartOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen">
+      <Navbar onCartClick={() => setCartOpen(true)} />
+      <Hero />
+      <LatestAndGreatest />
+      <ShopIcons />
+      <TrendingThisWeek />
+      <ExploreMore />
+      <ComfortSection />
+      <ProductGrid />
+      <RecentlyViewed />
+      <YouMayAlsoLike />
+      <StyleCommunity />
+      <Newsletter />
+      <Footer />
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+    </div>
+  );
+};
 
 export default App;

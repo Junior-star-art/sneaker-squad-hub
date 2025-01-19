@@ -7,10 +7,13 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { PasswordReset } from "./PasswordReset";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 export function AuthForms() {
   const { toast } = useToast();
   const { loading, error } = useAuth();
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   if (loading) {
     return (
@@ -71,7 +74,17 @@ export function AuthForms() {
       />
 
       <div className="text-center mt-4">
-        <p className="text-sm text-gray-600">
+        <Dialog open={showPasswordReset} onOpenChange={setShowPasswordReset}>
+          <DialogTrigger asChild>
+            <Button variant="link" className="text-sm text-gray-600">
+              Forgot your password?
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <PasswordReset />
+          </DialogContent>
+        </Dialog>
+        <p className="text-sm text-gray-600 mt-2">
           By logging in, you agree to Nike's Privacy Policy and Terms of Use.
         </p>
       </div>
