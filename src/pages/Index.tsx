@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProductGrid from "@/components/ProductGrid";
@@ -12,7 +13,6 @@ import TrendingThisWeek from "@/components/sections/TrendingThisWeek";
 import ExploreMore from "@/components/sections/ExploreMore";
 import { RecentlyViewed } from "@/components/recommendations/RecentlyViewed";
 import { YouMayAlsoLike } from "@/components/recommendations/YouMayAlsoLike";
-import { useState } from "react";
 
 const Index = () => {
   const [cartOpen, setCartOpen] = useState(false);
