@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Star, ThumbsUp, ThumbsDown, Image as ImageIcon } from "lucide-react";
+import { Star, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -49,9 +49,8 @@ export const EnhancedReviews = ({ productId }: ReviewProps) => {
     const { error } = await supabase
       .from("product_reviews")
       .update({
-        [isHelpful ? "helpful_votes" : "not_helpful_votes"]: supabase.sql`${
-          isHelpful ? "helpful_votes" : "not_helpful_votes"
-        } + 1`,
+        helpful_votes: isHelpful ? reviews?.find(r => r.id === reviewId)?.helpful_votes + 1 : reviews?.find(r => r.id === reviewId)?.helpful_votes,
+        not_helpful_votes: !isHelpful ? reviews?.find(r => r.id === reviewId)?.not_helpful_votes + 1 : reviews?.find(r => r.id === reviewId)?.not_helpful_votes,
       })
       .eq("id", reviewId);
 

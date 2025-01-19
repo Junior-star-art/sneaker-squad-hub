@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { TrackingUpdate } from "@/types/database";
@@ -10,48 +9,37 @@ interface OrderTrackingProps {
   orderId: string;
 }
 
-type SupabaseTrackingUpdate = Omit<TrackingUpdate, 'status'> & {
-  status: string;
-};
-
-const isValidStatus = (status: string): status is TrackingUpdate['status'] => {
-  return ['pending', 'processing', 'shipped', 'delivered'].includes(status);
-};
-
-const transformTrackingUpdate = (update: SupabaseTrackingUpdate): TrackingUpdate => {
-  const status = isValidStatus(update.status) ? update.status : 'pending';
-  return { ...update, status };
-};
-
 export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
+  const [updates, setUpdates] = useState<TrackingUpdate[]>([]);
   const { toast } = useToast();
+  const latestUpdate = updates[0];
 
-  const { data: trackingUpdates = [], refetch } = useQuery({
-    queryKey: ['order-tracking', orderId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('order_tracking')
-        .select('*')
-        .eq('order_id', orderId)
-        .order('created_at', { ascending: false });
+  useEffect(() => {
+    const fetchUpdates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('order_tracking')
+          .select('*')
+          .eq('order_id', orderId)
+          .order('created_at', { ascending: false });
 
-      if (error) {
+        if (error) throw error;
+        setUpdates(data || []);
+      } catch (error) {
+        console.error('Error fetching tracking updates:', error);
         toast({
           title: "Error",
           description: "Failed to load tracking updates",
           variant: "destructive",
         });
-        throw error;
       }
+    };
 
-      const transformedData = (data || []).map(transformTrackingUpdate);
-      return transformedData;
-    },
-  });
+    fetchUpdates();
 
-  useEffect(() => {
+    // Subscribe to real-time updates
     const channel = supabase
-      .channel('order-tracking-updates')
+      .channel('order-tracking')
       .on(
         'postgres_changes',
         {
@@ -60,11 +48,20 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           table: 'order_tracking',
           filter: `order_id=eq.${orderId}`,
         },
-        async (payload: { new: SupabaseTrackingUpdate }) => {
-          if (payload.new) {
-            const transformedUpdate = transformTrackingUpdate(payload.new);
-            
-            // Get user email for notification
+        async (payload) => {
+          console.log('Received tracking update:', payload);
+          
+          // Transform the payload into a TrackingUpdate
+          const transformedUpdate = {
+            ...payload.new,
+            created_at: new Date(payload.new.created_at).toISOString(),
+          } as TrackingUpdate;
+
+          // Update the local state
+          setUpdates(prev => [transformedUpdate, ...prev]);
+
+          try {
+            // Fetch the order to get the user ID
             const { data: orderData } = await supabase
               .from('orders')
               .select('user_id')
@@ -89,13 +86,8 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
                 });
               }
             }
-
-            refetch();
-            
-            toast({
-              title: "Tracking Updated",
-              description: `Order status: ${transformedUpdate.status}`,
-            });
+          } catch (error) {
+            console.error('Error processing tracking update:', error);
           }
         }
       )
@@ -104,24 +96,30 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [orderId, toast, refetch]);
+  }, [orderId, toast]);
 
-  const latestUpdate = trackingUpdates[0];
+  if (!updates.length) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">No tracking updates available</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {latestUpdate?.latitude && latestUpdate?.longitude && (
         <div className="h-[400px] rounded-lg overflow-hidden">
           <OrderMap
             orderId={orderId}
             initialLocation={{
-              latitude: latestUpdate.latitude,
-              longitude: latestUpdate.longitude
+              latitude: Number(latestUpdate.latitude),
+              longitude: Number(latestUpdate.longitude)
             }}
           />
         </div>
       )}
-      <TrackingTimeline updates={trackingUpdates} />
+      <TrackingTimeline updates={updates} />
     </div>
   );
 };
