@@ -215,11 +215,47 @@ export type Database = {
           },
         ]
       }
+      order_notification_preferences: {
+        Row: {
+          created_at: string
+          delivery_updates: boolean | null
+          id: string
+          status_updates: boolean | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_updates?: boolean | null
+          id?: string
+          status_updates?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          delivery_updates?: boolean | null
+          id?: string
+          status_updates?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_tracking: {
         Row: {
           carrier: string | null
           created_at: string
           description: string | null
+          email_sent: boolean | null
           estimated_delivery: string | null
           id: string
           latitude: number | null
@@ -233,6 +269,7 @@ export type Database = {
           carrier?: string | null
           created_at?: string
           description?: string | null
+          email_sent?: boolean | null
           estimated_delivery?: string | null
           id?: string
           latitude?: number | null
@@ -246,6 +283,7 @@ export type Database = {
           carrier?: string | null
           created_at?: string
           description?: string | null
+          email_sent?: boolean | null
           estimated_delivery?: string | null
           id?: string
           latitude?: number | null

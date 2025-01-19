@@ -60,9 +60,36 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           table: 'order_tracking',
           filter: `order_id=eq.${orderId}`,
         },
-        (payload: { new: SupabaseTrackingUpdate }) => {
+        async (payload: { new: SupabaseTrackingUpdate }) => {
           if (payload.new) {
             const transformedUpdate = transformTrackingUpdate(payload.new);
+            
+            // Get user email for notification
+            const { data: orderData } = await supabase
+              .from('orders')
+              .select('user_id')
+              .eq('id', orderId)
+              .single();
+
+            if (orderData?.user_id) {
+              const { data: userData } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('id', orderData.user_id)
+                .single();
+
+              if (userData?.email) {
+                // Send email notification
+                await supabase.functions.invoke('order-status-notification', {
+                  body: {
+                    orderId,
+                    status: transformedUpdate.status,
+                    userEmail: userData.email,
+                  },
+                });
+              }
+            }
+
             refetch();
             
             toast({
