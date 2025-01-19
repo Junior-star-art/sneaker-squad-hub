@@ -8,11 +8,6 @@ import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPreferences } from "@/components/preferences/UserPreferences";
 
-type UserMetadata = {
-  full_name?: string;
-  avatar_url?: string;
-}
-
 export function ProfileManagement() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
