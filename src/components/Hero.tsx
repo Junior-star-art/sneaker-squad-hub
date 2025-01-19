@@ -2,20 +2,14 @@ const Hero = () => {
   return (
     <div className="relative pt-16">
       <div className="absolute inset-0">
-        <video
+        <iframe
           className="w-full h-full object-cover"
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="https://images.unsplash.com/photo-1556906781-9a412961c28c?ixlib=rb-4.0.3"
-        >
-          <source
-            src="https://cdn.sanity.io/files/qa41whrn/prod/fd117121036e8f645e89b0968359cb5cb69cff2e.mp4"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
+          src="https://www.youtube.com/embed/dHYTo6Da2aA?autoplay=1&controls=0&mute=1&loop=1&playlist=dHYTo6Da2aA"
+          title="Nike promotional video"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
       </div>
       <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
