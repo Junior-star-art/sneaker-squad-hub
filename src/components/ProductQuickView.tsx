@@ -14,6 +14,7 @@ import { X } from "lucide-react";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Separator } from "./ui/separator";
 
 interface Color {
   name: string;
@@ -63,15 +64,16 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-[800px] ${isMobile ? 'p-0' : 'p-6'} max-h-[90vh] overflow-hidden`}>
-        <DialogHeader className={`${isMobile ? 'px-4 py-2' : ''} relative`}>
-          <DialogTitle className="pr-8">{product.name}</DialogTitle>
-          <DialogClose className="absolute right-4 top-4">
-            <X className="h-4 w-4" />
+      <DialogContent className="sm:max-w-[800px] p-0 max-h-[90vh] overflow-hidden bg-white">
+        <DialogHeader className="sticky top-0 z-10 bg-white border-b p-4">
+          <DialogTitle className="text-xl font-semibold pr-8">{product.name}</DialogTitle>
+          <DialogClose className="absolute right-4 top-4 hover:bg-gray-100 rounded-full p-2 transition-colors">
+            <X className="h-5 w-5" />
           </DialogClose>
         </DialogHeader>
-        <ScrollArea className={`${isMobile ? 'px-4' : ''}`}>
-          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'sm:grid-cols-2'}`}>
+
+        <ScrollArea className="h-[calc(90vh-4rem)]">
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'sm:grid-cols-2'} p-4`}>
             <div className="space-y-4">
               <ImageGallery
                 images={product.angles}
@@ -80,24 +82,70 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
                 onImageSelect={setSelectedImage}
               />
             </div>
+
             <div className="space-y-6">
               <ProductInfo {...product} />
-              <AddToCartSection
-                colors={product.colors}
-                selectedColor={selectedColor}
-                onColorSelect={(color) => {
-                  setSelectedColor(color);
-                  setSelectedImage(color.image);
-                }}
-                sizes={SIZES}
-                selectedSize={selectedSize}
-                onSizeSelect={setSelectedSize}
-                onAddToCart={handleAddToCart}
-                isOutOfStock={product.stock === 0}
-              />
+              
+              <Separator className="my-6" />
+              
+              <div className={`space-y-6 ${isMobile ? 'pb-24' : ''}`}>
+                {colors?.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3">Available Colors</h4>
+                    <div className="flex gap-3 flex-wrap">
+                      {product.colors?.map((color) => (
+                        <button
+                          key={color.name}
+                          onClick={() => {
+                            setSelectedColor(color);
+                            setSelectedImage(color.image);
+                          }}
+                          className={`w-12 h-12 rounded-full border-2 transition-all hover:scale-110 ${
+                            selectedColor?.name === color.name 
+                              ? 'border-primary ring-2 ring-primary ring-offset-2' 
+                              : 'border-gray-200'
+                          }`}
+                          style={{ backgroundColor: color.code }}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="font-medium mb-3">Select Size</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {SIZES.map((size) => (
+                      <Button
+                        key={size}
+                        variant={selectedSize === size ? "default" : "outline"}
+                        className={`h-12 text-base hover:bg-primary hover:text-white transition-colors ${
+                          selectedSize === size ? 'ring-2 ring-primary ring-offset-2' : ''
+                        }`}
+                        onClick={() => setSelectedSize(size)}
+                      >
+                        {size}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </ScrollArea>
+
+        {isMobile && (
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg">
+            <Button
+              className="w-full h-12 text-base font-medium"
+              onClick={handleAddToCart}
+              disabled={product.stock === 0 || !selectedSize}
+            >
+              {product.stock === 0 ? "Out of Stock" : `Add to Cart - $${product.price}`}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
