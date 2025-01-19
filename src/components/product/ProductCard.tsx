@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
@@ -6,6 +5,8 @@ import { Eye, AlertTriangle, CheckCircle, XCircle, Star, ShoppingCart } from "lu
 import { WishlistButton } from "./WishlistButton";
 import { differenceInDays } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Product {
   id: string;
@@ -29,6 +30,7 @@ interface ProductCardProps {
 export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -48,7 +50,8 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     return differenceInDays(new Date(), new Date(createdAt)) <= 30;
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card click
     if (!product.stock) {
       toast({
         title: "Out of Stock",
@@ -71,11 +74,18 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     });
   };
 
+  const handleCardClick = () => {
+    onQuickView(product);
+  };
+
   const stockStatus = getStockStatus(product.stock);
   const StockIcon = stockStatus.icon;
 
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg">
+    <Card 
+      className="group overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer active:scale-[0.99]" 
+      onClick={handleCardClick}
+    >
       <div className="aspect-square overflow-hidden relative">
         <img
           src={product.images?.[0] || '/placeholder.svg'}
@@ -99,14 +109,19 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         </div>
         <div className="absolute top-4 right-4 flex gap-2">
           <WishlistButton productId={product.id} />
-          <Button
-            variant="secondary"
-            size="icon"
-            className="opacity-0 group-hover:opacity-100 transition-opacity md:flex hidden"
-            onClick={() => onQuickView(product)}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
+          {!isMobile && (
+            <Button
+              variant="secondary"
+              size="icon"
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickView(product);
+              }}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
       <div className="p-4">
