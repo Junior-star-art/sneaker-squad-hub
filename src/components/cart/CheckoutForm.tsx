@@ -55,6 +55,67 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
     },
   });
 
+  const handleCheckout = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Create order in database
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user?.id,
+          status: 'pending',
+          total_amount: calculateTotal(),
+          shipping_method_id: selectedShippingMethod,
+        })
+        .select()
+        .single();
+
+      if (orderError || !order) {
+        throw new Error('Failed to create order');
+      }
+
+      // Create order items
+      const orderItems = items.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price_at_time: parseFloat(item.price.toString()),
+        size: item.size
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) {
+        throw new Error('Failed to create order items');
+      }
+
+      // Initiate payment
+      const paymentResult = await initiatePayFastPayment({
+        orderId: order.id,
+        amount: calculateTotal(),
+        email: user?.email || '',
+      });
+
+      if (paymentResult.url) {
+        window.location.href = paymentResult.url;
+      } else {
+        throw new Error('Failed to initiate payment');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem processing your order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Calculate total including shipping and discount
   const calculateTotal = () => {
     const subtotalValue = parseFloat(subtotal.replace('$', ''));
