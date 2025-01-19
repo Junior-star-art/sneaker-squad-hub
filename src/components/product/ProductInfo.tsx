@@ -34,9 +34,9 @@ export const ProductInfo = ({
   };
 
   const getStockStatus = () => {
-    if (stock === 0) return { label: "Out of Stock", color: "destructive" as const, icon: "🚫" };
-    if (stock < 5) return { label: "Low Stock", color: "warning" as const, icon: "⚠️" };
-    return { label: "In Stock", color: "success" as const, icon: "✅" };
+    if (stock === 0) return { label: "Out of Stock", variant: "destructive" as const, icon: "🚫" };
+    if (stock < 5) return { label: "Low Stock", variant: "secondary" as const, icon: "⚠️" };
+    return { label: "In Stock", variant: "outline" as const, icon: "✅" };
   };
 
   const status = getStockStatus();
@@ -59,7 +59,7 @@ export const ProductInfo = ({
             <span className="text-sm text-gray-500">(24 reviews)</span>
           </div>
         </div>
-        <Badge variant={status.color} className="text-sm">
+        <Badge variant={status.variant} className="text-sm">
           {status.icon} {status.label}
         </Badge>
         {stock > 0 && stock < 5 && (

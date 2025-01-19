@@ -6,6 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useToast } from "@/components/ui/use-toast";
+import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface Product {
   id: string;
@@ -38,7 +41,7 @@ export const YouMayAlsoLike = () => {
   const { data: recommendations, isLoading, error } = useQuery({
     queryKey: ['recommendations'],
     queryFn: fetchRecommendations,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 3,
     meta: {
       errorMessage: "Error loading recommendations"
@@ -64,40 +67,94 @@ export const YouMayAlsoLike = () => {
   const renderSkeletons = () => (
     <div className="flex space-x-4">
       {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="w-[250px] flex-none">
+        <div key={index} className="w-[250px] flex-none animate-pulse">
           <Skeleton className="h-[300px] w-full rounded-lg" />
+          <div className="mt-4 space-y-3">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
         </div>
       ))}
     </div>
   );
 
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollContainerRef.current) return;
+    
+    const container = scrollContainerRef.current;
+    const scrollAmount = direction === 'left' ? -container.offsetWidth : container.offsetWidth;
+    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  };
+
   return (
     <ErrorBoundary>
       <section 
-        className="py-8"
+        className="py-8 px-4 sm:px-6 lg:px-8 bg-white"
         aria-label="Product recommendations"
       >
-        <h2 className="text-2xl font-bold mb-4">You May Also Like</h2>
-        <ScrollArea className="w-full whitespace-nowrap rounded-lg">
-          <div className="flex w-full space-x-4 pb-4">
-            {isLoading ? (
-              renderSkeletons()
-            ) : (
-              recommendations?.map((product) => (
-                <div 
-                  key={product.id} 
-                  className={`${isMobile ? 'w-[80vw]' : 'w-[250px]'} flex-none`}
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-purple-100 rounded-full">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+              </div>
+              <h2 className="text-2xl font-bold">You May Also Like</h2>
+            </div>
+            {!isMobile && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll('left')}
+                  className="rounded-full"
                 >
-                  <ProductCard
-                    product={product}
-                    onQuickView={() => {}}
-                  />
-                </div>
-              ))
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll('right')}
+                  className="rounded-full"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+
+          <ScrollArea className="w-full">
+            <div 
+              ref={scrollContainerRef}
+              className={cn(
+                "flex gap-4 pb-4",
+                isMobile ? "overflow-x-auto snap-x snap-mandatory" : ""
+              )}
+            >
+              {isLoading ? (
+                renderSkeletons()
+              ) : (
+                recommendations?.map((product) => (
+                  <div 
+                    key={product.id} 
+                    className={cn(
+                      "flex-none transition-transform",
+                      isMobile ? "w-[80vw] snap-center" : "w-[250px]",
+                      "animate-fade-up hover:scale-[1.02] duration-300"
+                    )}
+                  >
+                    <ProductCard
+                      product={product}
+                      onQuickView={() => {}}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+            {!isMobile && <ScrollBar orientation="horizontal" />}
+          </ScrollArea>
+        </div>
       </section>
     </ErrorBoundary>
   );

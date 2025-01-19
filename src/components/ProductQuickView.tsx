@@ -89,7 +89,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
               <Separator className="my-6" />
               
               <div className={`space-y-6 ${isMobile ? 'pb-24' : ''}`}>
-                {colors?.length > 0 && (
+                {product.colors?.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-3">Available Colors</h4>
                     <div className="flex gap-3 flex-wrap">
