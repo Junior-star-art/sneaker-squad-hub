@@ -35,39 +35,51 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   const from = pageParam * PRODUCTS_PER_PAGE;
   const to = from + PRODUCTS_PER_PAGE - 1;
   
-  const { data, error, count } = await supabase
-    .from('products')
-    .select(`
-      *,
-      category:categories(name)
-    `)
-    .range(from, to)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error, count } = await supabase
+      .from('products')
+      .select(`
+        *,
+        category:categories(name)
+      `)
+      .range(from, to)
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching products:', error);
+    if (error) {
+      console.error('Error fetching products:', error);
+      throw error;
+    }
+    
+    console.log('Products fetched successfully:', data);
+    return { 
+      products: data as SupabaseProduct[], 
+      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined 
+    };
+  } catch (error) {
+    console.error('Failed to fetch products:', error);
     throw error;
   }
-  
-  console.log('Products fetched successfully:', data);
-  console.log('Number of products:', data?.length || 0);
-  return { products: data as SupabaseProduct[], nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined };
 };
 
 const fetchSimilarProducts = async (categoryId: string | null) => {
   if (!categoryId) return [];
   
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
-      *,
-      category:categories(name)
-    `)
-    .eq('category_id', categoryId)
-    .limit(4);
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        category:categories(name)
+      `)
+      .eq('category_id', categoryId)
+      .limit(4);
 
-  if (error) throw error;
-  return data as SupabaseProduct[];
+    if (error) throw error;
+    return data as SupabaseProduct[];
+  } catch (error) {
+    console.error('Failed to fetch similar products:', error);
+    throw error;
+  }
 };
 
 const ProductGrid = () => {
@@ -103,6 +115,7 @@ const ProductGrid = () => {
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
+      console.log('Loading more products due to scroll');
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -125,9 +138,16 @@ const ProductGrid = () => {
     }
   };
 
-  const allProducts = data?.pages.flatMap(page => page.products) || [];
+  // Ensure we have unique keys for each product
+  const allProducts = data?.pages.flatMap((page, pageIndex) => 
+    page.products.map((product) => ({
+      ...product,
+      uniqueKey: `${product.id}-${pageIndex}` // Create a unique key combining product ID and page index
+    }))
+  ) || [];
 
   if (error) {
+    console.error('Product grid error:', error);
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <div className="text-red-500 mb-4">
@@ -160,6 +180,7 @@ const ProductGrid = () => {
   }
 
   const handleQuickView = (product: SupabaseProduct) => {
+    console.log('Opening quick view for product:', product.id);
     setSelectedProduct(product);
   };
 
@@ -177,7 +198,7 @@ const ProductGrid = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
-                <ProductSkeleton key={index} />
+                <ProductSkeleton key={`skeleton-${index}`} />
               ))
             ) : !allProducts?.length ? (
               <div className="col-span-full text-center py-12">
@@ -202,7 +223,7 @@ const ProductGrid = () => {
             ) : (
               allProducts.map((product) => (
                 <ProductCard 
-                  key={product.id}
+                  key={product.uniqueKey} // Use the unique key we created
                   product={product}
                   onQuickView={() => handleQuickView(product)}
                 />
@@ -230,7 +251,7 @@ const ProductGrid = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {similarProducts.map((product) => (
                   <ProductCard
-                    key={product.id}
+                    key={`similar-${product.id}`}
                     product={product}
                     onQuickView={() => handleQuickView(product)}
                   />
