@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { initializeAnalytics } from "./utils/analytics";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/contexts/CartContext";
@@ -15,8 +17,11 @@ import Terms from "@/pages/Terms";
 import Index from "@/pages/Index";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-function App() {
-  console.log("App component rendering"); // Debug log
+const App = () => {
+  useEffect(() => {
+    // Initialize Google Analytics
+    initializeAnalytics('G-XXXXXXXXXX'); // Replace with your GA measurement ID
+  }, []);
 
   return (
     <ErrorBoundary>
@@ -64,6 +69,6 @@ function App() {
       </Router>
     </ErrorBoundary>
   );
-}
+};
 
 export default App;
