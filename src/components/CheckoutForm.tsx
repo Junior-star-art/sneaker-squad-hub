@@ -8,10 +8,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { initiatePayFastPayment } from "@/utils/payfast";
-import { PaymentMethodIcons } from "./PaymentMethodIcons";
-import { SecurityInfo } from "./SecurityInfo";
-import { DiscountCodeInput } from "./DiscountCodeInput";
-import { LaybyPlanForm } from "./LaybyPlanForm";
+import { PaymentMethodIcons } from "@/components/cart/PaymentMethodIcons";
+import { SecurityInfo } from "@/components/cart/SecurityInfo";
+import { DiscountCodeInput } from "@/components/cart/DiscountCodeInput";
+import { LaybyPlanForm } from "@/components/cart/LaybyPlanForm";
 
 type CheckoutFormProps = {
   onBack: () => void;
@@ -333,3 +333,4 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
 };
 
 export default CheckoutForm;
+
