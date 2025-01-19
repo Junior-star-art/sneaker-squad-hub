@@ -45,12 +45,20 @@ export const getRecommendedProducts = async (
     // If we have recently viewed products, use their categories for recommendations
     if (recentlyViewed?.length > 0) {
       const recentProductIds = recentlyViewed.map(item => item.product_id);
-      query = query.in('category_id', function(builder) {
-        return builder
-          .select('category_id')
-          .from('products')
-          .whereIn('id', recentProductIds);
-      });
+      const { data: recentCategories } = await supabase
+        .from('products')
+        .select('category_id')
+        .in('id', recentProductIds);
+        
+      if (recentCategories?.length) {
+        const categoryIds = recentCategories
+          .map(p => p.category_id)
+          .filter((id): id is string => id !== null);
+          
+        if (categoryIds.length) {
+          query = query.in('category_id', categoryIds);
+        }
+      }
     }
 
     // Get recommendations ordered by recommendation_score
@@ -69,19 +77,19 @@ export const getRecommendedProducts = async (
 
 export const updateRecommendationScore = async (productId: string) => {
   try {
-    // Get product details
+    // Get product details including recommendation_score and stock
     const { data: product } = await supabase
       .from('products')
-      .select('views, stock')
+      .select('recommendation_score, stock')
       .eq('id', productId)
       .single();
 
     if (!product) return;
 
-    // Calculate new recommendation score based on various factors
-    const viewsScore = Math.min(product.views || 0, 1000) / 10; // Max 100 points from views
+    // Calculate new recommendation score based on stock level
     const stockScore = Math.min(product.stock || 0, 100); // Max 100 points from stock
-    const newScore = Math.floor(viewsScore + stockScore);
+    const currentScore = product.recommendation_score || 0;
+    const newScore = Math.floor(stockScore + currentScore);
 
     // Update the product's recommendation score
     await supabase
