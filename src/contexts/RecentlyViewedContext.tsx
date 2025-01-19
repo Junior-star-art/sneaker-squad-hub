@@ -1,22 +1,17 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
-  price: string;
-  description: string;
-  features: string[];
-  materials: string;
-  care: string;
-  shipping: string;
-  stock: number;
-  colors: Array<{
+  price: number;
+  description: string | null;
+  images: string[] | null;
+  stock: number | null;
+  featured: boolean | null;
+  category: {
     name: string;
-    code: string;
-    image: string;
-  }>;
-  angles: string[];
-  image: string;
+  } | null;
+  created_at?: string;
 }
 
 interface RecentlyViewedContextType {
