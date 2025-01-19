@@ -11,10 +11,10 @@ const Hero = () => {
       </div>
       <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          JUST DO IT
+          STEP INTO STYLE
         </h1>
         <p className="mt-6 text-xl text-white max-w-3xl">
-          Your next favorite pair of Nike shoes is waiting for you. Shop the latest styles and innovations.
+          Your next favorite pair of sneakers is waiting for you. Shop the latest styles and innovations at Sneakeralot.
         </p>
         <div className="mt-10">
           <a

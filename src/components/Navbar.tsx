@@ -34,11 +34,7 @@ export const Navbar = ({ onCartClick }: NavbarProps) => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0">
-                <img
-                  className="h-8 w-auto"
-                  src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg"
-                  alt="Nike"
-                />
+                <span className="text-2xl font-bold tracking-tight">Sneakeralot</span>
               </Link>
               <div className="hidden md:ml-6 md:flex md:space-x-8">
                 <Link to="#" className="text-gray-900 hover:text-nike-red px-3 py-2 text-sm font-medium">

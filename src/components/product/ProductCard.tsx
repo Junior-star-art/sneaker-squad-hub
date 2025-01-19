@@ -56,10 +56,11 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           src={product.images?.[0] || '/placeholder.svg'}
           alt={product.name}
           className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
         />
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {isNewArrival(product.created_at) && (
-            <Badge className="bg-nike-red text-white">
+            <Badge className="bg-purple-600 text-white">
               <Star className="w-3 h-3 mr-1" />
               New Arrival
             </Badge>
@@ -76,7 +77,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           <Button
             variant="secondary"
             size="icon"
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            className="opacity-0 group-hover:opacity-100 transition-opacity md:flex hidden"
             onClick={() => onQuickView(product)}
           >
             <Eye className="h-4 w-4" />
@@ -85,10 +86,10 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
       </div>
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium truncate">{product.name}</h3>
+          <h3 className="font-medium truncate text-base md:text-lg">{product.name}</h3>
           <Badge 
             variant={stockStatus.variant}
-            className={`flex items-center gap-1 ${
+            className={`hidden md:flex items-center gap-1 ${
               !product.stock ? 'bg-red-100 text-red-700' :
               product.stock < 5 ? 'bg-yellow-100 text-yellow-700' :
               'bg-green-100 text-green-700'
@@ -99,19 +100,22 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-1">{product.category?.name}</p>
-        <div className="flex items-center justify-between mt-4">
-          <span className="font-medium">{formatPrice(product.price)}</span>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mt-4 gap-2">
+          <span className="font-medium text-lg">{formatPrice(product.price)}</span>
           <Button
             size="sm"
-            onClick={() => addItem({
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              image: product.images?.[0] || '/placeholder.svg'
-            })}
+            className="w-full md:w-auto"
+            onClick={() => {
+              addItem({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.images?.[0] || '/placeholder.svg'
+              });
+            }}
             disabled={!product.stock}
           >
-            Add to Cart
+            {!product.stock ? "Out of Stock" : "Add to Cart"}
           </Button>
         </div>
       </div>

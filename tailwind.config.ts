@@ -14,9 +14,10 @@ export default {
     },
     extend: {
       colors: {
-        nike: {
-          red: "#FA5400",
-          gray: "#757575",
+        sneakeralot: {
+          primary: "#9b87f5",
+          secondary: "#7E69AB",
+          accent: "#6E5C99",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
