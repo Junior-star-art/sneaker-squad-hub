@@ -87,7 +87,7 @@ export const RecentlyViewed = () => {
             {isLoading ? (
               renderSkeletons()
             ) : (
-              recentlyViewed.map((product) => (
+              recentlyViewed.map((product: Product) => (
                 <div 
                   key={product.id} 
                   className={`${isMobile ? 'w-[80vw]' : 'w-[250px]'} flex-none`}
