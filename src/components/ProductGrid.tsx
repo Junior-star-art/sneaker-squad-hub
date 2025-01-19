@@ -31,40 +31,65 @@ interface SupabaseProduct {
 const PRODUCTS_PER_PAGE = 8;
 
 const fetchProducts = async ({ pageParam = 0 }) => {
-  console.log('Fetching products page:', pageParam);
+  console.log('Attempting to fetch products page:', pageParam);
   const from = pageParam * PRODUCTS_PER_PAGE;
   const to = from + PRODUCTS_PER_PAGE - 1;
   
   try {
+    console.log('Supabase client status:', supabase);
+    
     const { data, error, count } = await supabase
       .from('products')
       .select(`
         *,
         category:categories(name)
-      `)
+      `, { count: 'exact' })
       .range(from, to)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching products:', error);
+      console.error('Supabase error fetching products:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw error;
     }
     
-    console.log('Products fetched successfully:', data);
+    if (!data) {
+      console.warn('No data returned from Supabase');
+      return { 
+        products: [], 
+        nextPage: undefined 
+      };
+    }
+    
+    console.log('Products fetched successfully:', {
+      count: data.length,
+      firstProduct: data[0],
+      lastProduct: data[data.length - 1]
+    });
+    
     return { 
       products: data as SupabaseProduct[], 
       nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined 
     };
   } catch (error) {
-    console.error('Failed to fetch products:', error);
+    console.error('Critical error in fetchProducts:', error);
     throw error;
   }
 };
 
 const fetchSimilarProducts = async (categoryId: string | null) => {
-  if (!categoryId) return [];
+  if (!categoryId) {
+    console.log('No category ID provided for similar products');
+    return [];
+  }
   
   try {
+    console.log('Fetching similar products for category:', categoryId);
+    
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -74,7 +99,12 @@ const fetchSimilarProducts = async (categoryId: string | null) => {
       .eq('category_id', categoryId)
       .limit(4);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching similar products:', error);
+      throw error;
+    }
+
+    console.log('Similar products fetched:', data?.length || 0);
     return data as SupabaseProduct[];
   } catch (error) {
     console.error('Failed to fetch similar products:', error);
@@ -114,13 +144,25 @@ const ProductGrid = () => {
   });
 
   useEffect(() => {
+    console.log('ProductGrid mounted');
+    return () => {
+      console.log('ProductGrid unmounted');
+    };
+  }, []);
+
+  useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      console.log('Loading more products due to scroll');
+      console.log('Loading more products due to scroll', {
+        inView,
+        hasNextPage,
+        isFetchingNextPage
+      });
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleRefresh = async () => {
+    console.log('Manually refreshing products');
     try {
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       await refetch();
@@ -129,7 +171,7 @@ const ProductGrid = () => {
         description: "Products refreshed successfully",
       });
     } catch (error) {
-      console.error('Refresh error:', error);
+      console.error('Error during manual refresh:', error);
       toast({
         title: "Error",
         description: "Failed to refresh products",
