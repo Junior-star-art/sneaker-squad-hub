@@ -8,7 +8,10 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { UpdatePassword } from "@/components/auth/UpdatePassword";
 import { ProfileManagement } from "@/components/profile/ProfileManagement";
 import { SupportHub } from "@/components/support/SupportHub";
+import CookieConsent from "@/components/CookieConsent";
 import OrderDetails from "@/pages/OrderDetails";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import Terms from "@/pages/Terms";
 import Index from "@/pages/Index";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -24,6 +27,8 @@ function App() {
               <RecentlyViewedProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<Terms />} />
                   <Route
                     path="/profile"
                     element={
@@ -50,6 +55,7 @@ function App() {
                     }
                   />
                 </Routes>
+                <CookieConsent />
                 <Toaster />
               </RecentlyViewedProvider>
             </WishlistProvider>

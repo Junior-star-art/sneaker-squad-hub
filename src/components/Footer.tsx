@@ -29,12 +29,12 @@ const Footer = () => {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-bold mb-4">PROMOTIONS</h3>
+            <h3 className="text-sm font-bold mb-4">LEGAL</h3>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white">Student</a></li>
-              <li><a href="#" className="hover:text-white">Military</a></li>
-              <li><a href="#" className="hover:text-white">Teacher</a></li>
-              <li><a href="#" className="hover:text-white">First Responders</a></li>
+              <li><a href="/terms" className="hover:text-white">Terms & Conditions</a></li>
+              <li><a href="/privacy-policy" className="hover:text-white">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-white">Payment Security</a></li>
+              <li><a href="#" className="hover:text-white">GDPR Rights</a></li>
             </ul>
           </div>
         </div>
