@@ -11,19 +11,19 @@ const Hero = () => {
           poster="https://images.unsplash.com/photo-1556906781-9a412961c28c?ixlib=rb-4.0.3"
         >
           <source
-            src="https://player.vimeo.com/external/373788776.hd.mp4?s=1c51fa21dbef7b4d652108103a385707e9e29ca7&profile_id=175&oauth2_token_id=57447761"
+            src="https://cdn.sanity.io/files/qa41whrn/prod/fd117121036e8f645e89b0968359cb5cb69cff2e.mp4"
             type="video/mp4"
           />
           Your browser does not support the video tag.
         </video>
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
       </div>
       <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          STEP INTO STYLE
+          JUST DO IT
         </h1>
         <p className="mt-6 text-xl text-white max-w-3xl">
-          Your next favorite pair of sneakers is waiting for you. Shop the latest styles and innovations at Sneakeralot.
+          Discover the latest Nike innovations, top performance shoes, and trending styles. Shop Nike.com for the finest selection of athletic footwear.
         </p>
         <div className="mt-10">
           <a
