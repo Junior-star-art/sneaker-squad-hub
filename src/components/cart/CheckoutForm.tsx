@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { initiatePayFastPayment } from "@/utils/payfast";
 import { PaymentMethodIcons } from "./PaymentMethodIcons";
 import { SecurityInfo } from "./SecurityInfo";
+import { DiscountCodeInput } from "./DiscountCodeInput";
 
 type CheckoutFormProps = {
   onBack: () => void;
@@ -23,11 +24,19 @@ interface ShippingMethod {
   estimated_days: number;
 }
 
+interface Discount {
+  type: string;
+  value: number;
+  code: string;
+  maxAmount?: number;
+}
+
 const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
   const { items, total: subtotal } = useCart();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<string | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
   const { toast } = useToast();
 
   // Fetch shipping methods
@@ -44,13 +53,31 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
     },
   });
 
-  // Calculate total including shipping
+  // Calculate discount amount
+  const calculateDiscountAmount = () => {
+    if (!appliedDiscount) return 0;
+    
+    const subtotalValue = parseFloat(subtotal.replace('$', ''));
+    let discountAmount = appliedDiscount.type === 'percentage'
+      ? (subtotalValue * appliedDiscount.value) / 100
+      : appliedDiscount.value;
+
+    if (appliedDiscount.maxAmount && discountAmount > appliedDiscount.maxAmount) {
+      discountAmount = appliedDiscount.maxAmount;
+    }
+
+    return discountAmount;
+  };
+
+  // Calculate total including shipping and discount
   const total = () => {
     const subtotalValue = parseFloat(subtotal.replace('$', ''));
     const shippingCost = selectedShippingMethod 
       ? shippingMethods?.find(m => m.id === selectedShippingMethod)?.price || 0
       : 0;
-    return (subtotalValue + shippingCost).toLocaleString('en-US', {
+    const discountAmount = calculateDiscountAmount();
+
+    return (subtotalValue + shippingCost - discountAmount).toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD'
     });
@@ -111,6 +138,21 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
         throw new Error('Failed to create order items');
       }
 
+      // If discount was applied, create discount code record
+      if (appliedDiscount) {
+        const { error: discountError } = await supabase
+          .from('discount_codes')
+          .insert({
+            user_id: user.id,
+            code: appliedDiscount.code,
+            used_at: new Date().toISOString(),
+          });
+
+        if (discountError) {
+          console.error('Error recording discount usage:', discountError);
+        }
+      }
+
       // Send order notification
       await supabase.functions.invoke('order-notification', {
         body: { orderId: order.id },
@@ -166,12 +208,26 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
         </RadioGroup>
       </div>
 
+      <div className="space-y-4">
+        <h3 className="font-medium text-lg">Discount Code</h3>
+        <DiscountCodeInput 
+          subtotal={parseFloat(subtotal.replace('$', ''))}
+          onApplyDiscount={setAppliedDiscount}
+        />
+      </div>
+
       <div className="border-t pt-4">
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Subtotal</span>
             <span>{subtotal}</span>
           </div>
+          {appliedDiscount && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Discount ({appliedDiscount.code})</span>
+              <span>-${calculateDiscountAmount().toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm">
             <span>Shipping</span>
             <span>
