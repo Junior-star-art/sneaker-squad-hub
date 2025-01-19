@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
-import { Eye, AlertTriangle, CheckCircle, XCircle, Star } from "lucide-react";
+import { Eye, AlertTriangle, CheckCircle, XCircle, Star, ShoppingCart } from "lucide-react";
 import { WishlistButton } from "./WishlistButton";
 import { differenceInDays } from "date-fns";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Product {
   id: string;
@@ -27,6 +28,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const { addItem } = useCart();
+  const { toast } = useToast();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -44,6 +46,29 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const isNewArrival = (createdAt?: string) => {
     if (!createdAt) return false;
     return differenceInDays(new Date(), new Date(createdAt)) <= 30;
+  };
+
+  const handleAddToCart = () => {
+    if (!product.stock) {
+      toast({
+        title: "Out of Stock",
+        description: "This product is currently unavailable",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0] || '/placeholder.svg'
+    });
+
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} has been added to your cart`,
+    });
   };
 
   const stockStatus = getStockStatus(product.stock);
@@ -104,18 +129,12 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           <span className="font-medium text-lg">{formatPrice(product.price)}</span>
           <Button
             size="sm"
-            className="w-full md:w-auto"
-            onClick={() => {
-              addItem({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.images?.[0] || '/placeholder.svg'
-              });
-            }}
+            className="w-full md:w-auto flex items-center justify-center gap-2"
+            onClick={handleAddToCart}
             disabled={!product.stock}
           >
-            {!product.stock ? "Out of Stock" : "Add to Cart"}
+            <ShoppingCart className="h-4 w-4" />
+            <span>{!product.stock ? "Out of Stock" : "Add to Cart"}</span>
           </Button>
         </div>
       </div>
