@@ -1,33 +1,18 @@
 const Hero = () => {
   return (
-    <div className="relative h-screen">
-      <div className="absolute inset-0">
+    <div className="relative min-h-[60vh] flex items-center justify-center">
+      <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-gradient-to-r from-black to-gray-800">
           <iframe
-            className="w-full h-full object-cover opacity-50"
-            src="https://www.youtube.com/embed/dHYTo6Da2aA?autoplay=1&controls=0&mute=1&loop=1&playlist=dHYTo6Da2aA"
-            title="Nike promotional video"
-            frameBorder="0"
+            src="https://www.youtube.com/embed/your-video-id?autoplay=1&mute=1&controls=0&loop=1"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
-      <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          JUST DO IT
-        </h1>
-        <p className="mt-6 text-xl text-white max-w-3xl">
-          Discover the latest Nike innovations, top performance shoes, and trending styles. Shop Nike.com for the finest selection of athletic footwear.
-        </p>
-        <div className="mt-10">
-          <a
-            href="#products"
-            className="inline-block bg-white text-black px-8 py-3 text-base font-medium rounded-full hover:bg-gray-100 transition duration-300"
-          >
-            Shop Now
-          </a>
-        </div>
+      <div className="relative z-10 text-white text-center p-8">
+        <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to Our Store</h1>
+        <p className="text-xl md:text-2xl">Discover amazing products</p>
       </div>
     </div>
   );
