@@ -6,9 +6,10 @@ type CartItemProps = {
   item: {
     id: string;
     name: string;
-    price: number;  // Changed from string to number
+    price: number;
     image: string;
     quantity: number;
+    size?: string; // Added size as optional property
   };
   isSaved?: boolean;
   onUpdateQuantity: (id: string, quantity: number) => void;
@@ -45,6 +46,7 @@ const CartItem = ({
       <div className="flex-1">
         <h3 className="font-medium">{item.name}</h3>
         <p className="text-muted-foreground">{formatPrice(item.price)}</p>
+        {item.size && <p className="text-sm text-muted-foreground">Size: {item.size}</p>}
         {!isSaved && (
           <div className="flex items-center gap-2 mt-2">
             <Button
