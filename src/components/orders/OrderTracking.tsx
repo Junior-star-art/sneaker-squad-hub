@@ -54,24 +54,17 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           
           if (!payload.new) return;
 
-          // Ensure all required fields are present before updating state
-          const transformedUpdate: TrackingUpdate = {
-            id: payload.new.id,
-            order_id: payload.new.order_id || '',
-            status: payload.new.status || 'pending',
-            location: payload.new.location,
-            description: payload.new.description,
-            created_at: new Date(payload.new.created_at).toISOString(),
-            carrier: payload.new.carrier,
-            tracking_number: payload.new.tracking_number,
-            estimated_delivery: payload.new.estimated_delivery,
-            latitude: payload.new.latitude,
-            longitude: payload.new.longitude,
-            email_sent: payload.new.email_sent
-          };
+          // Type assertion since we know the shape of our data
+          const newUpdate = payload.new as TrackingUpdate;
+
+          // Ensure all required fields are present
+          if (!newUpdate.id || !newUpdate.order_id || !newUpdate.status || !newUpdate.created_at) {
+            console.error('Invalid tracking update received:', newUpdate);
+            return;
+          }
 
           // Update the local state
-          setUpdates(prev => [transformedUpdate, ...prev]);
+          setUpdates(prev => [newUpdate, ...prev]);
 
           try {
             // Fetch the order to get the user ID
@@ -93,7 +86,7 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
                 await supabase.functions.invoke('order-status-notification', {
                   body: {
                     orderId,
-                    status: transformedUpdate.status,
+                    status: newUpdate.status,
                     userId: userData.id,
                   },
                 });
