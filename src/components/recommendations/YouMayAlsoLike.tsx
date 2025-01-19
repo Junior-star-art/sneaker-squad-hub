@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import ProductQuickView from "../ProductQuickView";
 import { useState } from "react";
-import { useCart } from "@/contexts/CartContext";
 
 interface Product {
   id: string;
@@ -43,7 +42,6 @@ export const YouMayAlsoLike = () => {
   const { toast } = useToast();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const { addItem } = useCart();
 
   const { data: recommendations, isLoading, error } = useQuery({
     queryKey: ['recommendations'],
@@ -54,30 +52,6 @@ export const YouMayAlsoLike = () => {
       errorMessage: "Error loading recommendations"
     }
   });
-
-  const handleAddToCart = (product: Product, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!product.stock) {
-      toast({
-        title: "Out of Stock",
-        description: "This product is currently unavailable",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images?.[0] || '/placeholder.svg'
-    });
-
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} has been added to your cart`,
-    });
-  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
@@ -99,7 +73,7 @@ export const YouMayAlsoLike = () => {
   return (
     <ErrorBoundary>
       <section 
-        className="py-8 px-4 sm:px-6 lg:px-8 bg-white"
+        className="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50"
         aria-label="Product recommendations"
       >
         <div className="max-w-7xl mx-auto">
@@ -116,7 +90,7 @@ export const YouMayAlsoLike = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => scroll('left')}
-                  className="rounded-full"
+                  className="rounded-full hover:bg-purple-50"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -124,7 +98,7 @@ export const YouMayAlsoLike = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => scroll('right')}
-                  className="rounded-full"
+                  className="rounded-full hover:bg-purple-50"
                 >
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -156,7 +130,6 @@ export const YouMayAlsoLike = () => {
                     <ProductCard
                       product={product}
                       onQuickView={() => setSelectedProduct(product)}
-                      onAddToCart={(e) => handleAddToCart(product, e)}
                     />
                   </div>
                 ))
