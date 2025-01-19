@@ -103,7 +103,7 @@ const TrendingThisWeek = () => {
             product={{
               id: selectedProduct.id,
               name: selectedProduct.name,
-              price: selectedProduct.price,
+              price: parseFloat(selectedProduct.price.replace('$', '')),
               description: selectedProduct.description || '',
               features: [],
               materials: '',
