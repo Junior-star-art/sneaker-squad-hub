@@ -33,6 +33,44 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_logs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          product_id: string | null
+          quantity_change: number
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          quantity_change: number
+          type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          quantity_change?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -80,37 +118,37 @@ export type Database = {
       }
       order_tracking: {
         Row: {
+          carrier: string | null
           created_at: string
           description: string | null
+          estimated_delivery: string | null
           id: string
           location: string | null
           order_id: string | null
           status: string
-          carrier: string | null;
-          tracking_number: string | null;
-          estimated_delivery: string | null;
+          tracking_number: string | null
         }
         Insert: {
+          carrier?: string | null
           created_at?: string
           description?: string | null
+          estimated_delivery?: string | null
           id?: string
           location?: string | null
           order_id?: string | null
           status: string
-          carrier?: string | null;
-          tracking_number?: string | null;
-          estimated_delivery?: string | null;
+          tracking_number?: string | null
         }
         Update: {
+          carrier?: string | null
           created_at?: string
           description?: string | null
+          estimated_delivery?: string | null
           id?: string
           location?: string | null
           order_id?: string | null
           status?: string
-          carrier?: string | null;
-          tracking_number?: string | null;
-          estimated_delivery?: string | null;
+          tracking_number?: string | null
         }
         Relationships: [
           {
@@ -229,6 +267,8 @@ export type Database = {
           featured: boolean | null
           id: string
           images: string[] | null
+          inventory_status: string | null
+          low_stock_threshold: number | null
           name: string
           price: number
           recommendation_score: number | null
@@ -245,6 +285,8 @@ export type Database = {
           featured?: boolean | null
           id?: string
           images?: string[] | null
+          inventory_status?: string | null
+          low_stock_threshold?: number | null
           name: string
           price: number
           recommendation_score?: number | null
@@ -261,6 +303,8 @@ export type Database = {
           featured?: boolean | null
           id?: string
           images?: string[] | null
+          inventory_status?: string | null
+          low_stock_threshold?: number | null
           name?: string
           price?: number
           recommendation_score?: number | null
@@ -435,7 +479,7 @@ export type Database = {
           city: string
           country: string
           created_at?: string
-          id: string
+          id?: string
           is_default?: boolean | null
           postal_code: string
           state: string
@@ -470,6 +514,7 @@ export type Database = {
           created_at: string
           email_preferences: Json | null
           id: string
+          notification_preferences: Json | null
           preferred_categories: string[] | null
           preferred_sizes: Json | null
           updated_at: string
@@ -479,6 +524,7 @@ export type Database = {
           created_at?: string
           email_preferences?: Json | null
           id?: string
+          notification_preferences?: Json | null
           preferred_categories?: string[] | null
           preferred_sizes?: Json | null
           updated_at?: string
@@ -488,6 +534,7 @@ export type Database = {
           created_at?: string
           email_preferences?: Json | null
           id?: string
+          notification_preferences?: Json | null
           preferred_categories?: string[] | null
           preferred_sizes?: Json | null
           updated_at?: string
@@ -564,7 +611,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -618,8 +665,8 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Update: infer U
-    }
+        Update: infer U
+      }
       ? U
       : never
     : never

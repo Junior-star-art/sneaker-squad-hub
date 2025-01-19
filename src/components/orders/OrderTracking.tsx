@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Package, Truck, CheckCircle, AlertCircle } from "lucide-react";
+import { Package, Truck, CheckCircle, AlertCircle, Calendar } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -79,14 +79,28 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
                       <p className="mt-1 text-sm">{update.description}</p>
                     )}
                     {update.tracking_number && (
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">
-                          Tracking Number: {update.tracking_number}
-                        </p>
-                        {update.carrier && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Truck className="h-4 w-4 text-gray-500" />
                           <p className="text-sm text-gray-500">
-                            Carrier: {update.carrier}
+                            Tracking Number: {update.tracking_number}
                           </p>
+                        </div>
+                        {update.carrier && (
+                          <div className="flex items-center gap-2">
+                            <Package className="h-4 w-4 text-gray-500" />
+                            <p className="text-sm text-gray-500">
+                              Carrier: {update.carrier}
+                            </p>
+                          </div>
+                        )}
+                        {update.estimated_delivery && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <p className="text-sm text-gray-500">
+                              Estimated Delivery: {format(new Date(update.estimated_delivery), 'MMM d, yyyy')}
+                            </p>
+                          </div>
                         )}
                       </div>
                     )}
