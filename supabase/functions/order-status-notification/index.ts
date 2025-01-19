@@ -14,10 +14,27 @@ serve(async (req) => {
   }
 
   try {
-    const { orderId, status, userEmail } = await req.json();
+    const { orderId, status, userId } = await req.json();
 
-    if (!orderId || !status || !userEmail) {
+    if (!orderId || !status || !userId) {
       throw new Error('Missing required fields');
+    }
+
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    );
+
+    // Get user email
+    const { data: userData, error: userError } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !userData) {
+      throw new Error('User not found');
     }
 
     // Send email notification using Resend
@@ -29,7 +46,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'orders@yourdomain.com',
-        to: userEmail,
+        to: userData.email,
         subject: `Order Status Update - ${status}`,
         html: `
           <h1>Order Status Update</h1>
@@ -41,6 +58,15 @@ serve(async (req) => {
 
     const data = await res.json();
     
+    // Log the email sending
+    await supabaseClient
+      .from('email_logs')
+      .insert({
+        user_id: userId,
+        status: 'sent',
+        template_id: null, // We're not using a template in this case
+      });
+
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
