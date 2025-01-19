@@ -1,3 +1,5 @@
+import { OptimizedImage } from "@/components/ui/optimized-image";
+
 const Hero = () => {
   return (
     <div className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">

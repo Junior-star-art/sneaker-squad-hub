@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useCart } from "@/contexts/CartContext";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 interface Product {
   id: string;
@@ -96,12 +97,14 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         onClick={() => onQuickView(product)}
       >
         <div className="aspect-square overflow-hidden relative">
-          <img
+          <OptimizedImage
             src={!imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'}
             alt={product.name}
-            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
+            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
             onError={handleImageError}
+            sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 100vw"
+            priority={product.featured}
+            placeholder="blur"
           />
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             {isNewArrival(product.created_at) && (

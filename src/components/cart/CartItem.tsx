@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X, Heart, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 type CartItemProps = {
   item: {
@@ -9,7 +10,7 @@ type CartItemProps = {
     price: number;
     image: string;
     quantity: number;
-    size?: string; // Added size as optional property
+    size?: string;
   };
   isSaved?: boolean;
   onUpdateQuantity: (id: string, quantity: number) => void;
@@ -42,7 +43,12 @@ const CartItem = ({
       transition={{ duration: 0.2 }}
       className="flex items-center gap-4 border-b pb-4"
     >
-      <img src={item.image} alt={item.name} className="h-24 w-24 object-cover" />
+      <OptimizedImage 
+        src={item.image} 
+        alt={item.name} 
+        className="h-24 w-24"
+        sizes="96px"
+      />
       <div className="flex-1">
         <h3 className="font-medium">{item.name}</h3>
         <p className="text-muted-foreground">{formatPrice(item.price)}</p>

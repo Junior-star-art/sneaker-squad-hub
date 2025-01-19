@@ -2,6 +2,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 interface ImageGalleryProps {
   images: string[];
@@ -27,10 +28,13 @@ export const ImageGallery = ({ images, mainImage, productName, onImageSelect }: 
   return (
     <div className="space-y-4">
       <div className="relative aspect-square rounded-lg overflow-hidden group">
-        <img
+        <OptimizedImage
           src={mainImage}
           alt={productName}
-          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full transition-transform duration-300 group-hover:scale-105"
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          priority
+          placeholder="blur"
         />
         {isMobile && images.length > 1 && (
           <>
@@ -69,10 +73,11 @@ export const ImageGallery = ({ images, mainImage, productName, onImageSelect }: 
                 mainImage === image ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent"
               )}
             >
-              <img 
+              <OptimizedImage 
                 src={image} 
                 alt={`${productName} view ${index + 1}`} 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-cover"
+                sizes="(min-width: 1024px) 12vw, 25vw"
               />
             </button>
           ))}
