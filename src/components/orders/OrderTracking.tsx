@@ -54,10 +54,20 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           
           if (!payload.new) return;
 
-          // Transform the payload into a TrackingUpdate
+          // Ensure all required fields are present before updating state
           const transformedUpdate: TrackingUpdate = {
-            ...payload.new,
+            id: payload.new.id,
+            order_id: payload.new.order_id || '',
+            status: payload.new.status || 'pending',
+            location: payload.new.location,
+            description: payload.new.description,
             created_at: new Date(payload.new.created_at).toISOString(),
+            carrier: payload.new.carrier,
+            tracking_number: payload.new.tracking_number,
+            estimated_delivery: payload.new.estimated_delivery,
+            latitude: payload.new.latitude,
+            longitude: payload.new.longitude,
+            email_sent: payload.new.email_sent
           };
 
           // Update the local state
