@@ -10,48 +10,53 @@ import { ProfileManagement } from "@/components/profile/ProfileManagement";
 import { SupportHub } from "@/components/support/SupportHub";
 import OrderDetails from "@/pages/OrderDetails";
 import Index from "@/pages/Index";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 function App() {
+  console.log("App component rendering"); // Debug log
+
   return (
-    <Router>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <RecentlyViewedProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfileManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/update-password" element={<UpdatePassword />} />
-                <Route
-                  path="/orders/:orderId"
-                  element={
-                    <ProtectedRoute>
-                      <OrderDetails />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/support"
-                  element={
-                    <ProtectedRoute>
-                      <SupportHub />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-              <Toaster />
-            </RecentlyViewedProvider>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <RecentlyViewedProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfileManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/update-password" element={<UpdatePassword />} />
+                  <Route
+                    path="/orders/:orderId"
+                    element={
+                      <ProtectedRoute>
+                        <OrderDetails />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/support"
+                    element={
+                      <ProtectedRoute>
+                        <SupportHub />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+                <Toaster />
+              </RecentlyViewedProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
