@@ -1,10 +1,23 @@
+interface SyncManager {
+  register(tag: string): Promise<void>;
+}
+
+interface ServiceWorkerRegistrationWithSync extends ServiceWorkerRegistration {
+  sync?: SyncManager;
+}
+
 export const offlineStorage = {
   saveToCache: async (key: string, data: any) => {
     try {
       localStorage.setItem(key, JSON.stringify(data));
-      if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('syncCart');
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready as ServiceWorkerRegistrationWithSync;
+        if (registration.sync) {
+          await registration.sync.register('syncCart');
+        } else {
+          console.log('Background Sync not supported');
+          // Implement immediate sync fallback if needed
+        }
       }
     } catch (error) {
       console.error('Error saving to cache:', error);
