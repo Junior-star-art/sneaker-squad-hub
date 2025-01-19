@@ -33,6 +33,75 @@ export type Database = {
         }
         Relationships: []
       }
+      email_logs: {
+        Row: {
+          error_message: string | null
+          id: string
+          sent_at: string
+          status: string
+          template_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          sent_at?: string
+          status: string
+          template_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+          template_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          created_at: string
+          html_content: string
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          html_content: string
+          id?: string
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          html_content?: string
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_logs: {
         Row: {
           created_at: string
