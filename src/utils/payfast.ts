@@ -27,12 +27,19 @@ export const createPayFastForm = (data: PayFastData) => {
   return form;
 };
 
-export const initiatePayFastPayment = (orderData: {
+interface PayFastPaymentParams {
   amount: number;
   customerName: string;
   customerEmail: string;
   itemName: string;
-}) => {
+  orderId: string;
+}
+
+interface PayFastResponse {
+  url: string;
+}
+
+export const initiatePayFastPayment = (orderData: PayFastPaymentParams): PayFastResponse => {
   const paymentData: PayFastData = {
     merchant_id: import.meta.env.VITE_PAYFAST_MERCHANT_ID || '',
     merchant_key: import.meta.env.VITE_PAYFAST_MERCHANT_KEY || '',
@@ -49,4 +56,9 @@ export const initiatePayFastPayment = (orderData: {
   document.body.appendChild(form);
   form.submit();
   document.body.removeChild(form);
+  
+  // Return a mock URL since PayFast handles the redirect
+  return {
+    url: `${window.location.origin}/processing-payment?order=${orderData.orderId}`
+  };
 };
