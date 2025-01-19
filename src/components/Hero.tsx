@@ -1,6 +1,6 @@
 const Hero = () => {
   return (
-    <div className="relative pt-16">
+    <div className="relative h-screen">
       <div className="absolute inset-0">
         <div className="w-full h-full bg-gradient-to-r from-black to-gray-800">
           <iframe

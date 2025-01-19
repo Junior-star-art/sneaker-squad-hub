@@ -18,20 +18,22 @@ const Index = () => {
   const [cartOpen, setCartOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       <Navbar onCartClick={() => setCartOpen(true)} />
-      <main className="flex-grow">
+      <main className="flex-grow relative z-0">
         <Hero />
-        <LatestAndGreatest />
-        <ShopIcons />
-        <TrendingThisWeek />
-        <ExploreMore />
-        <ComfortSection />
-        <ProductGrid />
-        <RecentlyViewed />
-        <YouMayAlsoLike />
-        <StyleCommunity />
-        <Newsletter />
+        <div className="bg-white relative z-10">
+          <LatestAndGreatest />
+          <ShopIcons />
+          <TrendingThisWeek />
+          <ExploreMore />
+          <ComfortSection />
+          <ProductGrid />
+          <RecentlyViewed />
+          <YouMayAlsoLike />
+          <StyleCommunity />
+          <Newsletter />
+        </div>
       </main>
       <Footer />
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />

@@ -34,8 +34,11 @@
   body {
     @apply bg-background text-foreground m-0 p-0;
     min-height: 100vh;
+    position: relative;
   }
   #root {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 }
