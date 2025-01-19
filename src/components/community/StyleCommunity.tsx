@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Camera, Heart, Share2 } from "lucide-react";
+import { Camera, Heart, Share2, Instagram, Twitter, Facebook, Link2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Post {
   id: number;
@@ -36,6 +42,8 @@ const StyleCommunity = () => {
   const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
   const { toast } = useToast();
   const [showUpload, setShowUpload] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const handleLike = (postId: number) => {
     setPosts(posts.map(post => 
@@ -47,11 +55,40 @@ const StyleCommunity = () => {
     });
   };
 
-  const handleShare = () => {
-    toast({
-      title: "Sharing...",
-      description: "Share feature coming soon!",
-    });
+  const handleShare = (post: Post) => {
+    setSelectedPost(post);
+    setShowShareDialog(true);
+  };
+
+  const handleSocialShare = (platform: string) => {
+    const url = window.location.href;
+    const text = `Check out this amazing Nike style by ${selectedPost?.username}!`;
+    
+    let shareUrl = '';
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'instagram':
+        toast({
+          title: "Instagram Story",
+          description: "Opening Instagram...",
+        });
+        return;
+      default:
+        navigator.clipboard.writeText(url);
+        toast({
+          title: "Link copied!",
+          description: "Share URL has been copied to clipboard.",
+        });
+        return;
+    }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    setShowShareDialog(false);
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,13 +153,35 @@ const StyleCommunity = () => {
                     <Heart className="h-4 w-4 mr-1" />
                     {post.likes}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleShare}
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleShare(post)}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => handleSocialShare('twitter')}>
+                        <Twitter className="h-4 w-4 mr-2" />
+                        Share on Twitter
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSocialShare('facebook')}>
+                        <Facebook className="h-4 w-4 mr-2" />
+                        Share on Facebook
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSocialShare('instagram')}>
+                        <Instagram className="h-4 w-4 mr-2" />
+                        Share to Instagram
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSocialShare('copy')}>
+                        <Link2 className="h-4 w-4 mr-2" />
+                        Copy Link
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
               <p className="text-gray-600 mb-2">{post.description}</p>
