@@ -1,18 +1,17 @@
 import { products } from "@/data/products";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { differenceInDays } from "date-fns";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { useState } from "react";
+import ProductQuickView from "../ProductQuickView";
+import { ProductCard } from "../product/ProductCard";
 
 const LatestAndGreatest = () => {
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  
   const latestProducts = [...products]
     .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
     .slice(0, 4);
-
-  const isNewArrival = (releaseDate: string) => {
-    return differenceInDays(new Date(), new Date(releaseDate)) <= 30;
-  };
 
   return (
     <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
@@ -33,36 +32,21 @@ const LatestAndGreatest = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {latestProducts.map((product, index) => (
-            <Card 
-              key={product.id} 
-              className={`group overflow-hidden animate-fade-up hover:shadow-xl transition-all duration-300 ${
-                index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''
-              }`}
-            >
-              <div className="aspect-square overflow-hidden relative">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-                {isNewArrival(product.releaseDate) && (
-                  <Badge className="absolute top-4 right-4 bg-nike-red text-white">
-                    New Arrival
-                  </Badge>
-                )}
-              </div>
-              <div className="p-6">
-                <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
-                <p className="text-nike-gray mt-1">{product.price}</p>
-                <div className="flex items-center gap-2 mt-4">
-                  <Clock className="w-4 h-4 text-nike-gray" />
-                  <p className="text-sm text-nike-gray">
-                    Released {new Date(product.releaseDate).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </Card>
+            <ProductCard
+              key={product.id}
+              product={{
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                images: [product.image],
+                stock: product.stock,
+                featured: false,
+                category: { name: product.category },
+                created_at: product.releaseDate
+              }}
+              onQuickView={setSelectedProduct}
+            />
           ))}
         </div>
         <Button variant="ghost" className="w-full mt-6 sm:hidden">
@@ -70,6 +54,27 @@ const LatestAndGreatest = () => {
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>
+
+      {selectedProduct && (
+        <ProductQuickView
+          product={{
+            id: selectedProduct.id,
+            name: selectedProduct.name,
+            price: selectedProduct.price,
+            description: selectedProduct.description || '',
+            features: [],
+            materials: '',
+            care: '',
+            shipping: '',
+            stock: selectedProduct.stock || 0,
+            angles: selectedProduct.images || [],
+            colors: [],
+            image: selectedProduct.images?.[0] || '/placeholder.svg'
+          }}
+          open={Boolean(selectedProduct)}
+          onOpenChange={(open) => !open && setSelectedProduct(null)}
+        />
+      )}
     </section>
   );
 };
