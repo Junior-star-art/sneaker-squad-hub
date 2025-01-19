@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Minus, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
   TableBody,
@@ -13,31 +11,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Package, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface Product {
   id: string;
   name: string;
   stock: number;
   low_stock_threshold: number;
-  inventory_status: string;
+  inventory_status: 'in_stock' | 'low_stock' | 'out_of_stock';
 }
 
-export function InventoryManagement() {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [quantity, setQuantity] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
+export const InventoryManagement = () => {
+  const [restockAmount, setRestockAmount] = useState<{ [key: string]: number }>({});
   const { toast } = useToast();
 
-  const { data: products, refetch } = useQuery({
-    queryKey: ["products"],
+  const { data: products, isLoading, refetch } = useQuery({
+    queryKey: ["inventory-products"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -49,60 +40,67 @@ export function InventoryManagement() {
     },
   });
 
-  const handleStockChange = async (type: "increase" | "decrease") => {
-    if (!selectedProduct || !quantity || isNaN(Number(quantity))) {
+  const handleRestock = async (productId: string) => {
+    const amount = restockAmount[productId];
+    if (!amount || amount <= 0) {
       toast({
-        title: "Error",
-        description: "Please enter a valid quantity",
+        title: "Invalid amount",
+        description: "Please enter a valid restock amount",
         variant: "destructive",
       });
       return;
     }
 
-    const quantityChange = type === "increase" ? Number(quantity) : -Number(quantity);
-
     try {
-      const { error } = await supabase.from("inventory_logs").insert({
-        product_id: selectedProduct.id,
-        quantity_change: quantityChange,
-        type: type === "increase" ? "restock" : "adjustment",
-        notes: notes,
-      });
+      const { error } = await supabase
+        .from("inventory_logs")
+        .insert({
+          product_id: productId,
+          quantity_change: amount,
+          type: "restock",
+          notes: `Manual restock of ${amount} units`,
+        });
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: `Stock ${type === "increase" ? "increased" : "decreased"} successfully`,
+        title: "Restock successful",
+        description: `Added ${amount} units to inventory`,
       });
 
-      setSelectedProduct(null);
-      setQuantity("");
-      setNotes("");
+      // Clear the restock amount input
+      setRestockAmount(prev => ({ ...prev, [productId]: 0 }));
       refetch();
     } catch (error) {
+      console.error("Error restocking product:", error);
       toast({
         title: "Error",
-        description: "Failed to update stock",
+        description: "Failed to restock product",
         variant: "destructive",
       });
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: Product['inventory_status']) => {
     switch (status) {
-      case "out_of_stock":
-        return <Badge variant="destructive">Out of Stock</Badge>;
-      case "low_stock":
-        return <Badge variant="secondary">Low Stock</Badge>;
+      case 'in_stock':
+        return <Badge className="bg-green-500"><CheckCircle className="w-4 h-4 mr-1" /> In Stock</Badge>;
+      case 'low_stock':
+        return <Badge variant="warning"><AlertTriangle className="w-4 h-4 mr-1" /> Low Stock</Badge>;
+      case 'out_of_stock':
+        return <Badge variant="destructive"><Package className="w-4 h-4 mr-1" /> Out of Stock</Badge>;
       default:
-        return <Badge variant="default">In Stock</Badge>;
+        return null;
     }
   };
 
+  if (isLoading) {
+    return <div>Loading inventory...</div>;
+  }
+
   return (
-    <div className="container mx-auto py-8">
-      <h2 className="text-2xl font-bold mb-6">Inventory Management</h2>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Inventory Management</h2>
       
       <Table>
         <TableHeader>
@@ -110,7 +108,8 @@ export function InventoryManagement() {
             <TableHead>Product</TableHead>
             <TableHead>Current Stock</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Restock Amount</TableHead>
+            <TableHead>Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -120,73 +119,29 @@ export function InventoryManagement() {
               <TableCell>{product.stock}</TableCell>
               <TableCell>{getStatusBadge(product.inventory_status)}</TableCell>
               <TableCell>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedProduct(product)}
-                    >
-                      Update Stock
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Update Stock for {product.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div>
-                        <label className="text-sm font-medium">Quantity</label>
-                        <Input
-                          type="number"
-                          value={quantity}
-                          onChange={(e) => setQuantity(e.target.value)}
-                          min="1"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Notes</label>
-                        <Input
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Optional notes about this change"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleStockChange("increase")}
-                          className="flex-1"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Stock
-                        </Button>
-                        <Button
-                          onClick={() => handleStockChange("decrease")}
-                          variant="destructive"
-                          className="flex-1"
-                        >
-                          <Minus className="w-4 h-4 mr-2" />
-                          Remove Stock
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <Input
+                  type="number"
+                  min="1"
+                  value={restockAmount[product.id] || ''}
+                  onChange={(e) => setRestockAmount(prev => ({
+                    ...prev,
+                    [product.id]: parseInt(e.target.value) || 0
+                  }))}
+                  className="w-24"
+                />
+              </TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => handleRestock(product.id)}
+                  disabled={!restockAmount[product.id] || restockAmount[product.id] <= 0}
+                >
+                  Restock
+                </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-
-      {products?.some(p => p.inventory_status === "low_stock") && (
-        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md flex items-center gap-2">
-          <AlertTriangle className="text-yellow-500" />
-          <p className="text-sm text-yellow-700">
-            Some products are running low on stock. Please review and restock as needed.
-          </p>
-        </div>
-      )}
     </div>
   );
-}
+};
