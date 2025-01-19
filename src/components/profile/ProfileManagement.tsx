@@ -14,13 +14,13 @@ export function ProfileManagement() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || "");
+  const [fullName, setFullName] = useState(user?.full_name || "");
   const [avatarUrl, setAvatarUrl] = useState<string>(user?.user_metadata?.avatar_url || "");
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
-      setFullName(user.user_metadata?.full_name || "");
+      setFullName(user.full_name || "");
       setAvatarUrl(user.user_metadata?.avatar_url || "");
     }
   }, [user]);
