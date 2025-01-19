@@ -10,6 +10,7 @@ import { useState } from "react";
 import { ImageGallery } from "./product/ImageGallery";
 import { ProductInfo } from "./product/ProductInfo";
 import { AddToCartSection } from "./product/AddToCartSection";
+import { EnhancedReviews } from "./product/EnhancedReviews";
 import { X } from "lucide-react";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
@@ -130,6 +131,10 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
                     ))}
                   </div>
                 </div>
+
+                <Separator className="my-6" />
+
+                <EnhancedReviews productId={product.id} />
               </div>
             </div>
           </div>
