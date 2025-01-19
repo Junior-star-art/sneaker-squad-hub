@@ -57,7 +57,7 @@ export const EmailHistory = () => {
               <TableCell>{log.template?.subject}</TableCell>
               <TableCell>
                 <Badge
-                  variant={log.status === "delivered" ? "success" : "destructive"}
+                  variant={log.status === "delivered" ? "default" : "destructive"}
                 >
                   {log.status}
                 </Badge>
