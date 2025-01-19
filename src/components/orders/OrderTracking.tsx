@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { TrackingUpdate } from "@/types/database";
-import { OrderMap } from "./OrderMap";
+import OrderMap from "./OrderMap";
 import { TrackingTimeline } from "./TrackingTimeline";
 
 interface OrderTrackingProps {
@@ -53,7 +53,7 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
     const channel = supabase
       .channel('order-tracking-updates')
       .on(
-        'postgres_changes' as any,
+        'postgres_changes',
         {
           event: '*',
           schema: 'public',
@@ -74,17 +74,17 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
             if (orderData?.user_id) {
               const { data: userData } = await supabase
                 .from('profiles')
-                .select('email')
+                .select('*')
                 .eq('id', orderData.user_id)
                 .single();
 
-              if (userData?.email) {
+              if (userData) {
                 // Send email notification
                 await supabase.functions.invoke('order-status-notification', {
                   body: {
                     orderId,
                     status: transformedUpdate.status,
-                    userEmail: userData.email,
+                    userId: userData.id,
                   },
                 });
               }
@@ -113,9 +113,11 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
       {latestUpdate?.latitude && latestUpdate?.longitude && (
         <div className="h-[400px] rounded-lg overflow-hidden">
           <OrderMap
-            latitude={latestUpdate.latitude}
-            longitude={latestUpdate.longitude}
-            location={latestUpdate.location}
+            orderId={orderId}
+            initialLocation={{
+              latitude: latestUpdate.latitude,
+              longitude: latestUpdate.longitude
+            }}
           />
         </div>
       )}
