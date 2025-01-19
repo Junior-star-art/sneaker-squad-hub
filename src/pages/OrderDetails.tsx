@@ -5,10 +5,12 @@ import { OrderTracking } from "@/components/orders/OrderTracking";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import Navbar from "@/components/Navbar";
+import { useState } from "react";
 
 const OrderDetails = () => {
   const { orderId } = useParams();
   const { toast } = useToast();
+  const [showCart, setShowCart] = useState(false);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderId],
@@ -45,7 +47,7 @@ const OrderDetails = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar onCartClick={() => setShowCart(true)} />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
@@ -55,7 +57,7 @@ const OrderDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar onCartClick={() => setShowCart(true)} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-sm rounded-lg divide-y divide-gray-200">
           <div className="px-4 py-5 sm:p-6">

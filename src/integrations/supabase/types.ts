@@ -86,6 +86,9 @@ export type Database = {
           location: string | null
           order_id: string | null
           status: string
+          carrier: string | null;
+          tracking_number: string | null;
+          estimated_delivery: string | null;
         }
         Insert: {
           created_at?: string
@@ -94,6 +97,9 @@ export type Database = {
           location?: string | null
           order_id?: string | null
           status: string
+          carrier?: string | null;
+          tracking_number?: string | null;
+          estimated_delivery?: string | null;
         }
         Update: {
           created_at?: string
@@ -102,6 +108,9 @@ export type Database = {
           location?: string | null
           order_id?: string | null
           status?: string
+          carrier?: string | null;
+          tracking_number?: string | null;
+          estimated_delivery?: string | null;
         }
         Relationships: [
           {
@@ -426,7 +435,7 @@ export type Database = {
           city: string
           country: string
           created_at?: string
-          id?: string
+          id: string
           is_default?: boolean | null
           postal_code: string
           state: string
@@ -555,7 +564,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -609,8 +618,8 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
+      Update: infer U
+    }
       ? U
       : never
     : never
