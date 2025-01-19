@@ -1,15 +1,18 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EmailHistory } from "@/components/notifications/EmailHistory";
 import { ContactForm } from "@/components/support/ContactForm";
+import FAQSection from "@/components/support/FAQSection";
+import ReturnPolicy from "@/components/support/ReturnPolicy";
+import LiveChat from "@/components/support/LiveChat";
 
 export const SupportHub = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Support & Notifications</h2>
+      <h2 className="text-2xl font-bold mb-6">Support & Help Center</h2>
       <Tabs defaultValue="contact" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="contact">Contact Support</TabsTrigger>
-          <TabsTrigger value="notifications">Email History</TabsTrigger>
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="contact">Contact Us</TabsTrigger>
+          <TabsTrigger value="faq">FAQ</TabsTrigger>
+          <TabsTrigger value="returns">Returns</TabsTrigger>
         </TabsList>
 
         <TabsContent value="contact">
@@ -19,10 +22,16 @@ export const SupportHub = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="notifications">
-          <EmailHistory />
+        <TabsContent value="faq">
+          <FAQSection />
+        </TabsContent>
+
+        <TabsContent value="returns">
+          <ReturnPolicy />
         </TabsContent>
       </Tabs>
+
+      <LiveChat />
     </div>
   );
 };
