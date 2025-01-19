@@ -21,15 +21,20 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
 
     mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN || '';
     
+    const initialLngLat: [number, number] = [
+      initialLocation?.longitude || -74.006,
+      initialLocation?.latitude || 40.7128
+    ];
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v11',
-      center: [initialLocation?.longitude || -74.006, initialLocation?.latitude || 40.7128],
+      center: initialLngLat,
       zoom: 12
     });
 
     marker.current = new mapboxgl.Marker()
-      .setLngLat([initialLocation?.longitude || -74.006, initialLocation?.latitude || 40.7128])
+      .setLngLat(initialLngLat)
       .addTo(map.current);
 
     // Subscribe to real-time updates
@@ -38,16 +43,16 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'order_tracking',
           filter: `order_id=eq.${orderId}`,
         },
-        (payload) => {
+        (payload: any) => {
           if (payload.new && map.current && marker.current) {
             const { latitude, longitude } = payload.new;
             if (latitude && longitude) {
-              const newLocation = [longitude, latitude];
+              const newLocation: [number, number] = [longitude, latitude];
               marker.current.setLngLat(newLocation);
               map.current.flyTo({
                 center: newLocation,

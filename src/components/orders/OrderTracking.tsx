@@ -12,6 +12,19 @@ interface OrderTrackingProps {
   orderId: string;
 }
 
+interface TrackingUpdate {
+  id: string;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  location?: string;
+  description?: string;
+  created_at: string;
+  carrier?: string;
+  tracking_number?: string;
+  estimated_delivery?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 const statusIcons = {
   pending: AlertCircle,
   processing: Package,
@@ -21,7 +34,7 @@ const statusIcons = {
 
 export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
   const { toast } = useToast();
-  const [trackingUpdates, setTrackingUpdates] = useState<any[]>([]);
+  const [trackingUpdates, setTrackingUpdates] = useState<TrackingUpdate[]>([]);
 
   const { data: initialTracking, isLoading } = useQuery({
     queryKey: ['order-tracking', orderId],
@@ -57,7 +70,7 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           table: 'order_tracking',
           filter: `order_id=eq.${orderId}`,
         },
-        (payload) => {
+        (payload: { new: TrackingUpdate }) => {
           if (payload.new) {
             setTrackingUpdates(current => {
               const existing = current.find(update => update.id === payload.new.id);
@@ -110,7 +123,7 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
       <ScrollArea className="h-[300px] rounded-md border p-4">
         <div className="space-y-8">
           {trackingUpdates.map((update) => {
-            const StatusIcon = statusIcons[update.status as keyof typeof statusIcons] || Package;
+            const StatusIcon = statusIcons[update.status] || Package;
             return (
               <div key={update.id} className="relative">
                 <div className="flex items-start gap-4">
