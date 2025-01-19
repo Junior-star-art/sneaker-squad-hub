@@ -71,6 +71,16 @@ export function AuthForms() {
         providers={['facebook']}
         redirectTo={window.location.origin}
         onlyThirdPartyProviders={false}
+        localization={{
+          variables: {
+            sign_in: {
+              social_provider_text: "Continue with Facebook",
+            },
+            sign_up: {
+              social_provider_text: "Sign up with Facebook",
+            },
+          },
+        }}
       />
 
       <div className="text-center mt-4">
