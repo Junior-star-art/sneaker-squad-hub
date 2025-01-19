@@ -12,6 +12,7 @@ import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-quer
 import { ProductCard } from "./product/ProductCard";
 import { Button } from "./ui/button";
 import { useInView } from "react-intersection-observer";
+import { getRecommendedProducts } from "@/utils/recommendationsEngine";
 
 interface SupabaseProduct {
   id: string;
@@ -141,6 +142,15 @@ const ProductGrid = () => {
     queryKey: ['similar-products', selectedProduct?.category_id],
     queryFn: () => fetchSimilarProducts(selectedProduct?.category_id || null),
     enabled: !!selectedProduct?.category_id,
+  });
+
+  // Add this new query for recommended products
+  const { data: recommendedProducts } = useQuery({
+    queryKey: ['recommended-products'],
+    queryFn: async () => {
+      const { data: userAuth } = await supabase.auth.getUser();
+      return getRecommendedProducts(userAuth.user?.id, undefined, 4);
+    },
   });
 
   useEffect(() => {
@@ -283,6 +293,22 @@ const ProductGrid = () => {
               >
                 {isFetchingNextPage ? 'Loading more...' : 'Load more products'}
               </Button>
+            </div>
+          )}
+
+          {/* Recommended Products Section */}
+          {recommendedProducts && recommendedProducts.length > 0 && (
+            <div className="mt-16">
+              <h3 className="text-2xl font-bold mb-6">Recommended For You</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {recommendedProducts.map((product) => (
+                  <ProductCard
+                    key={`recommended-${product.id}`}
+                    product={product}
+                    onQuickView={() => handleQuickView(product)}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
