@@ -13,11 +13,19 @@ import { SecurityInfo } from "@/components/cart/SecurityInfo";
 import { DiscountCodeInput } from "@/components/cart/DiscountCodeInput";
 import { LaybyPlanForm } from "@/components/cart/LaybyPlanForm";
 
-type CheckoutFormProps = {
-  onBack: () => void;
-};
+interface ShippingMethod {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  estimated_days: number;
+}
 
-const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
+interface CheckoutFormProps {
+  onBack: () => void;
+}
+
+export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
   const { items, total: subtotal } = useCart();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -321,5 +329,3 @@ const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
     </div>
   );
 };
-
-export default CheckoutForm;
