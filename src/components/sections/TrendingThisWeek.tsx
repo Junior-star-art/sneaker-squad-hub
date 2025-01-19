@@ -22,14 +22,18 @@ const TrendingThisWeek = () => {
   
   const trendingProducts = [...products]
     .sort((a, b) => calculateTrendingScore(b) - calculateTrendingScore(a))
-    .slice(0, 3);
+    .slice(0, 3)
+    .map(product => ({
+      ...product,
+      price: parseFloat(product.price.replace('$', '')) // Convert price string to number
+    }));
 
   const handleAddToCart = (product: typeof products[0], e: React.MouseEvent) => {
     e.stopPropagation();
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: parseFloat(product.price.replace('$', '')), // Convert price string to number
       image: product.image
     });
     toast({
@@ -103,7 +107,7 @@ const TrendingThisWeek = () => {
             product={{
               id: selectedProduct.id,
               name: selectedProduct.name,
-              price: selectedProduct.price,
+              price: parseFloat(selectedProduct.price.replace('$', '')), // Convert price string to number
               description: selectedProduct.description || '',
               features: [],
               materials: '',
