@@ -2,11 +2,11 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css';
+import { toast } from '@/components/ui/use-toast';
 
 // Performance monitoring
 const reportWebVitals = (metric: any) => {
   console.log('Web Vitals:', metric);
-  // Here you can send the metric to your analytics service
 };
 
 // Monitor initial page load
@@ -14,6 +14,22 @@ const pageLoadTime = performance.now();
 console.log('Page Load Time:', {
   timestamp: new Date().toISOString(),
   loadTime: `${pageLoadTime}ms`
+});
+
+// Offline detection
+window.addEventListener('online', () => {
+  toast({
+    title: "You're back online!",
+    description: "Your changes will now be synchronized.",
+  });
+});
+
+window.addEventListener('offline', () => {
+  toast({
+    title: "You're offline",
+    description: "Don't worry, you can still browse and your changes will be saved.",
+    variant: "destructive",
+  });
 });
 
 console.log('Initializing application...', {
@@ -26,7 +42,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       meta: {
         errorHandler: (error: Error) => {
           console.error('Query error:', {
