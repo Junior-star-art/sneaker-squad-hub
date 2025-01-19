@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { TrackingUpdate } from "@/types/database";
 import OrderMap from "./OrderMap";
 import { TrackingTimeline } from "./TrackingTimeline";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 interface OrderTrackingProps {
   orderId: string;
@@ -48,7 +49,7 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           table: 'order_tracking',
           filter: `order_id=eq.${orderId}`,
         },
-        async (payload: { new: TrackingUpdate }) => {
+        async (payload: RealtimePostgresChangesPayload<TrackingUpdate>) => {
           console.log('Received tracking update:', payload);
           
           if (!payload.new) return;
