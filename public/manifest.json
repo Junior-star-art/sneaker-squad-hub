@@ -8,7 +8,7 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/nike-favicon.ico",
+      "src": "/nike-favicon.ico?v=2",
       "sizes": "64x64",
       "type": "image/x-icon"
     },
