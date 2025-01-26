@@ -26,70 +26,94 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const CART_STORAGE_KEY = 'shopping-cart';
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [savedItems, setSavedItems] = useState<CartItem[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Load cart data on mount and when user changes
   useEffect(() => {
-    if (user) {
-      loadSavedItems();
-    } else {
-      setSavedItems([]);
-    }
+    loadCartData();
   }, [user]);
 
-  const loadSavedItems = async () => {
-    if (!user) return;
+  const loadCartData = async () => {
+    if (user) {
+      // Load from Supabase for authenticated users
+      try {
+        const { data: savedCartData, error: savedCartError } = await supabase
+          .from('saved_cart_items')
+          .select(`
+            product_id,
+            size,
+            products (
+              id,
+              name,
+              price,
+              images
+            )
+          `)
+          .eq('user_id', user.id);
 
-    try {
-      const { data, error } = await supabase
-        .from('saved_cart_items')
-        .select(`
-          *,
-          product:products(
-            id,
-            name,
-            price,
-            images
-          )
-        `)
-        .eq('user_id', user.id);
+        if (savedCartError) throw savedCartError;
 
-      if (error) throw error;
+        const formattedSavedItems = savedCartData.map(item => ({
+          id: item.products.id,
+          name: item.products.name,
+          price: item.products.price,
+          image: item.products.images[0] || '/placeholder.svg',
+          quantity: 1,
+          size: item.size
+        }));
 
-      const formattedItems = data.map(item => ({
-        id: item.product.id,
-        name: item.product.name,
-        price: item.product.price,
-        image: item.product.images?.[0] || '/placeholder.svg',
-        quantity: 1,
-        size: item.size
-      }));
-
-      setSavedItems(formattedItems);
-    } catch (error) {
-      console.error('Error loading saved items:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load saved items",
-        variant: "destructive",
-      });
+        setSavedItems(formattedSavedItems);
+      } catch (error) {
+        console.error('Error loading saved cart items:', error);
+      }
+    } else {
+      // Load from localStorage for non-authenticated users
+      const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (storedCart) {
+        try {
+          const { items: storedItems, savedItems: storedSavedItems } = JSON.parse(storedCart);
+          setItems(storedItems || []);
+          setSavedItems(storedSavedItems || []);
+        } catch (error) {
+          console.error('Error parsing stored cart:', error);
+        }
+      }
     }
   };
 
+  // Persist cart data whenever it changes
+  useEffect(() => {
+    if (!user) {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, savedItems }));
+    }
+  }, [items, savedItems, user]);
+
   const addItem = (product: Omit<CartItem, "quantity">) => {
     setItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.id === product.id);
-      if (existingItem) {
-        return currentItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...currentItems, { ...product, quantity: 1 }];
+      const existingItem = currentItems.find((item) => 
+        item.id === product.id && item.size === product.size
+      );
+
+      const newItems = existingItem
+        ? currentItems.map((item) =>
+            item.id === product.id && item.size === product.size
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        : [...currentItems, { ...product, quantity: 1 }];
+
+      return newItems;
+    });
+
+    toast({
+      title: "Added to cart",
+      description: `${product.name} has been added to your cart.`,
     });
   };
 
@@ -234,7 +258,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         saveForLater,
         moveToCart,
         removeSavedItem,
-        total
+        total,
       }}
     >
       {children}
