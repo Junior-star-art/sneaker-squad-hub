@@ -66,7 +66,8 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       console.warn('No data returned from Supabase');
       return { 
         products: [], 
-        nextPage: undefined 
+        nextPage: undefined,
+        total: 0
       };
     }
     
@@ -91,6 +92,7 @@ const fetchSimilarProducts = async (categoryId: string | null) => {
   if (!categoryId) return [];
   
   try {
+    console.log('Fetching similar products for category:', categoryId);
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -104,6 +106,8 @@ const fetchSimilarProducts = async (categoryId: string | null) => {
       console.error('Error fetching similar products:', error);
       throw error;
     }
+    
+    console.log('Similar products fetched:', data?.length || 0);
     return data || [];
   } catch (error) {
     console.error('Error fetching similar products:', error);
@@ -119,6 +123,7 @@ const ProductGrid = () => {
   const { ref: loadMoreRef, inView } = useInView();
 
   const handleQuickView = (product: SupabaseProduct) => {
+    console.log('Opening quick view for product:', product.id);
     setSelectedProduct(product);
   };
 
@@ -153,6 +158,7 @@ const ProductGrid = () => {
   const { data: recommendedProducts } = useQuery({
     queryKey: ['recommended-products'],
     queryFn: async () => {
+      console.log('Fetching recommended products');
       const { data: userAuth } = await supabase.auth.getUser();
       return getRecommendedProducts(userAuth.user?.id, undefined, 4);
     },
