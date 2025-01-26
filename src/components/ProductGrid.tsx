@@ -13,6 +13,7 @@ import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-quer
 import { ProductCard } from "./product/ProductCard";
 import { Button } from "./ui/button";
 import { useInView } from "react-intersection-observer";
+import { PostgrestError } from "@supabase/supabase-js";
 
 interface SupabaseProduct {
   id: string;
@@ -40,7 +41,7 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   console.log('Initiating product fetch:', { from, to, timestamp: new Date().toISOString() });
 
   let retryCount = 0;
-  let lastError;
+  let lastError: Error | PostgrestError;
 
   while (retryCount < MAX_RETRIES) {
     try {
@@ -56,18 +57,19 @@ const fetchProducts = async ({ pageParam = 0 }) => {
         `, { count: 'exact' })
         .range(from, to)
         .order('created_at', { ascending: false })
-        .throwOnError(); // This will ensure errors are properly caught
+        .throwOnError();
 
       if (error) {
+        const postgrestError = error as PostgrestError;
         console.error('Supabase error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
+          message: postgrestError.message,
+          details: postgrestError.details,
+          hint: postgrestError.hint,
+          code: postgrestError.code,
           timestamp: new Date().toISOString(),
           retryCount
         });
-        throw error;
+        throw postgrestError;
       }
 
       if (!data) {
@@ -101,7 +103,7 @@ const fetchProducts = async ({ pageParam = 0 }) => {
         timestamp: new Date().toISOString()
       });
 
-      lastError = error;
+      lastError = error as Error | PostgrestError;
       retryCount++;
 
       if (retryCount < MAX_RETRIES) {
