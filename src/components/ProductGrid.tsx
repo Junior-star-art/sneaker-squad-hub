@@ -37,12 +37,13 @@ const INITIAL_RETRY_DELAY = 1000;
 const fetchProducts = async ({ pageParam = 0 }) => {
   const from = pageParam * PRODUCTS_PER_PAGE;
   const to = from + PRODUCTS_PER_PAGE - 1;
+  const requestId = Math.random().toString(36).substring(7);
 
   console.log('Initiating product fetch:', { 
+    requestId,
     from, 
     to, 
-    timestamp: new Date().toISOString(),
-    supabaseUrl: supabase?.supabaseUrl 
+    timestamp: new Date().toISOString()
   });
 
   let retryCount = 0;
@@ -65,6 +66,7 @@ const fetchProducts = async ({ pageParam = 0 }) => {
 
       if (error) {
         console.error('Supabase error details:', {
+          requestId,
           message: error.message,
           details: error.details,
           hint: error.hint,
@@ -82,6 +84,7 @@ const fetchProducts = async ({ pageParam = 0 }) => {
 
       if (!data) {
         console.warn('No data returned from Supabase', {
+          requestId,
           timestamp: new Date().toISOString(),
           retryCount,
           requestDetails: {
@@ -98,6 +101,7 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       }
 
       console.log('Products fetched successfully:', {
+        requestId,
         count: data.length,
         total: count,
         timestamp: new Date().toISOString(),
@@ -111,6 +115,7 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       };
     } catch (error) {
       console.error('Fetch error:', {
+        requestId,
         error,
         retryCount,
         timestamp: new Date().toISOString(),
