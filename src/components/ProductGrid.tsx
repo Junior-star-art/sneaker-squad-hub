@@ -30,6 +30,8 @@ interface SupabaseProduct {
 }
 
 const PRODUCTS_PER_PAGE = 8;
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000;
 
 const fetchProducts = async ({ pageParam = 0 }) => {
   const from = pageParam * PRODUCTS_PER_PAGE;
@@ -37,68 +39,73 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   
   console.log('Initiating product fetch:', { from, to, timestamp: new Date().toISOString() });
   
-  try {
-    console.log('Supabase client status:', {
-      timestamp: new Date().toISOString(),
-      ready: Boolean(supabase)
-    });
+  let retryCount = 0;
+  let lastError;
 
-    if (!supabase) {
-      throw new Error('Supabase client is not initialized');
-    }
+  while (retryCount < MAX_RETRIES) {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
 
-    const { data, error, count } = await supabase
-      .from('products')
-      .select(`
-        *,
-        category:categories(name)
-      `, { count: 'exact' })
-      .range(from, to)
-      .order('created_at', { ascending: false });
+      const { data, error, count } = await supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories(name)
+        `, { count: 'exact' })
+        .range(from, to)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Supabase error details:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        timestamp: new Date().toISOString()
+      if (error) {
+        console.error('Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          timestamp: new Date().toISOString(),
+          retryCount
+        });
+        throw error;
+      }
+      
+      if (!data) {
+        console.warn('No data returned from Supabase', {
+          timestamp: new Date().toISOString(),
+          retryCount
+        });
+        return { 
+          products: [], 
+          nextPage: undefined,
+          total: 0 
+        };
+      }
+
+      console.log('Products fetched successfully:', {
+        count: data.length,
+        total: count,
+        timestamp: new Date().toISOString(),
+        retryAttempt: retryCount
       });
-      throw new Error(`Failed to fetch products: ${error.message}`);
-    }
-    
-    if (!data) {
-      console.warn('No data returned from Supabase', {
-        timestamp: new Date().toISOString()
-      });
+      
       return { 
-        products: [], 
-        nextPage: undefined,
-        total: 0 
+        products: data as SupabaseProduct[], 
+        nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined,
+        total: count 
       };
+    } catch (error) {
+      lastError = error;
+      retryCount++;
+      
+      if (retryCount < MAX_RETRIES) {
+        const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount - 1);
+        console.log(`Retry attempt ${retryCount} after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-
-    console.log('Products fetched successfully:', {
-      count: data.length,
-      total: count,
-      firstProduct: data[0],
-      lastProduct: data[data.length - 1],
-      timestamp: new Date().toISOString()
-    });
-    
-    return { 
-      products: data as SupabaseProduct[], 
-      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined,
-      total: count 
-    };
-  } catch (error) {
-    console.error('Detailed error in fetchProducts:', {
-      error,
-      timestamp: new Date().toISOString(),
-      context: 'Product fetch operation'
-    });
-    throw error;
   }
+
+  throw lastError;
 };
 
 const ProductGrid = () => {
@@ -124,17 +131,11 @@ const ProductGrid = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
     meta: {
       errorMessage: "Failed to load products"
     }
   });
-
-  useEffect(() => {
-    console.log('ProductGrid mounted, initializing data fetch');
-    return () => {
-      console.log('ProductGrid unmounted');
-    };
-  }, []);
 
   useEffect(() => {
     if (error) {
@@ -142,13 +143,24 @@ const ProductGrid = () => {
         error,
         timestamp: new Date().toISOString(),
         message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
+        type: error instanceof Error ? error.constructor.name : typeof error
       });
+      
+      let errorMessage = "Failed to load products. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes('429')) {
+          errorMessage = "Too many requests. Please wait a moment and try again.";
+        } else if (error.message.includes('fetch')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else {
+          errorMessage = `Error: ${error.message}. Please try again.`;
+        }
+      }
+      
       toast({
         title: "Error loading products",
-        description: error instanceof Error 
-          ? `Error: ${error.message}. Please try again.` 
-          : "Failed to load products. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
