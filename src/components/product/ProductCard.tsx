@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, AlertTriangle, CheckCircle, XCircle, Star, ShoppingCart, Plus } from "lucide-react";
+import { Eye, Star, ShoppingCart, Plus } from "lucide-react";
 import { WishlistButton } from "./WishlistButton";
 import { differenceInDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,8 @@ import { useCart } from "@/contexts/CartContext";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { OptimizedImage } from "@/components/ui/optimized-image";
+import { StockIndicator } from "./StockIndicator";
+import { StockNotification } from "./StockNotification";
 
 interface Product {
   id: string;
@@ -125,12 +127,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
                 New Arrival
               </Badge>
             )}
-            {product.stock !== null && product.stock < 5 && (
-              <Badge variant="secondary" className="bg-yellow-500 text-white">
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                Only {product.stock} left
-              </Badge>
-            )}
+            <StockIndicator stock={product.stock || 0} />
           </div>
           <div className="absolute top-4 right-4 flex gap-2">
             <WishlistButton productId={product.id} />
@@ -149,54 +146,48 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
             )}
           </div>
           <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              className="w-full bg-black hover:bg-gray-800 text-white gap-2"
-              onClick={handleAddToCart}
-              disabled={!product.stock || isAddingToCart}
-            >
-              {isAddingToCart ? (
-                "Adding..."
-              ) : !product.stock ? (
-                "Out of Stock"
-              ) : (
-                <>
-                  <Plus className="h-4 w-4" />
-                  Add to Cart
-                </>
-              )}
-            </Button>
+            {product.stock && product.stock > 0 ? (
+              <Button
+                className="w-full bg-black hover:bg-gray-800 text-white gap-2"
+                onClick={handleAddToCart}
+                disabled={isAddingToCart}
+              >
+                {isAddingToCart ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Add to Cart
+                  </>
+                )}
+              </Button>
+            ) : (
+              <StockNotification productId={product.id} productName={product.name} />
+            )}
           </div>
         </div>
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-medium truncate text-base md:text-lg">{product.name}</h3>
-            <Badge 
-              variant={stockStatus.variant}
-              className={`hidden md:flex items-center gap-1 ${
-                !product.stock ? 'bg-red-100 text-red-700' :
-                product.stock < 5 ? 'bg-yellow-100 text-yellow-700' :
-                'bg-green-100 text-green-700'
-              }`}
-            >
-              <StockIcon className="w-3 h-3" />
-              <span className="text-xs">{stockStatus.label}</span>
-            </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">{product.category?.name}</p>
           <div className="flex flex-col md:flex-row md:items-center justify-between mt-4 gap-2">
             <span className="font-medium text-lg">{formatPrice(product.price)}</span>
-            {isMobile && (
+            {isMobile && product.stock && product.stock > 0 && (
               <Button
                 size="sm"
                 className="w-full md:w-auto flex items-center justify-center gap-2"
                 onClick={handleAddToCart}
-                disabled={!product.stock || isAddingToCart}
+                disabled={isAddingToCart}
               >
                 <ShoppingCart className="h-4 w-4" />
                 <span>
-                  {isAddingToCart ? "Adding..." : !product.stock ? "Out of Stock" : "Add to Cart"}
+                  {isAddingToCart ? "Adding..." : "Add to Cart"}
                 </span>
               </Button>
+            )}
+            {isMobile && (!product.stock || product.stock === 0) && (
+              <StockNotification productId={product.id} productName={product.name} />
             )}
           </div>
         </div>
