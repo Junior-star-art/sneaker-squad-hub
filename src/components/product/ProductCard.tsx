@@ -35,6 +35,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const isMobile = useIsMobile();
   const { addItem } = useCart();
   const [imageError, setImageError] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -54,7 +55,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     return differenceInDays(new Date(), new Date(createdAt)) <= 30;
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!product.stock) {
       toast({
@@ -65,17 +66,28 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
       return;
     }
 
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: !imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'
-    });
+    setIsAddingToCart(true);
+    try {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: !imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'
+      });
 
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} has been added to your cart`,
-    });
+      toast({
+        title: "Added to Cart",
+        description: `${product.name} has been added to your cart`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const stockStatus = getStockStatus(product.stock);
@@ -140,10 +152,18 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
             <Button
               className="w-full bg-black hover:bg-gray-800 text-white gap-2"
               onClick={handleAddToCart}
-              disabled={!product.stock}
+              disabled={!product.stock || isAddingToCart}
             >
-              <Plus className="h-4 w-4" />
-              {!product.stock ? "Out of Stock" : "Add to Cart"}
+              {isAddingToCart ? (
+                "Adding..."
+              ) : !product.stock ? (
+                "Out of Stock"
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Add to Cart
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -170,10 +190,12 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
                 size="sm"
                 className="w-full md:w-auto flex items-center justify-center gap-2"
                 onClick={handleAddToCart}
-                disabled={!product.stock}
+                disabled={!product.stock || isAddingToCart}
               >
                 <ShoppingCart className="h-4 w-4" />
-                <span>{!product.stock ? "Out of Stock" : "Add to Cart"}</span>
+                <span>
+                  {isAddingToCart ? "Adding..." : !product.stock ? "Out of Stock" : "Add to Cart"}
+                </span>
               </Button>
             )}
           </div>
