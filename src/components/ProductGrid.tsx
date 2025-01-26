@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductCardSkeleton from "./product/ProductCardSkeleton";
@@ -44,18 +45,20 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       throw new Error('Supabase client is not initialized');
     }
 
-    const { data, error, count } = await supabase
+    console.log('Executing Supabase query with range:', { from, to });
+
+    const { data, error } = await supabase
       .from('products')
       .select(`
         *,
         category:categories(name)
-      `, { count: 'exact' })
+      `)
       .range(from, to)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase error:', error);
-      throw new Error(error.message);
+      console.error('Supabase query error:', error);
+      throw error;
     }
     
     if (!data) {
@@ -184,9 +187,9 @@ const ProductGrid = () => {
     } catch (error) {
       console.error('Error during manual refresh:', error);
       toast({
+        variant: "destructive",
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to refresh products",
-        variant: "destructive",
       });
     }
   };
@@ -227,7 +230,7 @@ const ProductGrid = () => {
             Discover our latest collection of innovative Nike footwear
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
                 <motion.div
@@ -380,7 +383,6 @@ const ProductGrid = () => {
             onOpenChange={setSizeGuideOpen}
           />
         </motion.div>
-        <BackToTop />
       </div>
     </ErrorBoundary>
   );
