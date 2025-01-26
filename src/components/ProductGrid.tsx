@@ -3,7 +3,7 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useState, useRef, useEffect } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
-import ProductSkeleton from "./ProductSkeleton";
+import ProductCardSkeleton from "./product/ProductCardSkeleton";
 import { useToast } from "@/components/ui/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
 import BackToTop from './BackToTop';
@@ -144,7 +144,6 @@ const ProductGrid = () => {
     enabled: !!selectedProduct?.category_id,
   });
 
-  // Add this new query for recommended products
   const { data: recommendedProducts } = useQuery({
     queryKey: ['recommended-products'],
     queryFn: async () => {
@@ -190,11 +189,10 @@ const ProductGrid = () => {
     }
   };
 
-  // Ensure we have unique keys for each product
   const allProducts = data?.pages.flatMap((page, pageIndex) => 
     page.products.map((product) => ({
       ...product,
-      uniqueKey: `${product.id}-${pageIndex}` // Create a unique key combining product ID and page index
+      uniqueKey: `${product.id}-${pageIndex}`
     }))
   ) || [];
 
@@ -250,7 +248,7 @@ const ProductGrid = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
-                <ProductSkeleton key={`skeleton-${index}`} />
+                <ProductCardSkeleton key={`skeleton-${index}`} />
               ))
             ) : !allProducts?.length ? (
               <div className="col-span-full text-center py-12">
@@ -275,7 +273,7 @@ const ProductGrid = () => {
             ) : (
               allProducts.map((product) => (
                 <ProductCard 
-                  key={product.uniqueKey} // Use the unique key we created
+                  key={product.uniqueKey}
                   product={product}
                   onQuickView={() => handleQuickView(product)}
                 />
@@ -283,7 +281,6 @@ const ProductGrid = () => {
             )}
           </div>
 
-          {/* Infinite Scroll Trigger */}
           {!isLoading && hasNextPage && (
             <div ref={loadMoreRef} className="flex justify-center mt-8">
               <Button
@@ -296,7 +293,6 @@ const ProductGrid = () => {
             </div>
           )}
 
-          {/* Recommended Products Section */}
           {recommendedProducts && recommendedProducts.length > 0 && (
             <div className="mt-16">
               <h3 className="text-2xl font-bold mb-6">Recommended For You</h3>
@@ -312,7 +308,6 @@ const ProductGrid = () => {
             </div>
           )}
 
-          {/* Similar Products Section */}
           {selectedProduct && similarProducts && similarProducts.length > 0 && (
             <div className="mt-16">
               <h3 className="text-2xl font-bold mb-6">Similar Products</h3>

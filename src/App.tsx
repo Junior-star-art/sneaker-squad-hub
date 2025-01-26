@@ -11,6 +11,7 @@ import { UpdatePassword } from "@/components/auth/UpdatePassword";
 import { ProfileManagement } from "@/components/profile/ProfileManagement";
 import { SupportHub } from "@/components/support/SupportHub";
 import CookieConsent from "@/components/CookieConsent";
+import BackToTop from "@/components/BackToTop";
 import OrderDetails from "@/pages/OrderDetails";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
@@ -20,8 +21,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 const App = () => {
   useEffect(() => {
-    // Initialize Google Analytics
-    initializeAnalytics('G-XXXXXXXXXX'); // Replace with your GA measurement ID
+    initializeAnalytics('G-XXXXXXXXXX');
   }, []);
 
   return (
@@ -62,6 +62,7 @@ const App = () => {
                     }
                   />
                 </Routes>
+                <BackToTop />
                 <CookieConsent />
                 <Toaster />
               </RecentlyViewedProvider>
