@@ -28,16 +28,23 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     port: 8080,
+    cors: {
+      origin: ['https://lovable.dev', 'https://*.lovableproject.com'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'apikey', 'x-client-info'],
+      credentials: true
+    },
     headers: {
       'Content-Security-Policy': `
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval';
-        style-src 'self' 'unsafe-inline';
+        default-src 'self' https://lovable.dev https://*.lovableproject.com https://*.supabase.co;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         img-src 'self' data: https: blob:;
-        font-src 'self';
-        connect-src 'self' https://*.supabase.co wss://*.supabase.co;
-        frame-src 'self';
+        font-src 'self' https://fonts.gstatic.com;
+        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://lovable.dev https://*.lovableproject.com;
+        frame-src 'self' https://www.youtube.com;
         media-src 'self';
+        worker-src 'self' blob:;
       `.replace(/\s+/g, ' ').trim()
     }
   }
