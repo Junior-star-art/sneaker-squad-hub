@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Star, ShoppingCart, Plus } from "lucide-react";
+import { Eye, Star, ShoppingCart, Plus, XCircle, AlertTriangle, CheckCircle } from "lucide-react";
 import { WishlistButton } from "./WishlistButton";
 import { differenceInDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
