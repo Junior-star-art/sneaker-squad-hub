@@ -19,13 +19,15 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN || '';
+    // Initialize with Mapbox token
+    mapboxgl.accessToken = process.env.MAPBOX_PUBLIC_TOKEN || '';
     
     const initialLngLat: [number, number] = [
       initialLocation?.longitude || -74.006,
       initialLocation?.latitude || 40.7128
     ];
 
+    // Create map instance
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v11',
@@ -33,6 +35,7 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
       zoom: 12
     });
 
+    // Add marker
     marker.current = new mapboxgl.Marker()
       .setLngLat(initialLngLat)
       .addTo(map.current);
@@ -49,6 +52,7 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
           filter: `order_id=eq.${orderId}`,
         },
         (payload: any) => {
+          console.log('Received tracking update:', payload);
           if (payload.new && map.current && marker.current) {
             const { latitude, longitude } = payload.new;
             if (latitude && longitude) {
@@ -65,6 +69,7 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
       )
       .subscribe();
 
+    // Cleanup
     return () => {
       if (map.current) {
         map.current.remove();

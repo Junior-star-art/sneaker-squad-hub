@@ -54,16 +54,13 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           
           if (!payload.new) return;
 
-          // Type assertion since we know the shape of our data
           const newUpdate = payload.new as TrackingUpdate;
 
-          // Ensure all required fields are present
           if (!newUpdate.id || !newUpdate.order_id || !newUpdate.status || !newUpdate.created_at) {
             console.error('Invalid tracking update received:', newUpdate);
             return;
           }
 
-          // Update the local state
           setUpdates(prev => [newUpdate, ...prev]);
 
           try {
