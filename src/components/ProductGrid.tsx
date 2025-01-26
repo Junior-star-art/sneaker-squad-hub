@@ -14,6 +14,8 @@ import { Button } from "./ui/button";
 import { useInView } from "react-intersection-observer";
 import { getRecommendedProducts } from "@/utils/recommendationsEngine";
 import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 interface SupabaseProduct {
   id: string;
@@ -56,7 +58,7 @@ const fetchProducts = async ({ pageParam = 0 }) => {
         details: error.details,
         hint: error.hint
       });
-      throw error;
+      throw new Error(`Failed to fetch products: ${error.message}`);
     }
     
     if (!data) {
@@ -74,42 +76,11 @@ const fetchProducts = async ({ pageParam = 0 }) => {
     });
     
     return { 
-      products: data as SupabaseProduct[], 
+      products: data, 
       nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined 
     };
   } catch (error) {
     console.error('Critical error in fetchProducts:', error);
-    throw error;
-  }
-};
-
-const fetchSimilarProducts = async (categoryId: string | null) => {
-  if (!categoryId) {
-    console.log('No category ID provided for similar products');
-    return [];
-  }
-  
-  try {
-    console.log('Fetching similar products for category:', categoryId);
-    
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        category:categories(name)
-      `)
-      .eq('category_id', categoryId)
-      .limit(4);
-
-    if (error) {
-      console.error('Error fetching similar products:', error);
-      throw error;
-    }
-
-    console.log('Similar products fetched:', data?.length || 0);
-    return data as SupabaseProduct[];
-  } catch (error) {
-    console.error('Failed to fetch similar products:', error);
     throw error;
   }
 };
@@ -128,7 +99,8 @@ const ProductGrid = () => {
     isFetchingNextPage,
     isLoading,
     error,
-    refetch
+    refetch,
+    isError
   } = useInfiniteQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
@@ -137,6 +109,9 @@ const ProductGrid = () => {
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 2,
+    meta: {
+      errorMessage: "Failed to load products"
+    }
   });
 
   const { data: similarProducts } = useQuery({
@@ -152,6 +127,17 @@ const ProductGrid = () => {
       return getRecommendedProducts(userAuth.user?.id, undefined, 4);
     },
   });
+
+  useEffect(() => {
+    if (isError && error) {
+      console.error('Product grid error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to load products. Please try again.",
+      });
+    }
+  }, [isError, error, toast]);
 
   useEffect(() => {
     console.log('ProductGrid mounted');
@@ -184,45 +170,26 @@ const ProductGrid = () => {
       console.error('Error during manual refresh:', error);
       toast({
         title: "Error",
-        description: "Failed to refresh products",
+        description: error instanceof Error ? error.message : "Failed to refresh products",
         variant: "destructive",
       });
     }
   };
 
-  const allProducts = data?.pages.flatMap((page, pageIndex) => 
-    page.products.map((product) => ({
-      ...product,
-      uniqueKey: `${product.id}-${pageIndex}`
-    }))
-  ) || [];
-
   if (error) {
-    console.error('Product grid error:', error);
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
-        <div className="text-red-500 mb-4">
-          <svg
-            className="h-12 w-12 mx-auto mb-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-        </div>
-        <p className="text-lg font-medium text-gray-900 mb-2">Unable to load products</p>
-        <p className="text-gray-500 text-center mb-6">
-          There was a problem loading the products. Please try again.
-        </p>
+        <Alert variant="destructive" className="max-w-lg mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {error instanceof Error ? error.message : "Unable to load products. Please try again."}
+          </AlertDescription>
+        </Alert>
         <Button 
           onClick={() => refetch()} 
           variant="outline"
+          className="mt-4"
         >
           Try Again
         </Button>
@@ -230,10 +197,12 @@ const ProductGrid = () => {
     );
   }
 
-  const handleQuickView = (product: SupabaseProduct) => {
-    console.log('Opening quick view for product:', product.id);
-    setSelectedProduct(product);
-  };
+  const allProducts = data?.pages.flatMap((page, pageIndex) => 
+    page.products.map((product) => ({
+      ...product,
+      uniqueKey: `${product.id}-${pageIndex}`
+    }))
+  ) || [];
 
   return (
     <ErrorBoundary>
