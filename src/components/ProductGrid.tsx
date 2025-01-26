@@ -85,12 +85,37 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   }
 };
 
+const fetchSimilarProducts = async (categoryId: string | null) => {
+  if (!categoryId) return [];
+  
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        category:categories(name)
+      `)
+      .eq('category_id', categoryId)
+      .limit(4);
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching similar products:', error);
+    return [];
+  }
+};
+
 const ProductGrid = () => {
   const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { ref: loadMoreRef, inView } = useInView();
+
+  const handleQuickView = (product: SupabaseProduct) => {
+    setSelectedProduct(product);
+  };
 
   const {
     data,
