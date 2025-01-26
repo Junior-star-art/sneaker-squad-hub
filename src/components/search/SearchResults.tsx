@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ProductQuickView from "../ProductQuickView";
 import { Button } from "../ui/button";
 import { SearchFilters } from "@/types/search";
+import { useToast } from "../ui/use-toast";
 
 interface SearchResult {
   id: string;
@@ -23,6 +24,7 @@ export function SearchResults({ query, filters, onClose }: SearchResultsProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<SearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -32,62 +34,75 @@ export function SearchResults({ query, filters, onClose }: SearchResultsProps) {
       }
 
       setIsLoading(true);
-      let queryBuilder = supabase
-        .from('products')
-        .select('*')
-        .ilike('name', `%${query}%`);
+      try {
+        let queryBuilder = supabase
+          .from('products')
+          .select('*')
+          .ilike('name', `%${query}%`);
 
-      // Apply filters
-      if (filters?.category) {
-        queryBuilder = queryBuilder.eq('category_id', filters.category);
-      }
-
-      if (filters?.priceRange) {
-        queryBuilder = queryBuilder
-          .gte('price', filters.priceRange[0])
-          .lte('price', filters.priceRange[1]);
-      }
-
-      if (filters?.colors?.length) {
-        // Assuming colors are stored in a colors column
-        queryBuilder = queryBuilder.contains('colors', filters.colors);
-      }
-
-      if (filters?.sizes?.length) {
-        // Assuming sizes are stored in a sizes column
-        queryBuilder = queryBuilder.contains('sizes', filters.sizes);
-      }
-
-      // Apply sorting
-      if (filters?.sortBy) {
-        switch (filters.sortBy) {
-          case 'price-asc':
-            queryBuilder = queryBuilder.order('price', { ascending: true });
-            break;
-          case 'price-desc':
-            queryBuilder = queryBuilder.order('price', { ascending: false });
-            break;
-          case 'newest':
-            queryBuilder = queryBuilder.order('created_at', { ascending: false });
-            break;
-          case 'popular':
-            queryBuilder = queryBuilder.order('recommendation_score', { ascending: false });
-            break;
+        // Apply filters
+        if (filters?.category) {
+          queryBuilder = queryBuilder.eq('category_id', filters.category);
         }
-      }
 
-      const { data, error } = await queryBuilder.limit(10);
+        if (filters?.priceRange) {
+          queryBuilder = queryBuilder
+            .gte('price', filters.priceRange[0])
+            .lte('price', filters.priceRange[1]);
+        }
 
-      if (error) {
-        console.error('Error fetching search results:', error);
-      } else {
-        setResults(data || []);
+        if (filters?.colors?.length) {
+          queryBuilder = queryBuilder.contains('colors', filters.colors);
+        }
+
+        if (filters?.sizes?.length) {
+          queryBuilder = queryBuilder.contains('sizes', filters.sizes);
+        }
+
+        // Apply sorting
+        if (filters?.sortBy) {
+          switch (filters.sortBy) {
+            case 'price-asc':
+              queryBuilder = queryBuilder.order('price', { ascending: true });
+              break;
+            case 'price-desc':
+              queryBuilder = queryBuilder.order('price', { ascending: false });
+              break;
+            case 'newest':
+              queryBuilder = queryBuilder.order('created_at', { ascending: false });
+              break;
+            case 'popular':
+              queryBuilder = queryBuilder.order('recommendation_score', { ascending: false });
+              break;
+          }
+        }
+
+        const { data, error } = await queryBuilder.limit(10);
+
+        if (error) {
+          console.error('Error fetching search results:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch search results. Please try again.",
+            variant: "destructive",
+          });
+        } else {
+          setResults(data || []);
+        }
+      } catch (error) {
+        console.error('Error in search:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchResults();
-  }, [query, filters]);
+  }, [query, filters, toast]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
