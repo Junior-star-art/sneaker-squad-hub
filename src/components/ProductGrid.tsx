@@ -1,11 +1,10 @@
-import { useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductCardSkeleton from "./product/ProductCardSkeleton";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
 import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
@@ -14,9 +13,6 @@ import { ProductCard } from "./product/ProductCard";
 import { Button } from "./ui/button";
 import { useInView } from "react-intersection-observer";
 import { getRecommendedProducts } from "@/utils/recommendationsEngine";
-import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 interface SupabaseProduct {
   id: string;
@@ -36,14 +32,13 @@ interface SupabaseProduct {
 const PRODUCTS_PER_PAGE = 8;
 
 const fetchProducts = async ({ pageParam = 0 }) => {
+  console.log('Attempting to fetch products page:', pageParam);
+  const from = pageParam * PRODUCTS_PER_PAGE;
+  const to = from + PRODUCTS_PER_PAGE - 1;
+  
   try {
-    if (!supabase) {
-      throw new Error('Database connection error');
-    }
-
-    const from = pageParam * PRODUCTS_PER_PAGE;
-    const to = from + PRODUCTS_PER_PAGE - 1;
-
+    console.log('Supabase client status:', supabase);
+    
     const { data, error, count } = await supabase
       .from('products')
       .select(`
@@ -54,24 +49,66 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('Supabase error fetching products:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      throw error;
+    }
+    
+    if (!data) {
+      console.warn('No data returned from Supabase');
+      return { 
+        products: [], 
+        nextPage: undefined 
+      };
+    }
+    
+    console.log('Products fetched successfully:', {
+      count: data.length,
+      firstProduct: data[0],
+      lastProduct: data[data.length - 1]
+    });
+    
+    return { 
+      products: data as SupabaseProduct[], 
+      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined 
+    };
+  } catch (error) {
+    console.error('Critical error in fetchProducts:', error);
+    throw error;
+  }
+};
+
+const fetchSimilarProducts = async (categoryId: string | null) => {
+  if (!categoryId) {
+    console.log('No category ID provided for similar products');
+    return [];
+  }
+  
+  try {
+    console.log('Fetching similar products for category:', categoryId);
+    
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        category:categories(name)
+      `)
+      .eq('category_id', categoryId)
+      .limit(4);
+
+    if (error) {
+      console.error('Error fetching similar products:', error);
       throw error;
     }
 
-    if (!data) {
-      return {
-        products: [],
-        nextPage: undefined,
-        total: 0
-      };
-    }
-
-    return {
-      products: data,
-      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined,
-      total: count || 0
-    };
+    console.log('Similar products fetched:', data?.length || 0);
+    return data as SupabaseProduct[];
   } catch (error) {
-    console.error('Error in fetchProducts:', error);
+    console.error('Failed to fetch similar products:', error);
     throw error;
   }
 };
@@ -90,8 +127,7 @@ const ProductGrid = () => {
     isFetchingNextPage,
     isLoading,
     error,
-    refetch,
-    isError
+    refetch
   } = useInfiniteQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
@@ -99,34 +135,43 @@ const ProductGrid = () => {
     initialPageParam: 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    retry: 3,
-    meta: {
-      errorMessage: "Failed to load products"
-    }
+    retry: 2,
+  });
+
+  const { data: similarProducts } = useQuery({
+    queryKey: ['similar-products', selectedProduct?.category_id],
+    queryFn: () => fetchSimilarProducts(selectedProduct?.category_id || null),
+    enabled: !!selectedProduct?.category_id,
+  });
+
+  const { data: recommendedProducts } = useQuery({
+    queryKey: ['recommended-products'],
+    queryFn: async () => {
+      const { data: userAuth } = await supabase.auth.getUser();
+      return getRecommendedProducts(userAuth.user?.id, undefined, 4);
+    },
   });
 
   useEffect(() => {
-    if (isError && error) {
-      console.error('Product grid error:', error);
-      toast({
-        variant: "destructive",
-        title: "Error loading products",
-        description: error instanceof Error ? error.message : "Failed to load products. Please try again.",
-      });
-    }
-  }, [isError, error, toast]);
+    console.log('ProductGrid mounted');
+    return () => {
+      console.log('ProductGrid unmounted');
+    };
+  }, []);
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage().catch(console.error);
+      console.log('Loading more products due to scroll', {
+        inView,
+        hasNextPage,
+        isFetchingNextPage
+      });
+      fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const handleQuickView = (product: SupabaseProduct) => {
-    setSelectedProduct(product);
-  };
-
   const handleRefresh = async () => {
+    console.log('Manually refreshing products');
     try {
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       await refetch();
@@ -135,29 +180,48 @@ const ProductGrid = () => {
         description: "Products refreshed successfully",
       });
     } catch (error) {
-      console.error('Error during refresh:', error);
+      console.error('Error during manual refresh:', error);
       toast({
-        variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to refresh products",
+        description: "Failed to refresh products",
+        variant: "destructive",
       });
     }
   };
 
+  const allProducts = data?.pages.flatMap((page, pageIndex) => 
+    page.products.map((product) => ({
+      ...product,
+      uniqueKey: `${product.id}-${pageIndex}`
+    }))
+  ) || [];
+
   if (error) {
+    console.error('Product grid error:', error);
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
-        <Alert variant="destructive" className="max-w-lg mx-auto">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : "Unable to load products. Please try again."}
-          </AlertDescription>
-        </Alert>
+        <div className="text-red-500 mb-4">
+          <svg
+            className="h-12 w-12 mx-auto mb-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        <p className="text-lg font-medium text-gray-900 mb-2">Unable to load products</p>
+        <p className="text-gray-500 text-center mb-6">
+          There was a problem loading the products. Please try again.
+        </p>
         <Button 
           onClick={() => refetch()} 
           variant="outline"
-          className="mt-4"
         >
           Try Again
         </Button>
@@ -165,40 +229,29 @@ const ProductGrid = () => {
     );
   }
 
+  const handleQuickView = (product: SupabaseProduct) => {
+    console.log('Opening quick view for product:', product.id);
+    setSelectedProduct(product);
+  };
+
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-4xl font-bold mb-4 text-left">
+        <div>
+          <h2 className="text-4xl font-bold mb-4 text-left animate-fade-up">
             Trending Now
           </h2>
-          <p className="text-gray-600 mb-8 text-left">
-            Discover our latest collection of innovative footwear
+          <p className="text-nike-gray mb-8 text-left animate-fade-up delay-100">
+            Discover our latest collection of innovative Nike footwear
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
-                <motion.div
-                  key={`skeleton-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <ProductCardSkeleton />
-                </motion.div>
+                <ProductCardSkeleton key={`skeleton-${index}`} />
               ))
-            ) : !data?.pages[0]?.products?.length ? (
-              <motion.div 
-                className="col-span-full text-center py-12"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
+            ) : !allProducts?.length ? (
+              <div className="col-span-full text-center py-12">
                 <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
                   <svg
                     className="w-full h-full"
@@ -216,65 +269,58 @@ const ProductGrid = () => {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
                 <p className="text-gray-500">Check back later for new arrivals.</p>
-                <Button 
-                  onClick={handleRefresh}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  Refresh
-                </Button>
-              </motion.div>
+              </div>
             ) : (
-              <AnimatePresence>
-                {data.pages.flatMap((page, pageIndex) => 
-                  page.products.map((product) => (
-                    <motion.div
-                      key={`${product.id}-${pageIndex}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ProductCard 
-                        product={product}
-                        onQuickView={() => handleQuickView(product)}
-                      />
-                    </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
+              allProducts.map((product) => (
+                <ProductCard 
+                  key={product.uniqueKey}
+                  product={product}
+                  onQuickView={() => handleQuickView(product)}
+                />
+              ))
             )}
           </div>
 
           {!isLoading && hasNextPage && (
-            <motion.div 
-              ref={loadMoreRef} 
-              className="flex justify-center mt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
+            <div ref={loadMoreRef} className="flex justify-center mt-8">
               <Button
                 variant="outline"
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="group"
               >
-                {isFetchingNextPage ? (
-                  <span className="flex items-center gap-2">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
-                      ⭮
-                    </motion.div>
-                    Loading more...
-                  </span>
-                ) : (
-                  'Load more products'
-                )}
+                {isFetchingNextPage ? 'Loading more...' : 'Load more products'}
               </Button>
-            </motion.div>
+            </div>
+          )}
+
+          {recommendedProducts && recommendedProducts.length > 0 && (
+            <div className="mt-16">
+              <h3 className="text-2xl font-bold mb-6">Recommended For You</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {recommendedProducts.map((product) => (
+                  <ProductCard
+                    key={`recommended-${product.id}`}
+                    product={product}
+                    onQuickView={() => handleQuickView(product)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedProduct && similarProducts && similarProducts.length > 0 && (
+            <div className="mt-16">
+              <h3 className="text-2xl font-bold mb-6">Similar Products</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {similarProducts.map((product) => (
+                  <ProductCard
+                    key={`similar-${product.id}`}
+                    product={product}
+                    onQuickView={() => handleQuickView(product)}
+                  />
+                ))}
+              </div>
+            </div>
           )}
 
           {selectedProduct && (
@@ -302,7 +348,8 @@ const ProductGrid = () => {
             open={sizeGuideOpen}
             onOpenChange={setSizeGuideOpen}
           />
-        </motion.div>
+        </div>
+        <BackToTop />
       </div>
     </ErrorBoundary>
   );
