@@ -13,6 +13,7 @@ import { ProductCard } from "./product/ProductCard";
 import { Button } from "./ui/button";
 import { useInView } from "react-intersection-observer";
 import { getRecommendedProducts } from "@/utils/recommendationsEngine";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SupabaseProduct {
   id: string;
@@ -237,21 +238,37 @@ const ProductGrid = () => {
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div>
-          <h2 className="text-4xl font-bold mb-4 text-left animate-fade-up">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-4xl font-bold mb-4 text-left">
             Trending Now
           </h2>
-          <p className="text-nike-gray mb-8 text-left animate-fade-up delay-100">
+          <p className="text-nike-gray mb-8 text-left">
             Discover our latest collection of innovative Nike footwear
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="grid" aria-label="Product grid">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
-                <ProductCardSkeleton key={`skeleton-${index}`} />
+                <motion.div
+                  key={`skeleton-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <ProductCardSkeleton />
+                </motion.div>
               ))
             ) : !allProducts?.length ? (
-              <div className="col-span-full text-center py-12">
+              <motion.div 
+                className="col-span-full text-center py-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
                 <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
                   <svg
                     className="w-full h-full"
@@ -269,28 +286,56 @@ const ProductGrid = () => {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
                 <p className="text-gray-500">Check back later for new arrivals.</p>
-              </div>
+              </motion.div>
             ) : (
-              allProducts.map((product) => (
-                <ProductCard 
-                  key={product.uniqueKey}
-                  product={product}
-                  onQuickView={() => handleQuickView(product)}
-                />
-              ))
+              <AnimatePresence>
+                {allProducts.map((product, index) => (
+                  <motion.div
+                    key={product.uniqueKey}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <ProductCard 
+                      product={product}
+                      onQuickView={() => handleQuickView(product)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             )}
           </div>
 
           {!isLoading && hasNextPage && (
-            <div ref={loadMoreRef} className="flex justify-center mt-8">
+            <motion.div 
+              ref={loadMoreRef} 
+              className="flex justify-center mt-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
               <Button
                 variant="outline"
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
+                className="group"
               >
-                {isFetchingNextPage ? 'Loading more...' : 'Load more products'}
+                {isFetchingNextPage ? (
+                  <span className="flex items-center gap-2">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      ⭮
+                    </motion.div>
+                    Loading more...
+                  </span>
+                ) : (
+                  'Load more products'
+                )}
               </Button>
-            </div>
+            </motion.div>
           )}
 
           {recommendedProducts && recommendedProducts.length > 0 && (
@@ -348,7 +393,7 @@ const ProductGrid = () => {
             open={sizeGuideOpen}
             onOpenChange={setSizeGuideOpen}
           />
-        </div>
+        </motion.div>
         <BackToTop />
       </div>
     </ErrorBoundary>

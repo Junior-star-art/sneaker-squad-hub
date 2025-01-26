@@ -38,6 +38,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const { addItem } = useCart();
   const [imageError, setImageError] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -105,21 +106,29 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      whileHover={{ scale: 1.02 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
     >
       <Card 
         className="group overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer active:scale-[0.99] relative" 
         onClick={() => onQuickView(product)}
       >
         <div className="aspect-square overflow-hidden relative">
-          <OptimizedImage
-            src={!imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'}
-            alt={product.name}
-            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
-            onError={handleImageError}
-            sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 100vw"
-            priority={product.featured}
-            placeholder="blur"
-          />
+          <motion.div
+            animate={{ scale: isHovered ? 1.05 : 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <OptimizedImage
+              src={!imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'}
+              alt={product.name}
+              className="w-full h-full transition-transform duration-300"
+              onError={handleImageError}
+              sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 100vw"
+              priority={product.featured}
+              placeholder="blur"
+            />
+          </motion.div>
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             {isNewArrival(product.created_at) && (
               <Badge className="bg-purple-600 text-white">
@@ -145,7 +154,12 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               </Button>
             )}
           </div>
-          <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <motion.div 
+            className="absolute bottom-4 left-4 right-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 20 }}
+            transition={{ duration: 0.2 }}
+          >
             {product.stock && product.stock > 0 ? (
               <Button
                 className="w-full bg-black hover:bg-gray-800 text-white gap-2"
@@ -164,9 +178,14 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
             ) : (
               <StockNotification productId={product.id} productName={product.name} />
             )}
-          </div>
+          </motion.div>
         </div>
-        <div className="p-4">
+        <motion.div 
+          className="p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-medium truncate text-base md:text-lg">{product.name}</h3>
           </div>
@@ -190,7 +209,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               <StockNotification productId={product.id} productName={product.name} />
             )}
           </div>
-        </div>
+        </motion.div>
       </Card>
     </motion.div>
   );
