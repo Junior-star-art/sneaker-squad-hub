@@ -18,6 +18,7 @@ export interface RecentSearch {
 
 export interface SearchFilters {
   category?: string;
+  categories?: string[];
   priceRange?: [number, number];
   colors?: string[];
   sizes?: string[];

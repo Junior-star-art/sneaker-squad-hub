@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 type FilterSectionProps = {
   title: string;
   items: string[];
-  type: 'category' | 'gender' | 'sport';
+  type: 'category' | 'gender' | 'sport' | 'color' | 'size';
   onSelect: (item: string) => void;
   selectedItems: string[];
 };
