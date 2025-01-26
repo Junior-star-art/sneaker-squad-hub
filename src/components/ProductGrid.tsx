@@ -13,7 +13,6 @@ import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-quer
 import { ProductCard } from "./product/ProductCard";
 import { Button } from "./ui/button";
 import { useInView } from "react-intersection-observer";
-import { getRecommendedProducts } from "@/utils/recommendationsEngine";
 
 interface SupabaseProduct {
   id: string;
@@ -39,6 +38,28 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   console.log('Fetching products:', { from, to });
   
   try {
+    // Add a message listener for cross-origin communication
+    const messagePromise = new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Fetch timeout'));
+      }, 10000); // 10 second timeout
+
+      const handleMessage = (event: MessageEvent) => {
+        // Verify the origin
+        if (event.origin !== 'https://lovable.dev' && !event.origin.endsWith('.lovableproject.com')) {
+          return;
+        }
+
+        if (event.data.type === 'FETCH_PRODUCTS_RESPONSE') {
+          window.removeEventListener('message', handleMessage);
+          clearTimeout(timeoutId);
+          resolve(event.data.payload);
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+    });
+
     const { data, error, count } = await supabase
       .from('products')
       .select(`
@@ -50,6 +71,11 @@ const fetchProducts = async ({ pageParam = 0 }) => {
 
     if (error) {
       console.error('Supabase error:', error);
+      // Post error message to parent
+      window.parent.postMessage({
+        type: 'FETCH_PRODUCTS_ERROR',
+        payload: error.message
+      }, '*');
       throw new Error(`Failed to fetch products: ${error.message}`);
     }
     
@@ -61,6 +87,15 @@ const fetchProducts = async ({ pageParam = 0 }) => {
         total: 0 
       };
     }
+
+    // Post success message to parent
+    window.parent.postMessage({
+      type: 'FETCH_PRODUCTS_SUCCESS',
+      payload: {
+        products: data,
+        count: count
+      }
+    }, '*');
     
     console.log('Products fetched successfully:', {
       count: data.length,
@@ -76,6 +111,11 @@ const fetchProducts = async ({ pageParam = 0 }) => {
     };
   } catch (error) {
     console.error('Error in fetchProducts:', error);
+    // Post error message to parent
+    window.parent.postMessage({
+      type: 'FETCH_PRODUCTS_ERROR',
+      payload: error instanceof Error ? error.message : 'Unknown error occurred'
+    }, '*');
     throw error;
   }
 };
