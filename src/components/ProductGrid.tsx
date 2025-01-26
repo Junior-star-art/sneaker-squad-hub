@@ -38,6 +38,11 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   console.log('Initiating product fetch:', { from, to, timestamp: new Date().toISOString() });
   
   try {
+    console.log('Supabase client config:', {
+      url: supabase.getUrl(),
+      headers: supabase.headers
+    });
+
     const { data, error, count } = await supabase
       .from('products')
       .select(`
@@ -48,7 +53,12 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('Supabase error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       throw new Error(`Failed to fetch products: ${error.message}`);
     }
     
@@ -75,7 +85,11 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       total: count 
     };
   } catch (error) {
-    console.error('Error in fetchProducts:', error);
+    console.error('Detailed error in fetchProducts:', {
+      error,
+      timestamp: new Date().toISOString(),
+      context: 'Product fetch operation'
+    });
     throw error;
   }
 };
@@ -109,11 +123,25 @@ const ProductGrid = () => {
   });
 
   useEffect(() => {
-    console.log('ProductGrid mounted');
+    console.log('ProductGrid mounted, initializing data fetch');
     return () => {
       console.log('ProductGrid unmounted');
     };
   }, []);
+
+  useEffect(() => {
+    if (error) {
+      console.error('Product fetch error:', {
+        error,
+        timestamp: new Date().toISOString()
+      });
+      toast({
+        title: "Error loading products",
+        description: error instanceof Error ? error.message : "Failed to load products. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
