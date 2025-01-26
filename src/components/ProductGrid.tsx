@@ -42,23 +42,24 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   
   try {
     if (!supabase) {
-      throw new Error('Supabase client is not initialized');
+      console.error('Supabase client not initialized');
+      throw new Error('Database connection error');
     }
 
     console.log('Executing Supabase query with range:', { from, to });
 
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('products')
       .select(`
         *,
         category:categories(name)
-      `)
+      `, { count: 'exact' })
       .range(from, to)
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Supabase query error:', error);
-      throw error;
+      throw new Error(`Failed to fetch products: ${error.message}`);
     }
     
     if (!data) {
@@ -77,7 +78,8 @@ const fetchProducts = async ({ pageParam = 0 }) => {
     
     return { 
       products: data, 
-      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined 
+      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined,
+      total: count
     };
   } catch (error) {
     console.error('Critical error in fetchProducts:', error);
@@ -98,7 +100,10 @@ const fetchSimilarProducts = async (categoryId: string | null) => {
       .eq('category_id', categoryId)
       .limit(4);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching similar products:', error);
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching similar products:', error);
