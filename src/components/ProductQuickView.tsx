@@ -9,9 +9,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
 import { ImageGallery } from "./product/ImageGallery";
 import { ProductInfo } from "./product/ProductInfo";
-import { AddToCartSection } from "./product/AddToCartSection";
-import { EnhancedReviews } from "./product/EnhancedReviews";
-import { X, Info } from "lucide-react";
+import { X, Info, ShoppingCart, Ruler } from "lucide-react";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -25,6 +23,7 @@ import {
 } from "./ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import SizeGuide from "./SizeGuide";
+import { EnhancedReviews } from "./product/EnhancedReviews";
 
 interface Color {
   name: string;
@@ -62,6 +61,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
   const [selectedImage, setSelectedImage] = useState(product.image);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const isMobile = useIsMobile();
 
   const handleAddToCart = () => {
@@ -74,19 +74,33 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
       return;
     }
 
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: selectedImage || product.image,
-      size: selectedSize,
-    });
-    
-    toast({
-      title: "Added to cart",
-      description: `${product.name} - Size ${selectedSize} has been added to your cart`,
-    });
-    onOpenChange(false);
+    setIsAddingToCart(true);
+
+    try {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: selectedImage || product.image,
+        size: selectedSize,
+      });
+      
+      toast({
+        title: "Added to cart",
+        description: `${product.name} - Size ${selectedSize} has been added to your cart`,
+      });
+
+      // Close the quick view after successful addition
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   return (
@@ -165,10 +179,10 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-sm"
                         onClick={() => setShowSizeGuide(true)}
+                        className="text-sm"
                       >
-                        <Info className="w-4 h-4 mr-2" />
+                        <Ruler className="w-4 h-4 mr-2" />
                         Size Guide
                       </Button>
                     </div>
@@ -187,6 +201,21 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
                       ))}
                     </div>
                   </div>
+
+                  <Button
+                    className="w-full h-12 text-base font-medium flex items-center justify-center gap-2"
+                    onClick={handleAddToCart}
+                    disabled={product.stock === 0 || !selectedSize || isAddingToCart}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {isAddingToCart ? (
+                      "Adding to Cart..."
+                    ) : product.stock === 0 ? (
+                      "Out of Stock"
+                    ) : (
+                      `Add to Cart - $${product.price}`
+                    )}
+                  </Button>
 
                   <Separator className="my-6" />
 
@@ -243,11 +272,18 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
           {isMobile && (
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg">
               <Button
-                className="w-full h-12 text-base font-medium"
+                className="w-full h-12 text-base font-medium flex items-center justify-center gap-2"
                 onClick={handleAddToCart}
-                disabled={product.stock === 0 || !selectedSize}
+                disabled={product.stock === 0 || !selectedSize || isAddingToCart}
               >
-                {product.stock === 0 ? "Out of Stock" : `Add to Cart - $${product.price}`}
+                <ShoppingCart className="w-5 h-5" />
+                {isAddingToCart ? (
+                  "Adding to Cart..."
+                ) : product.stock === 0 ? (
+                  "Out of Stock"
+                ) : (
+                  `Add to Cart - $${product.price}`
+                )}
               </Button>
             </div>
           )}
