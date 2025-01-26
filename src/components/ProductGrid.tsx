@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductCardSkeleton from "./product/ProductCardSkeleton";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
 import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
@@ -40,8 +40,10 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   const to = from + PRODUCTS_PER_PAGE - 1;
   
   try {
-    console.log('Supabase client status:', supabase);
-    
+    if (!supabase) {
+      throw new Error('Supabase client is not initialized');
+    }
+
     const { data, error, count } = await supabase
       .from('products')
       .select(`
@@ -52,13 +54,8 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase error fetching products:', error);
-      console.error('Error details:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint
-      });
-      throw new Error(`Failed to fetch products: ${error.message}`);
+      console.error('Supabase error:', error);
+      throw new Error(error.message);
     }
     
     if (!data) {
@@ -133,7 +130,7 @@ const ProductGrid = () => {
     initialPageParam: 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    retry: 2,
+    retry: 3,
     meta: {
       errorMessage: "Failed to load products"
     }
@@ -158,18 +155,11 @@ const ProductGrid = () => {
       console.error('Product grid error:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to load products. Please try again.",
+        title: "Error loading products",
+        description: error instanceof Error ? error.message : "Failed to load products. Please try again.",
       });
     }
   }, [isError, error, toast]);
-
-  useEffect(() => {
-    console.log('ProductGrid mounted');
-    return () => {
-      console.log('ProductGrid unmounted');
-    };
-  }, []);
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
@@ -222,13 +212,6 @@ const ProductGrid = () => {
     );
   }
 
-  const allProducts = data?.pages.flatMap((page, pageIndex) => 
-    page.products.map((product) => ({
-      ...product,
-      uniqueKey: `${product.id}-${pageIndex}`
-    }))
-  ) || [];
-
   return (
     <ErrorBoundary>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -256,7 +239,7 @@ const ProductGrid = () => {
                   <ProductCardSkeleton />
                 </motion.div>
               ))
-            ) : !allProducts?.length ? (
+            ) : !data?.pages[0]?.products?.length ? (
               <motion.div 
                 className="col-span-full text-center py-12"
                 initial={{ opacity: 0 }}
@@ -280,23 +263,32 @@ const ProductGrid = () => {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
                 <p className="text-gray-500">Check back later for new arrivals.</p>
+                <Button 
+                  onClick={handleRefresh}
+                  variant="outline"
+                  className="mt-4"
+                >
+                  Refresh
+                </Button>
               </motion.div>
             ) : (
               <AnimatePresence>
-                {allProducts.map((product, index) => (
-                  <motion.div
-                    key={product.uniqueKey}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
-                    <ProductCard 
-                      product={product}
-                      onQuickView={() => handleQuickView(product)}
-                    />
-                  </motion.div>
-                ))}
+                {data.pages.flatMap((page, pageIndex) => 
+                  page.products.map((product) => (
+                    <motion.div
+                      key={`${product.id}-${pageIndex}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ProductCard 
+                        product={product}
+                        onQuickView={() => handleQuickView(product)}
+                      />
+                    </motion.div>
+                  ))
+                )}
               </AnimatePresence>
             )}
           </div>
