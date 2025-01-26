@@ -36,17 +36,13 @@ interface SupabaseProduct {
 const PRODUCTS_PER_PAGE = 8;
 
 const fetchProducts = async ({ pageParam = 0 }) => {
-  console.log('Attempting to fetch products page:', pageParam);
-  const from = pageParam * PRODUCTS_PER_PAGE;
-  const to = from + PRODUCTS_PER_PAGE - 1;
-  
   try {
     if (!supabase) {
-      console.error('Supabase client not initialized');
       throw new Error('Database connection error');
     }
 
-    console.log('Executing Supabase query with range:', { from, to });
+    const from = pageParam * PRODUCTS_PER_PAGE;
+    const to = from + PRODUCTS_PER_PAGE - 1;
 
     const { data, error, count } = await supabase
       .from('products')
@@ -58,60 +54,25 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase query error:', error);
-      throw new Error(`Failed to fetch products: ${error.message}`);
+      throw error;
     }
-    
+
     if (!data) {
-      console.warn('No data returned from Supabase');
-      return { 
-        products: [], 
+      return {
+        products: [],
         nextPage: undefined,
         total: 0
       };
     }
-    
-    console.log('Products fetched successfully:', {
-      count: data.length,
-      firstProduct: data[0],
-      lastProduct: data[data.length - 1]
-    });
-    
-    return { 
-      products: data, 
+
+    return {
+      products: data,
       nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined,
-      total: count
+      total: count || 0
     };
   } catch (error) {
-    console.error('Critical error in fetchProducts:', error);
+    console.error('Error in fetchProducts:', error);
     throw error;
-  }
-};
-
-const fetchSimilarProducts = async (categoryId: string | null) => {
-  if (!categoryId) return [];
-  
-  try {
-    console.log('Fetching similar products for category:', categoryId);
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        category:categories(name)
-      `)
-      .eq('category_id', categoryId)
-      .limit(4);
-
-    if (error) {
-      console.error('Error fetching similar products:', error);
-      throw error;
-    }
-    
-    console.log('Similar products fetched:', data?.length || 0);
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching similar products:', error);
-    return [];
   }
 };
 
@@ -121,11 +82,6 @@ const ProductGrid = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { ref: loadMoreRef, inView } = useInView();
-
-  const handleQuickView = (product: SupabaseProduct) => {
-    console.log('Opening quick view for product:', product.id);
-    setSelectedProduct(product);
-  };
 
   const {
     data,
@@ -149,21 +105,6 @@ const ProductGrid = () => {
     }
   });
 
-  const { data: similarProducts } = useQuery({
-    queryKey: ['similar-products', selectedProduct?.category_id],
-    queryFn: () => fetchSimilarProducts(selectedProduct?.category_id || null),
-    enabled: !!selectedProduct?.category_id,
-  });
-
-  const { data: recommendedProducts } = useQuery({
-    queryKey: ['recommended-products'],
-    queryFn: async () => {
-      console.log('Fetching recommended products');
-      const { data: userAuth } = await supabase.auth.getUser();
-      return getRecommendedProducts(userAuth.user?.id, undefined, 4);
-    },
-  });
-
   useEffect(() => {
     if (isError && error) {
       console.error('Product grid error:', error);
@@ -177,17 +118,15 @@ const ProductGrid = () => {
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      console.log('Loading more products due to scroll', {
-        inView,
-        hasNextPage,
-        isFetchingNextPage
-      });
-      fetchNextPage();
+      fetchNextPage().catch(console.error);
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const handleQuickView = (product: SupabaseProduct) => {
+    setSelectedProduct(product);
+  };
+
   const handleRefresh = async () => {
-    console.log('Manually refreshing products');
     try {
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       await refetch();
@@ -196,7 +135,7 @@ const ProductGrid = () => {
         description: "Products refreshed successfully",
       });
     } catch (error) {
-      console.error('Error during manual refresh:', error);
+      console.error('Error during refresh:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -237,8 +176,8 @@ const ProductGrid = () => {
           <h2 className="text-4xl font-bold mb-4 text-left">
             Trending Now
           </h2>
-          <p className="text-nike-gray mb-8 text-left">
-            Discover our latest collection of innovative Nike footwear
+          <p className="text-gray-600 mb-8 text-left">
+            Discover our latest collection of innovative footwear
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -336,36 +275,6 @@ const ProductGrid = () => {
                 )}
               </Button>
             </motion.div>
-          )}
-
-          {recommendedProducts && recommendedProducts.length > 0 && (
-            <div className="mt-16">
-              <h3 className="text-2xl font-bold mb-6">Recommended For You</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {recommendedProducts.map((product) => (
-                  <ProductCard
-                    key={`recommended-${product.id}`}
-                    product={product}
-                    onQuickView={() => handleQuickView(product)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedProduct && similarProducts && similarProducts.length > 0 && (
-            <div className="mt-16">
-              <h3 className="text-2xl font-bold mb-6">Similar Products</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {similarProducts.map((product) => (
-                  <ProductCard
-                    key={`similar-${product.id}`}
-                    product={product}
-                    onQuickView={() => handleQuickView(product)}
-                  />
-                ))}
-              </div>
-            </div>
           )}
 
           {selectedProduct && (
