@@ -15,6 +15,7 @@ import OrderDetails from "@/pages/OrderDetails";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import Index from "@/pages/Index";
+import ProductDetail from "@/pages/ProductDetail";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const App = () => {
@@ -32,6 +33,7 @@ const App = () => {
               <RecentlyViewedProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route
