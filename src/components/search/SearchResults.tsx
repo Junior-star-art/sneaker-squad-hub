@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProductQuickView from "../ProductQuickView";
 import { Button } from "../ui/button";
+import { SearchFilters } from "@/types/search";
 
 interface SearchResult {
   id: string;
@@ -14,10 +15,11 @@ interface SearchResult {
 
 interface SearchResultsProps {
   query: string;
+  filters?: SearchFilters;
   onClose: () => void;
 }
 
-export function SearchResults({ query, onClose }: SearchResultsProps) {
+export function SearchResults({ query, filters, onClose }: SearchResultsProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<SearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,11 +32,51 @@ export function SearchResults({ query, onClose }: SearchResultsProps) {
       }
 
       setIsLoading(true);
-      const { data, error } = await supabase
+      let queryBuilder = supabase
         .from('products')
         .select('*')
-        .ilike('name', `%${query}%`)
-        .limit(5);
+        .ilike('name', `%${query}%`);
+
+      // Apply filters
+      if (filters?.category) {
+        queryBuilder = queryBuilder.eq('category_id', filters.category);
+      }
+
+      if (filters?.priceRange) {
+        queryBuilder = queryBuilder
+          .gte('price', filters.priceRange[0])
+          .lte('price', filters.priceRange[1]);
+      }
+
+      if (filters?.colors?.length) {
+        // Assuming colors are stored in a colors column
+        queryBuilder = queryBuilder.contains('colors', filters.colors);
+      }
+
+      if (filters?.sizes?.length) {
+        // Assuming sizes are stored in a sizes column
+        queryBuilder = queryBuilder.contains('sizes', filters.sizes);
+      }
+
+      // Apply sorting
+      if (filters?.sortBy) {
+        switch (filters.sortBy) {
+          case 'price-asc':
+            queryBuilder = queryBuilder.order('price', { ascending: true });
+            break;
+          case 'price-desc':
+            queryBuilder = queryBuilder.order('price', { ascending: false });
+            break;
+          case 'newest':
+            queryBuilder = queryBuilder.order('created_at', { ascending: false });
+            break;
+          case 'popular':
+            queryBuilder = queryBuilder.order('recommendation_score', { ascending: false });
+            break;
+        }
+      }
+
+      const { data, error } = await queryBuilder.limit(10);
 
       if (error) {
         console.error('Error fetching search results:', error);
@@ -45,7 +87,7 @@ export function SearchResults({ query, onClose }: SearchResultsProps) {
     };
 
     fetchResults();
-  }, [query]);
+  }, [query, filters]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {

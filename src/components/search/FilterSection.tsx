@@ -4,9 +4,11 @@ type FilterSectionProps = {
   title: string;
   items: string[];
   type: 'category' | 'gender' | 'sport';
+  onSelect: (item: string) => void;
+  selectedItems: string[];
 };
 
-const FilterSection = ({ title, items, type }: FilterSectionProps) => {
+const FilterSection = ({ title, items, selectedItems, onSelect }: FilterSectionProps) => {
   return (
     <div className="space-y-2">
       <h3 className="font-medium">{title}</h3>
@@ -14,8 +16,9 @@ const FilterSection = ({ title, items, type }: FilterSectionProps) => {
         {items.map((item) => (
           <Badge
             key={item}
-            variant="outline"
+            variant={selectedItems.includes(item) ? "default" : "outline"}
             className="cursor-pointer hover:bg-accent"
+            onClick={() => onSelect(item)}
           >
             {item}
           </Badge>
