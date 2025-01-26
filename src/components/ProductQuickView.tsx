@@ -90,7 +90,6 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
         description: `${product.name} - Size ${selectedSize} has been added to your cart`,
       });
 
-      // Close the quick view after successful addition
       onOpenChange(false);
     } catch (error) {
       toast({
@@ -141,7 +140,7 @@ const ProductQuickView = ({ product, open, onOpenChange }: ProductQuickViewProps
                 
                 <Separator className="my-6" />
                 
-                <div className={`space-y-6 ${isMobile ? 'pb-24' : ''}`}>
+                <div className="space-y-6">
                   {product.colors?.length > 0 && (
                     <div>
                       <h4 className="font-medium mb-3">Available Colors</h4>
