@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductCardSkeleton from "./product/ProductCardSkeleton";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import ErrorBoundary from "./ErrorBoundary";
 import BackToTop from './BackToTop';
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +43,10 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       ready: Boolean(supabase)
     });
 
+    if (!supabase) {
+      throw new Error('Supabase client is not initialized');
+    }
+
     const { data, error, count } = await supabase
       .from('products')
       .select(`
@@ -57,13 +61,16 @@ const fetchProducts = async ({ pageParam = 0 }) => {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code
+        code: error.code,
+        timestamp: new Date().toISOString()
       });
       throw new Error(`Failed to fetch products: ${error.message}`);
     }
     
     if (!data) {
-      console.warn('No data returned from Supabase');
+      console.warn('No data returned from Supabase', {
+        timestamp: new Date().toISOString()
+      });
       return { 
         products: [], 
         nextPage: undefined,
@@ -133,11 +140,15 @@ const ProductGrid = () => {
     if (error) {
       console.error('Product fetch error:', {
         error,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       });
       toast({
         title: "Error loading products",
-        description: error instanceof Error ? error.message : "Failed to load products. Please try again.",
+        description: error instanceof Error 
+          ? `Error: ${error.message}. Please try again.` 
+          : "Failed to load products. Please try again.",
         variant: "destructive"
       });
     }
