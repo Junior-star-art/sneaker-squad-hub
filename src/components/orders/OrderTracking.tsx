@@ -5,6 +5,7 @@ import { TrackingUpdate } from "@/types/database";
 import OrderMap from "./OrderMap";
 import { TrackingTimeline } from "./TrackingTimeline";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { Loader2 } from "lucide-react";
 
 interface OrderTrackingProps {
   orderId: string;
@@ -12,12 +13,14 @@ interface OrderTrackingProps {
 
 export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
   const [updates, setUpdates] = useState<TrackingUpdate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const latestUpdate = updates[0];
 
   useEffect(() => {
     const fetchUpdates = async () => {
       try {
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('order_tracking')
           .select('*')
@@ -30,9 +33,11 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
         console.error('Error fetching tracking updates:', error);
         toast({
           title: "Error",
-          description: "Failed to load tracking updates",
+          description: "Failed to load tracking updates. Please try again.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -62,6 +67,11 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
           }
 
           setUpdates(prev => [newUpdate, ...prev]);
+          
+          toast({
+            title: "Order Update",
+            description: `Order status updated to: ${newUpdate.status}`,
+          });
 
           try {
             // Fetch the order to get the user ID
@@ -100,6 +110,14 @@ export const OrderTracking = ({ orderId }: OrderTrackingProps) => {
       supabase.removeChannel(channel);
     };
   }, [orderId, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      </div>
+    );
+  }
 
   if (!updates.length) {
     return (

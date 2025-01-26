@@ -27,7 +27,7 @@ export const TrackingStatus = ({ status, description, location, timestamp }: Tra
   const Icon = statusIcons[status];
 
   return (
-    <div className="flex items-start space-x-3 p-4 bg-white rounded-lg shadow-sm">
+    <div className="flex items-start space-x-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
       <div className={`p-2 rounded-full ${statusColors[status]} bg-opacity-20`}>
         <Icon className="w-5 h-5" />
       </div>
@@ -42,7 +42,10 @@ export const TrackingStatus = ({ status, description, location, timestamp }: Tra
           <p className="mt-1 text-sm text-gray-600">{description}</p>
         )}
         {location && (
-          <p className="mt-1 text-sm text-gray-500">{location}</p>
+          <p className="mt-1 text-sm text-gray-500 flex items-center">
+            <span className="inline-block w-2 h-2 rounded-full bg-gray-400 mr-2" />
+            {location}
+          </p>
         )}
       </div>
     </div>

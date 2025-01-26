@@ -35,8 +35,14 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
       zoom: 12
     });
 
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
     // Add marker
-    marker.current = new mapboxgl.Marker()
+    marker.current = new mapboxgl.Marker({
+      color: '#FF0000',
+      draggable: false
+    })
       .setLngLat(initialLngLat)
       .addTo(map.current);
 
@@ -61,7 +67,8 @@ const OrderMap = ({ orderId, initialLocation }: OrderMapProps) => {
               map.current.flyTo({
                 center: newLocation,
                 zoom: 12,
-                duration: 2000
+                duration: 2000,
+                essential: true
               });
             }
           }
