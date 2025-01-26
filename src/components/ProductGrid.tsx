@@ -36,9 +36,9 @@ const INITIAL_RETRY_DELAY = 1000;
 const fetchProducts = async ({ pageParam = 0 }) => {
   const from = pageParam * PRODUCTS_PER_PAGE;
   const to = from + PRODUCTS_PER_PAGE - 1;
-  
+
   console.log('Initiating product fetch:', { from, to, timestamp: new Date().toISOString() });
-  
+
   let retryCount = 0;
   let lastError;
 
@@ -55,7 +55,8 @@ const fetchProducts = async ({ pageParam = 0 }) => {
           category:categories(name)
         `, { count: 'exact' })
         .range(from, to)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .throwOnError(); // This will ensure errors are properly caught
 
       if (error) {
         console.error('Supabase error details:', {
@@ -68,16 +69,16 @@ const fetchProducts = async ({ pageParam = 0 }) => {
         });
         throw error;
       }
-      
+
       if (!data) {
         console.warn('No data returned from Supabase', {
           timestamp: new Date().toISOString(),
           retryCount
         });
-        return { 
-          products: [], 
+        return {
+          products: [],
           nextPage: undefined,
-          total: 0 
+          total: 0
         };
       }
 
@@ -87,16 +88,22 @@ const fetchProducts = async ({ pageParam = 0 }) => {
         timestamp: new Date().toISOString(),
         retryAttempt: retryCount
       });
-      
-      return { 
-        products: data as SupabaseProduct[], 
+
+      return {
+        products: data as SupabaseProduct[],
         nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined,
-        total: count 
+        total: count
       };
     } catch (error) {
+      console.error('Fetch error:', {
+        error,
+        retryCount,
+        timestamp: new Date().toISOString()
+      });
+
       lastError = error;
       retryCount++;
-      
+
       if (retryCount < MAX_RETRIES) {
         const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount - 1);
         console.log(`Retry attempt ${retryCount} after ${delay}ms`);
@@ -128,8 +135,8 @@ const ProductGrid = () => {
     queryFn: fetchProducts,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
     meta: {
@@ -146,7 +153,7 @@ const ProductGrid = () => {
         stack: error instanceof Error ? error.stack : undefined,
         type: error instanceof Error ? error.constructor.name : typeof error
       });
-      
+
       let errorMessage = "Failed to load products. Please try again.";
       if (error instanceof Error) {
         if (error.message.includes('429')) {
@@ -157,7 +164,7 @@ const ProductGrid = () => {
           errorMessage = `Error: ${error.message}. Please try again.`;
         }
       }
-      
+
       toast({
         title: "Error loading products",
         description: errorMessage,
