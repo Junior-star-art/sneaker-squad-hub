@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => ({
         img-src 'self' data: https: blob:;
         font-src 'self' https://fonts.gstatic.com;
         connect-src 'self' https://*.supabase.co wss://*.supabase.co https://lovable.dev https://*.lovableproject.com;
-        frame-src 'self' https://www.youtube.com;
+        frame-src 'self' https://www.youtube.com https://*.lovableproject.com https://lovable.dev;
         media-src 'self';
         worker-src 'self' blob:;
       `.replace(/\s+/g, ' ').trim()
