@@ -38,9 +38,9 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   console.log('Initiating product fetch:', { from, to, timestamp: new Date().toISOString() });
   
   try {
-    console.log('Supabase client config:', {
-      url: supabase.getUrl(),
-      headers: supabase.headers
+    console.log('Supabase client status:', {
+      timestamp: new Date().toISOString(),
+      ready: Boolean(supabase)
     });
 
     const { data, error, count } = await supabase
