@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductCardSkeleton from "./product/ProductCardSkeleton";
@@ -32,13 +33,12 @@ interface SupabaseProduct {
 const PRODUCTS_PER_PAGE = 8;
 
 const fetchProducts = async ({ pageParam = 0 }) => {
-  console.log('Attempting to fetch products page:', pageParam);
   const from = pageParam * PRODUCTS_PER_PAGE;
   const to = from + PRODUCTS_PER_PAGE - 1;
   
+  console.log('Fetching products:', { from, to });
+  
   try {
-    console.log('Supabase client status:', supabase);
-    
     const { data, error, count } = await supabase
       .from('products')
       .select(`
@@ -49,66 +49,33 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase error fetching products:', error);
-      console.error('Error details:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint
-      });
-      throw error;
+      console.error('Supabase error:', error);
+      throw new Error(`Failed to fetch products: ${error.message}`);
     }
     
     if (!data) {
       console.warn('No data returned from Supabase');
       return { 
         products: [], 
-        nextPage: undefined 
+        nextPage: undefined,
+        total: 0 
       };
     }
     
     console.log('Products fetched successfully:', {
       count: data.length,
+      total: count,
       firstProduct: data[0],
       lastProduct: data[data.length - 1]
     });
     
     return { 
       products: data as SupabaseProduct[], 
-      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined 
+      nextPage: data.length === PRODUCTS_PER_PAGE ? pageParam + 1 : undefined,
+      total: count 
     };
   } catch (error) {
-    console.error('Critical error in fetchProducts:', error);
-    throw error;
-  }
-};
-
-const fetchSimilarProducts = async (categoryId: string | null) => {
-  if (!categoryId) {
-    console.log('No category ID provided for similar products');
-    return [];
-  }
-  
-  try {
-    console.log('Fetching similar products for category:', categoryId);
-    
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        category:categories(name)
-      `)
-      .eq('category_id', categoryId)
-      .limit(4);
-
-    if (error) {
-      console.error('Error fetching similar products:', error);
-      throw error;
-    }
-
-    console.log('Similar products fetched:', data?.length || 0);
-    return data as SupabaseProduct[];
-  } catch (error) {
-    console.error('Failed to fetch similar products:', error);
+    console.error('Error in fetchProducts:', error);
     throw error;
   }
 };
@@ -135,21 +102,7 @@ const ProductGrid = () => {
     initialPageParam: 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    retry: 2,
-  });
-
-  const { data: similarProducts } = useQuery({
-    queryKey: ['similar-products', selectedProduct?.category_id],
-    queryFn: () => fetchSimilarProducts(selectedProduct?.category_id || null),
-    enabled: !!selectedProduct?.category_id,
-  });
-
-  const { data: recommendedProducts } = useQuery({
-    queryKey: ['recommended-products'],
-    queryFn: async () => {
-      const { data: userAuth } = await supabase.auth.getUser();
-      return getRecommendedProducts(userAuth.user?.id, undefined, 4);
-    },
+    retry: 3,
   });
 
   useEffect(() => {
@@ -183,16 +136,16 @@ const ProductGrid = () => {
       console.error('Error during manual refresh:', error);
       toast({
         title: "Error",
-        description: "Failed to refresh products",
+        description: "Failed to refresh products. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const allProducts = data?.pages.flatMap((page, pageIndex) => 
+  const allProducts = data?.pages.flatMap((page) => 
     page.products.map((product) => ({
       ...product,
-      uniqueKey: `${product.id}-${pageIndex}`
+      uniqueKey: `${product.id}-${Math.random()}`
     }))
   ) || [];
 
@@ -217,10 +170,10 @@ const ProductGrid = () => {
         </div>
         <p className="text-lg font-medium text-gray-900 mb-2">Unable to load products</p>
         <p className="text-gray-500 text-center mb-6">
-          There was a problem loading the products. Please try again.
+          {error instanceof Error ? error.message : 'There was a problem loading the products. Please try again.'}
         </p>
         <Button 
-          onClick={() => refetch()} 
+          onClick={handleRefresh} 
           variant="outline"
         >
           Try Again
@@ -290,36 +243,6 @@ const ProductGrid = () => {
               >
                 {isFetchingNextPage ? 'Loading more...' : 'Load more products'}
               </Button>
-            </div>
-          )}
-
-          {recommendedProducts && recommendedProducts.length > 0 && (
-            <div className="mt-16">
-              <h3 className="text-2xl font-bold mb-6">Recommended For You</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {recommendedProducts.map((product) => (
-                  <ProductCard
-                    key={`recommended-${product.id}`}
-                    product={product}
-                    onQuickView={() => handleQuickView(product)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedProduct && similarProducts && similarProducts.length > 0 && (
-            <div className="mt-16">
-              <h3 className="text-2xl font-bold mb-6">Similar Products</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {similarProducts.map((product) => (
-                  <ProductCard
-                    key={`similar-${product.id}`}
-                    product={product}
-                    onQuickView={() => handleQuickView(product)}
-                  />
-                ))}
-              </div>
             </div>
           )}
 
