@@ -38,10 +38,15 @@ const fetchProducts = async ({ pageParam = 0 }) => {
   const from = pageParam * PRODUCTS_PER_PAGE;
   const to = from + PRODUCTS_PER_PAGE - 1;
 
-  console.log('Initiating product fetch:', { from, to, timestamp: new Date().toISOString() });
+  console.log('Initiating product fetch:', { 
+    from, 
+    to, 
+    timestamp: new Date().toISOString(),
+    supabaseUrl: supabase?.supabaseUrl 
+  });
 
   let retryCount = 0;
-  let lastError: Error | PostgrestError;
+  let lastError: Error | PostgrestError | null = null;
 
   while (retryCount < MAX_RETRIES) {
     try {
@@ -56,26 +61,34 @@ const fetchProducts = async ({ pageParam = 0 }) => {
           category:categories(name)
         `, { count: 'exact' })
         .range(from, to)
-        .order('created_at', { ascending: false })
-        .throwOnError();
+        .order('created_at', { ascending: false });
 
       if (error) {
-        const postgrestError = error as PostgrestError;
         console.error('Supabase error details:', {
-          message: postgrestError.message,
-          details: postgrestError.details,
-          hint: postgrestError.hint,
-          code: postgrestError.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
           timestamp: new Date().toISOString(),
-          retryCount
+          retryCount,
+          requestDetails: {
+            from,
+            to,
+            pageParam
+          }
         });
-        throw postgrestError;
+        throw error;
       }
 
       if (!data) {
         console.warn('No data returned from Supabase', {
           timestamp: new Date().toISOString(),
-          retryCount
+          retryCount,
+          requestDetails: {
+            from,
+            to,
+            pageParam
+          }
         });
         return {
           products: [],
@@ -100,7 +113,12 @@ const fetchProducts = async ({ pageParam = 0 }) => {
       console.error('Fetch error:', {
         error,
         retryCount,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        errorType: error instanceof Error ? 'Error' : 'PostgrestError',
+        errorDetails: {
+          message: error instanceof Error ? error.message : (error as PostgrestError).message,
+          name: error instanceof Error ? error.name : 'PostgrestError'
+        }
       });
 
       lastError = error as Error | PostgrestError;
@@ -114,7 +132,11 @@ const fetchProducts = async ({ pageParam = 0 }) => {
     }
   }
 
-  throw lastError;
+  if (lastError) {
+    throw lastError;
+  }
+
+  throw new Error('Failed to fetch products after all retries');
 };
 
 const ProductGrid = () => {
