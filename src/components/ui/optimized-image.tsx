@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,13 +32,13 @@ export function OptimizedImage({
   const [blurDataUrl, setBlurDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // Reset states when src changes
     setLoading(!priority);
     setError(false);
 
     if (priority) {
       const img = new Image();
       img.src = src;
+      img.crossOrigin = "anonymous"; // Add crossOrigin attribute
       img.onload = () => {
         setLoading(false);
         onLoad?.();
@@ -49,13 +50,11 @@ export function OptimizedImage({
       };
     }
 
-    // Generate blur placeholder if needed
     if (placeholder === 'blur' && !blurDataUrl) {
       generateBlurPlaceholder(src).then(setBlurDataUrl);
     }
   }, [src, priority, placeholder, onLoad, onError]);
 
-  // Generate srcSet for responsive images
   const generateSrcSet = () => {
     const widths = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
     return widths
@@ -66,12 +65,9 @@ export function OptimizedImage({
       .join(', ');
   };
 
-  // Append image optimization parameters
   const appendImageOptimization = (url: string, width: number, quality: number) => {
-    // If it's an external URL (like Unsplash), return as is
     if (url.startsWith('http')) return url;
 
-    // For local images, append optimization parameters
     const params = new URLSearchParams({
       w: width.toString(),
       q: quality.toString(),
@@ -82,15 +78,14 @@ export function OptimizedImage({
     return `${url}?${params.toString()}`;
   };
 
-  // Generate blur placeholder (simple implementation)
   const generateBlurPlaceholder = async (imageSrc: string): Promise<string> => {
-    // This is a simplified version. In production, you might want to
-    // generate this server-side or use a service
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
-
+      
+      img.crossOrigin = "anonymous"; // Add crossOrigin attribute
+      
       img.onload = () => {
         canvas.width = 40;
         canvas.height = (40 * img.height) / img.width;
@@ -105,7 +100,6 @@ export function OptimizedImage({
     });
   };
 
-  // If there's an error, show fallback
   if (error) {
     console.error(`Failed to load image: ${src}`);
     return (
@@ -146,6 +140,7 @@ export function OptimizedImage({
         srcSet={!error ? generateSrcSet() : undefined}
         loading={priority ? undefined : "lazy"}
         decoding="async"
+        crossOrigin="anonymous" // Add crossOrigin attribute
         onLoad={() => {
           setLoading(false);
           onLoad?.();
