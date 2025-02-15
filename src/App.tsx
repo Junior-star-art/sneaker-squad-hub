@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+
+import React, { useEffect } from "react";
 import { initializeAnalytics } from "./utils/analytics";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -19,58 +20,60 @@ import Index from "@/pages/Index";
 import ProductDetail from "@/pages/ProductDetail";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-const App = () => {
+const App: React.FC = () => {
   useEffect(() => {
     initializeAnalytics('G-XXXXXXXXXX');
   }, []);
 
   return (
-    <ErrorBoundary>
-      <Router>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <RecentlyViewedProvider>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute>
-                        <ProfileManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="/update-password" element={<UpdatePassword />} />
-                  <Route
-                    path="/orders/:orderId"
-                    element={
-                      <ProtectedRoute>
-                        <OrderDetails />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/support"
-                    element={
-                      <ProtectedRoute>
-                        <SupportHub />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-                <BackToTop />
-                <CookieConsent />
-                <Toaster />
-              </RecentlyViewedProvider>
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
-      </Router>
-    </ErrorBoundary>
+    <React.StrictMode>
+      <ErrorBoundary>
+        <Router>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <RecentlyViewedProvider>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <ProfileManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="/update-password" element={<UpdatePassword />} />
+                    <Route
+                      path="/orders/:orderId"
+                      element={
+                        <ProtectedRoute>
+                          <OrderDetails />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/support"
+                      element={
+                        <ProtectedRoute>
+                          <SupportHub />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                  <BackToTop />
+                  <CookieConsent />
+                  <Toaster />
+                </RecentlyViewedProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </Router>
+      </ErrorBoundary>
+    </React.StrictMode>
   );
 };
 
