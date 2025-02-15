@@ -37,8 +37,8 @@ export function OptimizedImage({
 
     if (priority) {
       const img = new Image();
+      img.crossOrigin = "anonymous";
       img.src = src;
-      img.crossOrigin = "anonymous"; // Add crossOrigin attribute
       img.onload = () => {
         setLoading(false);
         onLoad?.();
@@ -51,7 +51,10 @@ export function OptimizedImage({
     }
 
     if (placeholder === 'blur' && !blurDataUrl) {
-      generateBlurPlaceholder(src).then(setBlurDataUrl);
+      generateBlurPlaceholder(src).then(setBlurDataUrl).catch((err) => {
+        console.warn('Failed to generate blur placeholder:', err);
+        setBlurDataUrl(null);
+      });
     }
   }, [src, priority, placeholder, onLoad, onError]);
 
@@ -79,24 +82,36 @@ export function OptimizedImage({
   };
 
   const generateBlurPlaceholder = async (imageSrc: string): Promise<string> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
       
-      img.crossOrigin = "anonymous"; // Add crossOrigin attribute
+      img.crossOrigin = "anonymous";
       
       img.onload = () => {
-        canvas.width = 40;
-        canvas.height = (40 * img.height) / img.width;
+        try {
+          canvas.width = 40;
+          canvas.height = (40 * img.height) / img.width;
 
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.5));
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.5));
+          } else {
+            reject(new Error('Could not get canvas context'));
+          }
+        } catch (error) {
+          reject(error);
         }
       };
 
-      img.src = imageSrc;
+      img.onerror = () => {
+        reject(new Error('Failed to load image for blur placeholder'));
+      };
+
+      // Add a random query parameter to bypass cache
+      const cacheBuster = `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}_=${Date.now()}`;
+      img.src = cacheBuster;
     });
   };
 
@@ -140,7 +155,7 @@ export function OptimizedImage({
         srcSet={!error ? generateSrcSet() : undefined}
         loading={priority ? undefined : "lazy"}
         decoding="async"
-        crossOrigin="anonymous" // Add crossOrigin attribute
+        crossOrigin="anonymous"
         onLoad={() => {
           setLoading(false);
           onLoad?.();
