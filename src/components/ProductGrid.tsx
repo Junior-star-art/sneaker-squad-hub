@@ -1,7 +1,8 @@
+
 import { useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import ProductQuickView from "./ProductQuickView";
 import SizeGuide from "./SizeGuide";
 import ProductCardSkeleton from "./product/ProductCardSkeleton";
@@ -164,14 +165,22 @@ const ProductGrid = () => {
     queryFn: fetchProducts,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
-    meta: {
-      errorMessage: "Failed to load products"
-    }
   });
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      console.log('Loading more products due to scroll', {
+        inView,
+        hasNextPage,
+        isFetchingNextPage
+      });
+      void fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
     if (error) {
@@ -183,35 +192,13 @@ const ProductGrid = () => {
         type: error instanceof Error ? error.constructor.name : typeof error
       });
 
-      let errorMessage = "Failed to load products. Please try again.";
-      if (error instanceof Error) {
-        if (error.message.includes('429')) {
-          errorMessage = "Too many requests. Please wait a moment and try again.";
-        } else if (error.message.includes('fetch')) {
-          errorMessage = "Network error. Please check your connection and try again.";
-        } else {
-          errorMessage = `Error: ${error.message}. Please try again.`;
-        }
-      }
-
       toast({
         title: "Error loading products",
-        description: errorMessage,
+        description: error instanceof Error ? error.message : "Failed to load products",
         variant: "destructive"
       });
     }
   }, [error, toast]);
-
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      console.log('Loading more products due to scroll', {
-        inView,
-        hasNextPage,
-        isFetchingNextPage
-      });
-      fetchNextPage();
-    }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleRefresh = async () => {
     console.log('Manually refreshing products');
@@ -238,39 +225,6 @@ const ProductGrid = () => {
       uniqueKey: `${product.id}-${Math.random()}`
     }))
   ) || [];
-
-  if (error) {
-    console.error('Product grid error:', error);
-    return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <div className="text-red-500 mb-4">
-          <svg
-            className="h-12 w-12 mx-auto mb-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-        </div>
-        <p className="text-lg font-medium text-gray-900 mb-2">Unable to load products</p>
-        <p className="text-gray-500 text-center mb-6">
-          {error instanceof Error ? error.message : 'There was a problem loading the products. Please try again.'}
-        </p>
-        <Button 
-          onClick={handleRefresh} 
-          variant="outline"
-        >
-          Try Again
-        </Button>
-      </div>
-    );
-  }
 
   const handleQuickView = (product: SupabaseProduct) => {
     console.log('Opening quick view for product:', product.id);
