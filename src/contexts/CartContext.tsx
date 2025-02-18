@@ -1,44 +1,17 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-
-export type CartItem = {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  size?: string;
-};
-
-type CartContextType = {
-  items: CartItem[];
-  savedItems: CartItem[];
-  addItem: (product: Omit<CartItem, "quantity">) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  saveForLater: (id: string) => Promise<void>;
-  moveToCart: (id: string) => Promise<void>;
-  removeSavedItem: (id: string) => Promise<void>;
-  total: string;
-};
-
-type SavedCartItemResponse = {
-  product_id: string;
-  size: string | null;
-  quantity: number;
-  products: {
-    id: string;
-    name: string;
-    price: number;
-    images: string[];
-  };
-};
+import { CartItem, CartContextType } from "@/types/cart";
+import {
+  loadCartFromStorage,
+  saveCartToStorage,
+  loadCartFromSupabase,
+  syncCartWithSupabase,
+  calculateTotal
+} from "@/utils/cartUtils";
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-const CART_STORAGE_KEY = 'shopping-cart';
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -48,106 +21,42 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load cart data on mount and when user changes
   useEffect(() => {
+    const loadCartData = async () => {
+      if (user) {
+        try {
+          const cartItems = await loadCartFromSupabase(user.id);
+          setItems(cartItems);
+        } catch (error) {
+          console.error('Error loading cart items:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load your cart. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        const { items: storedItems, savedItems: storedSavedItems } = loadCartFromStorage();
+        setItems(storedItems);
+        setSavedItems(storedSavedItems);
+      }
+    };
+
     loadCartData();
-  }, [user]);
+  }, [user, toast]);
 
   // Sync cart data with backend whenever it changes
   useEffect(() => {
     if (user) {
-      syncCartWithBackend();
+      syncCartWithSupabase(user.id, items).catch(error => {
+        console.error('Error syncing cart:', error);
+      });
     }
   }, [items, user]);
 
-  const loadCartData = async () => {
-    if (user) {
-      // Load from Supabase for authenticated users
-      try {
-        const { data, error } = await supabase
-          .from('saved_cart_items')
-          .select(`
-            product_id,
-            size,
-            quantity,
-            products (
-              id,
-              name,
-              price,
-              images
-            )
-          `)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        if (data) {
-          const formattedItems = (data as SavedCartItemResponse[]).map(item => ({
-            id: item.products.id,
-            name: item.products.name,
-            price: item.products.price,
-            image: item.products.images[0] || '/placeholder.svg',
-            quantity: item.quantity,
-            size: item.size || undefined
-          }));
-
-          setItems(formattedItems);
-        }
-      } catch (error) {
-        console.error('Error loading cart items:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load your cart. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } else {
-      // Load from localStorage for non-authenticated users
-      const storedCart = localStorage.getItem(CART_STORAGE_KEY);
-      if (storedCart) {
-        try {
-          const { items: storedItems, savedItems: storedSavedItems } = JSON.parse(storedCart);
-          setItems(storedItems || []);
-          setSavedItems(storedSavedItems || []);
-        } catch (error) {
-          console.error('Error parsing stored cart:', error);
-        }
-      }
-    }
-  };
-
-  const syncCartWithBackend = async () => {
-    if (!user) return;
-
-    try {
-      // First, delete all existing items for this user
-      await supabase
-        .from('saved_cart_items')
-        .delete()
-        .eq('user_id', user.id);
-
-      // Then insert all current items
-      const cartItems = items.map(item => ({
-        user_id: user.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        size: item.size
-      }));
-
-      if (cartItems.length > 0) {
-        const { error } = await supabase
-          .from('saved_cart_items')
-          .insert(cartItems);
-
-        if (error) throw error;
-      }
-    } catch (error) {
-      console.error('Error syncing cart:', error);
-    }
-  };
-
-  // Persist cart data whenever it changes
+  // Persist cart data to localStorage for non-authenticated users
   useEffect(() => {
     if (!user) {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, savedItems }));
+      saveCartToStorage(items, savedItems);
     }
   }, [items, savedItems, user]);
 
@@ -205,22 +114,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const itemToSave = items.find((item) => item.id === id);
     if (!itemToSave) return;
 
-    try {
-      setSavedItems((current) => [...current, itemToSave]);
-      removeItem(id);
-      
-      toast({
-        title: "Saved for Later",
-        description: "Item has been saved to your list",
-      });
-    } catch (error) {
-      console.error('Error saving item:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save item for later",
-        variant: "destructive",
-      });
-    }
+    setSavedItems((current) => [...current, itemToSave]);
+    removeItem(id);
+    
+    toast({
+      title: "Saved for Later",
+      description: "Item has been saved to your list",
+    });
   };
 
   const moveToCart = async (id: string) => {
@@ -245,10 +145,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const total = items
-    .reduce((sum, item) => sum + item.price * item.quantity, 0)
-    .toLocaleString("en-US", { style: "currency", currency: "USD" });
-
   return (
     <CartContext.Provider
       value={{
@@ -260,7 +156,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         saveForLater,
         moveToCart,
         removeSavedItem,
-        total,
+        total: calculateTotal(items),
       }}
     >
       {children}
