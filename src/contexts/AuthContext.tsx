@@ -5,13 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { AuthError } from '@supabase/supabase-js';
+import { AuthError, Provider } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
   signOut: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, fullName: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Listen for changes on auth state (signed in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setLoading(true);
       try {
         if (session?.user) {
@@ -60,7 +65,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           setUser(userData);
           setError(null);
-          navigate('/');
+          
+          // Handle email verification success
+          if (event === 'EMAIL_CONFIRMED') {
+            toast({
+              title: "Email verified",
+              description: "Your email has been successfully verified.",
+            });
+            navigate('/');
+          }
         } else {
           setUser(null);
         }
@@ -80,6 +93,124 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, [navigate, toast]);
+
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate('/');
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        title: "Sign in error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string, fullName: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+      toast({
+        title: "Sign up successful",
+        description: "Please check your email to verify your account.",
+      });
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        title: "Sign up error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+      if (error) throw error;
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for the password reset link.",
+      });
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        title: "Password reset error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully updated.",
+      });
+      navigate('/');
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        title: "Password update error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        title: "Google sign in error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const signOut = async () => {
     try {
@@ -105,7 +236,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      error, 
+      signOut,
+      signInWithEmail,
+      signUpWithEmail,
+      resetPassword,
+      signInWithGoogle,
+      updatePassword
+    }}>
       {children}
     </AuthContext.Provider>
   );
