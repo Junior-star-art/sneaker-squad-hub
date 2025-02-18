@@ -30,20 +30,33 @@ export function OptimizedImage({
   const [loading, setLoading] = useState(!priority);
   const [error, setError] = useState(false);
   const [blurDataUrl, setBlurDataUrl] = useState<string | null>(null);
+  const [imageSrc, setImageSrc] = useState<string>(src);
 
   useEffect(() => {
+    // Handle both relative and absolute paths
+    if (src.startsWith('/')) {
+      // If it's a relative path from the public directory
+      setImageSrc(window.location.origin + src);
+    } else if (!src.startsWith('http')) {
+      // If it's a relative path not starting with /
+      setImageSrc(window.location.origin + '/' + src);
+    } else {
+      // If it's already an absolute URL
+      setImageSrc(src);
+    }
+
     setLoading(!priority);
     setError(false);
 
     if (priority) {
       const img = new Image();
-      img.crossOrigin = "anonymous";
       img.src = src;
       img.onload = () => {
         setLoading(false);
         onLoad?.();
       };
       img.onerror = () => {
+        console.error(`Failed to load image: ${src}`);
         setError(true);
         setLoading(false);
         onError?.();
@@ -57,29 +70,6 @@ export function OptimizedImage({
       });
     }
   }, [src, priority, placeholder, onLoad, onError]);
-
-  const generateSrcSet = () => {
-    const widths = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
-    return widths
-      .map((w) => {
-        const finalSrc = appendImageOptimization(src, w, quality);
-        return `${finalSrc} ${w}w`;
-      })
-      .join(', ');
-  };
-
-  const appendImageOptimization = (url: string, width: number, quality: number) => {
-    if (url.startsWith('http')) return url;
-
-    const params = new URLSearchParams({
-      w: width.toString(),
-      q: quality.toString(),
-      fit: 'crop',
-      auto: 'format',
-    });
-
-    return `${url}?${params.toString()}`;
-  };
 
   const generateBlurPlaceholder = async (imageSrc: string): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -109,9 +99,7 @@ export function OptimizedImage({
         reject(new Error('Failed to load image for blur placeholder'));
       };
 
-      // Add a random query parameter to bypass cache
-      const cacheBuster = `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}_=${Date.now()}`;
-      img.src = cacheBuster;
+      img.src = imageSrc;
     });
   };
 
@@ -149,10 +137,9 @@ export function OptimizedImage({
       )}
 
       <img
-        src={appendImageOptimization(src, 1080, quality)}
+        src={imageSrc}
         alt={alt}
         sizes={sizes}
-        srcSet={!error ? generateSrcSet() : undefined}
         loading={priority ? undefined : "lazy"}
         decoding="async"
         crossOrigin="anonymous"
@@ -164,6 +151,7 @@ export function OptimizedImage({
           setError(true);
           setLoading(false);
           onError?.();
+          console.error(`Failed to load image: ${imageSrc}`);
         }}
         className={cn(
           "transition-opacity duration-300 object-cover",
