@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +22,18 @@ type CartContextType = {
   moveToCart: (id: string) => Promise<void>;
   removeSavedItem: (id: string) => Promise<void>;
   total: string;
+};
+
+type SavedCartItemResponse = {
+  product_id: string;
+  size: string | null;
+  quantity: number;
+  products: {
+    id: string;
+    name: string;
+    price: number;
+    images: string[];
+  };
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -51,7 +62,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (user) {
       // Load from Supabase for authenticated users
       try {
-        const { data: savedCartData, error: savedCartError } = await supabase
+        const { data, error } = await supabase
           .from('saved_cart_items')
           .select(`
             product_id,
@@ -66,18 +77,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           `)
           .eq('user_id', user.id);
 
-        if (savedCartError) throw savedCartError;
+        if (error) throw error;
 
-        const formattedItems = savedCartData.map(item => ({
-          id: item.products.id,
-          name: item.products.name,
-          price: item.products.price,
-          image: item.products.images[0] || '/placeholder.svg',
-          quantity: item.quantity,
-          size: item.size
-        }));
+        if (data) {
+          const formattedItems = (data as SavedCartItemResponse[]).map(item => ({
+            id: item.products.id,
+            name: item.products.name,
+            price: item.products.price,
+            image: item.products.images[0] || '/placeholder.svg',
+            quantity: item.quantity,
+            size: item.size || undefined
+          }));
 
-        setItems(formattedItems);
+          setItems(formattedItems);
+        }
       } catch (error) {
         console.error('Error loading cart items:', error);
         toast({
