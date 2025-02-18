@@ -49,20 +49,20 @@ export const products: Product[] = [
       {
         name: "Black/White",
         code: "#000000",
-        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png"
+        image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
       },
       {
         name: "White/Red",
         code: "#FFFFFF",
-        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/9c9c5e61-d7cf-4245-a30d-c4a6c0fc0452/air-max-270-shoes-rVTfXk.png"
+        image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e"
       }
     ],
     angles: [
-      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png",
-      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/9c9c5e61-d7cf-4245-a30d-c4a6c0fc0452/air-max-270-shoes-rVTfXk.png",
-      "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/9c9c5e61-d7cf-4245-a30d-c4a6c0fc0452/air-max-270-shoes-rVTfXk.png"
+      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+      "https://images.unsplash.com/photo-1485827404703-89b55fcc595e",
+      "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5"
     ],
-    image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/7c5678f4-c28d-4862-a8d9-56750f839f12/air-max-270-shoes-V4DfZQ.png",
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
     releaseDate: "2024-02-15",
     views: 1200,
     salesVolume: 85,
