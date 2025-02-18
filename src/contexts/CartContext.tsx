@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     loadCartData();
   }, [user]);
 
+  // Sync cart data with backend whenever it changes
+  useEffect(() => {
+    if (user) {
+      syncCartWithBackend();
+    }
+  }, [items, user]);
+
   const loadCartData = async () => {
     if (user) {
       // Load from Supabase for authenticated users
@@ -48,6 +56,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           .select(`
             product_id,
             size,
+            quantity,
             products (
               id,
               name,
@@ -59,18 +68,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
         if (savedCartError) throw savedCartError;
 
-        const formattedSavedItems = savedCartData.map(item => ({
+        const formattedItems = savedCartData.map(item => ({
           id: item.products.id,
           name: item.products.name,
           price: item.products.price,
           image: item.products.images[0] || '/placeholder.svg',
-          quantity: 1,
+          quantity: item.quantity,
           size: item.size
         }));
 
-        setSavedItems(formattedSavedItems);
+        setItems(formattedItems);
       } catch (error) {
-        console.error('Error loading saved cart items:', error);
+        console.error('Error loading cart items:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your cart. Please try again.",
+          variant: "destructive",
+        });
       }
     } else {
       // Load from localStorage for non-authenticated users
@@ -84,6 +98,36 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           console.error('Error parsing stored cart:', error);
         }
       }
+    }
+  };
+
+  const syncCartWithBackend = async () => {
+    if (!user) return;
+
+    try {
+      // First, delete all existing items for this user
+      await supabase
+        .from('saved_cart_items')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Then insert all current items
+      const cartItems = items.map(item => ({
+        user_id: user.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        size: item.size
+      }));
+
+      if (cartItems.length > 0) {
+        const { error } = await supabase
+          .from('saved_cart_items')
+          .insert(cartItems);
+
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error('Error syncing cart:', error);
     }
   };
 
@@ -149,25 +193,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!itemToSave) return;
 
     try {
-      const { error } = await supabase
-        .from('saved_cart_items')
-        .insert({
-          user_id: user.id,
-          product_id: id,
-          size: itemToSave.size
-        });
-
-      if (error) {
-        if (error.code === '23505') { // Unique violation
-          toast({
-            title: "Already Saved",
-            description: "This item is already in your saved items",
-          });
-          return;
-        }
-        throw error;
-      }
-
       setSavedItems((current) => [...current, itemToSave]);
       removeItem(id);
       
@@ -189,58 +214,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const itemToMove = savedItems.find((item) => item.id === id);
     if (!itemToMove) return;
 
-    try {
-      const { error } = await supabase
-        .from('saved_cart_items')
-        .delete()
-        .eq('user_id', user?.id)
-        .eq('product_id', id);
-
-      if (error) throw error;
-
-      addItem(itemToMove);
-      setSavedItems((current) => current.filter((item) => item.id !== id));
-      
-      toast({
-        title: "Moved to Cart",
-        description: "Item has been moved to your cart",
-      });
-    } catch (error) {
-      console.error('Error moving item to cart:', error);
-      toast({
-        title: "Error",
-        description: "Failed to move item to cart",
-        variant: "destructive",
-      });
-    }
+    addItem(itemToMove);
+    setSavedItems((current) => current.filter((item) => item.id !== id));
+    
+    toast({
+      title: "Moved to Cart",
+      description: "Item has been moved to your cart",
+    });
   };
 
   const removeSavedItem = async (id: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('saved_cart_items')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('product_id', id);
-
-      if (error) throw error;
-
-      setSavedItems((current) => current.filter((item) => item.id !== id));
-      
-      toast({
-        title: "Removed",
-        description: "Item has been removed from your saved list",
-      });
-    } catch (error) {
-      console.error('Error removing saved item:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove saved item",
-        variant: "destructive",
-      });
-    }
+    setSavedItems((current) => current.filter((item) => item.id !== id));
+    
+    toast({
+      title: "Removed",
+      description: "Item has been removed from your saved list",
+    });
   };
 
   const total = items
