@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { AuthError, Provider } from '@supabase/supabase-js';
+import { AuthError, AuthChangeEvent } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Listen for changes on auth state (signed in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       setLoading(true);
       try {
         if (session?.user) {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           
           // Handle email verification success
-          if (event === 'EMAIL_CONFIRMED') {
+          if (event === 'EMAIL_CONFIRMED' as AuthChangeEvent) {
             toast({
               title: "Email verified",
               description: "Your email has been successfully verified.",
