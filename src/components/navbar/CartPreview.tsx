@@ -1,6 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { HoverCardContent } from "@/components/ui/hover-card";
-import { CartItem } from "@/contexts/CartContext";
+import { CartItem } from "@/types/cart";
 
 interface CartPreviewProps {
   items: CartItem[];
