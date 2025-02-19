@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -30,6 +31,8 @@ const LatestAndGreatest = () => {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['latest-products'],
     queryFn: async () => {
+      console.log('Fetching latest products...'); // Debug log
+      
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -39,9 +42,18 @@ const LatestAndGreatest = () => {
         .order('created_at', { ascending: false })
         .limit(3);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase query error:', error); // Debug log
+        throw error;
+      }
+
+      console.log('Products fetched:', data); // Debug log
       return data as Product[];
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
 
   const handleAddToCart = (product: Product, e: React.MouseEvent) => {
