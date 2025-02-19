@@ -63,11 +63,22 @@ export function OptimizedImage({
       };
     }
 
+    // Only attempt blur placeholder for same-origin images
     if (placeholder === 'blur' && !blurDataUrl) {
-      generateBlurPlaceholder(src).then(setBlurDataUrl).catch((err) => {
-        console.warn('Failed to generate blur placeholder:', err);
+      const isSameOrigin = src.startsWith('/') || src.startsWith(window.location.origin);
+      
+      if (isSameOrigin) {
+        generateBlurPlaceholder(src)
+          .then(setBlurDataUrl)
+          .catch((err) => {
+            console.warn('Failed to generate blur placeholder:', err);
+            setBlurDataUrl(null);
+          });
+      } else {
+        // For cross-origin images, skip blur effect
+        console.warn('Skipping blur effect for cross-origin image:', src);
         setBlurDataUrl(null);
-      });
+      }
     }
   }, [src, priority, placeholder, onLoad, onError]);
 
@@ -77,7 +88,10 @@ export function OptimizedImage({
       const ctx = canvas.getContext('2d');
       const img = new Image();
       
-      img.crossOrigin = "anonymous";
+      // Set crossOrigin to anonymous before setting src
+      if (!imageSrc.startsWith('/') && !imageSrc.startsWith(window.location.origin)) {
+        img.crossOrigin = "anonymous";
+      }
       
       img.onload = () => {
         try {
@@ -86,7 +100,18 @@ export function OptimizedImage({
 
           if (ctx) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', 0.5));
+            
+            try {
+              const blurredDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+              resolve(blurredDataUrl);
+            } catch (error) {
+              if (error instanceof DOMException && error.name === 'SecurityError') {
+                // If we can't generate blur due to CORS, return a light gray data URL
+                resolve('data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==');
+              } else {
+                reject(error);
+              }
+            }
           } else {
             reject(new Error('Could not get canvas context'));
           }
@@ -142,7 +167,7 @@ export function OptimizedImage({
         sizes={sizes}
         loading={priority ? undefined : "lazy"}
         decoding="async"
-        crossOrigin="anonymous"
+        crossOrigin={!imageSrc.startsWith('/') && !imageSrc.startsWith(window.location.origin) ? "anonymous" : undefined}
         onLoad={() => {
           setLoading(false);
           onLoad?.();
