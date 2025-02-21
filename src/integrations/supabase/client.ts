@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -22,8 +21,29 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   }
 });
 
+// Helper function to get public URL for storage items
+export const getPublicImageUrl = (imagePath: string) => {
+  if (!imagePath) return '/placeholder.svg';
+  
+  // If it's already a full URL, return it
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+
+  // If it's a relative path starting with /, assume it's from public directory
+  if (imagePath.startsWith('/')) {
+    return imagePath;
+  }
+
+  // Otherwise, construct the Supabase storage URL
+  const { data } = supabase.storage
+    .from('product-images')
+    .getPublicUrl(imagePath);
+
+  return data.publicUrl;
+};
+
 // Add error logging for debugging
 supabase.auth.onAuthStateChange((event, session) => {
   console.log('Supabase auth state changed:', event, session?.user?.id);
 });
-

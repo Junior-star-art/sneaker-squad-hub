@@ -1,6 +1,5 @@
-
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getPublicImageUrl } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Eye } from "lucide-react";
@@ -62,7 +61,7 @@ const LatestAndGreatest = () => {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images?.[0] || '/placeholder.svg'
+      image: product.images?.[0] ? getPublicImageUrl(product.images[0]) : '/placeholder.svg'
     });
     toast({
       title: "Added to Cart",
@@ -106,7 +105,7 @@ const LatestAndGreatest = () => {
                 </Badge>
                 <div className="aspect-square overflow-hidden">
                   <img
-                    src={product.images?.[0] || '/placeholder.svg'}
+                    src={product.images?.[0] ? getPublicImageUrl(product.images[0]) : '/placeholder.svg'}
                     alt={product.name}
                     className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                   />
@@ -149,9 +148,9 @@ const LatestAndGreatest = () => {
               care: '',
               shipping: '',
               stock: selectedProduct.stock || 0,
-              angles: selectedProduct.images || [],
+              angles: selectedProduct.images?.map(img => getPublicImageUrl(img)) || [],
               colors: [],
-              image: selectedProduct.images?.[0] || '/placeholder.svg'
+              image: selectedProduct.images?.[0] ? getPublicImageUrl(selectedProduct.images[0]) : '/placeholder.svg'
             }}
             open={Boolean(selectedProduct)}
             onOpenChange={(open) => !open && setSelectedProduct(null)}
