@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ interface ProductFormProps {
 
 interface ProductFormData {
   name: string;
-  price: string; // Keep as string for form input
+  price: string;
   description: string;
   stock: number;
   category_id: string;
@@ -42,8 +42,9 @@ interface ProductDbData {
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const [uploading, setUploading] = useState(false);
+  const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const { toast } = useToast();
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<ProductFormData>({
+  const { register, handleSubmit, formState: { errors }, watch, setError } = useForm<ProductFormData>({
     defaultValues: product || {
       name: "",
       price: "",
@@ -52,6 +53,8 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       category_id: "",
     },
   });
+
+  const productName = watch("name");
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -71,9 +74,59 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       .replace(/(^-|-$)/g, '');
   };
 
+  const checkSlugUniqueness = async (name: string) => {
+    if (!name) return;
+    
+    setIsCheckingSlug(true);
+    const slug = generateSlug(name);
+    
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id")
+        .eq("slug", slug)
+        .neq("id", product?.id || '') // Exclude current product when editing
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+        throw error;
+      }
+
+      if (data) {
+        setError("name", {
+          type: "manual",
+          message: "A product with this name already exists",
+        });
+        return false;
+      }
+      
+      return true;
+    } catch (error: any) {
+      console.error("Error checking slug uniqueness:", error);
+      return false;
+    } finally {
+      setIsCheckingSlug(false);
+    }
+  };
+
+  // Check slug uniqueness when product name changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (productName) {
+        void checkSlugUniqueness(productName);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [productName]);
+
   const productMutation = useMutation({
     mutationFn: async (formData: ProductFormData) => {
-      // Transform form data to match database schema
+      const isUnique = await checkSlugUniqueness(formData.name);
+      if (!isUnique) {
+        throw new Error("A product with this name already exists");
+      }
+
       const dbData: ProductDbData = {
         name: formData.name,
         price: parseFloat(formData.price),
@@ -165,10 +218,23 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Product Name</Label>
+        <Label htmlFor="name">
+          Product Name
+          {isCheckingSlug && (
+            <span className="ml-2 text-sm text-muted-foreground">
+              Checking availability...
+            </span>
+          )}
+        </Label>
         <Input
           id="name"
-          {...register("name", { required: "Product name is required" })}
+          {...register("name", { 
+            required: "Product name is required",
+            minLength: {
+              value: 3,
+              message: "Product name must be at least 3 characters",
+            },
+          })}
         />
         {errors.name && (
           <p className="text-sm text-destructive">{String(errors.name.message)}</p>
@@ -182,7 +248,14 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             id="price"
             type="number"
             step="0.01"
-            {...register("price", { required: "Price is required" })}
+            min="0"
+            {...register("price", { 
+              required: "Price is required",
+              min: {
+                value: 0,
+                message: "Price must be greater than 0",
+              },
+            })}
           />
           {errors.price && (
             <p className="text-sm text-destructive">{String(errors.price.message)}</p>
@@ -194,7 +267,14 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
           <Input
             id="stock"
             type="number"
-            {...register("stock", { required: "Stock is required" })}
+            min="0"
+            {...register("stock", { 
+              required: "Stock is required",
+              min: {
+                value: 0,
+                message: "Stock cannot be negative",
+              },
+            })}
           />
           {errors.stock && (
             <p className="text-sm text-destructive">{String(errors.stock.message)}</p>
@@ -232,9 +312,20 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
-          {...register("description")}
+          {...register("description", {
+            required: "Description is required",
+            minLength: {
+              value: 10,
+              message: "Description must be at least 10 characters",
+            },
+          })}
           rows={4}
         />
+        {errors.description && (
+          <p className="text-sm text-destructive">
+            {String(errors.description.message)}
+          </p>
+        )}
       </div>
 
       {product && (
@@ -309,9 +400,9 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       <Button
         type="submit"
         className="w-full"
-        disabled={productMutation.isPending}
+        disabled={productMutation.isPending || isCheckingSlug}
       >
-        {productMutation.isPending && (
+        {(productMutation.isPending || isCheckingSlug) && (
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
         )}
         {product ? "Update Product" : "Create Product"}
