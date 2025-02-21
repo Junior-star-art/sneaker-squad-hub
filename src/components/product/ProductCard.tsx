@@ -12,6 +12,7 @@ import { useState } from "react";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { StockIndicator } from "./StockIndicator";
 import { StockNotification } from "./StockNotification";
+import { getPublicImageUrl } from "@/integrations/supabase/client";
 
 interface Product {
   id: string;
@@ -36,7 +37,6 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { addItem } = useCart();
-  const [imageError, setImageError] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const formatPrice = (price: number) => {
@@ -74,7 +74,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         id: product.id,
         name: product.name,
         price: product.price,
-        image: !imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'
+        image: product.images?.[0] ? getPublicImageUrl(product.images[0]) : '/placeholder.svg'
       });
 
       toast({
@@ -95,11 +95,6 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const stockStatus = getStockStatus(product.stock);
   const StockIcon = stockStatus.icon;
 
-  const handleImageError = () => {
-    console.log(`Image failed to load for product: ${product.name}`);
-    setImageError(true);
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -112,11 +107,9 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
       >
         <div className="aspect-square overflow-hidden relative">
           <OptimizedImage
-            src={!imageError ? (product.images?.[0] || '/placeholder.svg') : '/placeholder.svg'}
+            src={product.images?.[0] ? getPublicImageUrl(product.images[0]) : '/placeholder.svg'}
             alt={product.name}
-            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
-            onError={handleImageError}
-            sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 100vw"
+            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
             priority={product.featured}
             placeholder="blur"
           />
