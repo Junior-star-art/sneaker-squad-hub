@@ -50,6 +50,9 @@ export function OptimizedImage({
 
     if (priority) {
       const img = new Image();
+      if (!src.startsWith('/') && !src.startsWith(window.location.origin)) {
+        img.crossOrigin = "anonymous";
+      }
       img.src = src;
       img.onload = () => {
         setLoading(false);
@@ -75,9 +78,8 @@ export function OptimizedImage({
             setBlurDataUrl(null);
           });
       } else {
-        // For cross-origin images, skip blur effect
-        console.warn('Skipping blur effect for cross-origin image:', src);
-        setBlurDataUrl(null);
+        // For cross-origin images, use a simple gradient placeholder
+        setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
       }
     }
   }, [src, priority, placeholder, onLoad, onError]);
@@ -88,11 +90,11 @@ export function OptimizedImage({
       const ctx = canvas.getContext('2d');
       const img = new Image();
       
-      // Set crossOrigin to anonymous before setting src
+      // IMPORTANT: Set crossOrigin before setting src
       if (!imageSrc.startsWith('/') && !imageSrc.startsWith(window.location.origin)) {
         img.crossOrigin = "anonymous";
       }
-      
+
       img.onload = () => {
         try {
           canvas.width = 40;
@@ -101,16 +103,14 @@ export function OptimizedImage({
           if (ctx) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
+            // Try to get data URL, fallback to placeholder if it fails
             try {
               const blurredDataUrl = canvas.toDataURL('image/jpeg', 0.5);
               resolve(blurredDataUrl);
             } catch (error) {
-              if (error instanceof DOMException && error.name === 'SecurityError') {
-                // If we can't generate blur due to CORS, return a light gray data URL
-                resolve('data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==');
-              } else {
-                reject(error);
-              }
+              console.warn('Canvas tainted, using fallback blur:', error);
+              // Use a light gradient as fallback
+              resolve('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
             }
           } else {
             reject(new Error('Could not get canvas context'));
@@ -129,7 +129,6 @@ export function OptimizedImage({
   };
 
   if (error) {
-    console.error(`Failed to load image: ${src}`);
     return (
       <div 
         className={cn(
