@@ -25,16 +25,25 @@ interface ProductFormProps {
 
 interface ProductFormData {
   name: string;
-  price: string;
+  price: string; // Keep as string for form input
   description: string;
   stock: number;
   category_id: string;
 }
 
+interface ProductDbData {
+  name: string;
+  price: number;
+  description: string;
+  stock: number;
+  category_id: string;
+  slug: string;
+}
+
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
-  const { register, handleSubmit, formState: { errors } } = useForm<ProductFormData>({
+  const { register, handleSubmit, formState: { errors }, watch } = useForm<ProductFormData>({
     defaultValues: product || {
       name: "",
       price: "",
@@ -56,11 +65,33 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     },
   });
 
+  const generateSlug = (name: string) => {
+    return name.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
   const productMutation = useMutation({
-    mutationFn: async (data: ProductFormData) => {
+    mutationFn: async (formData: ProductFormData) => {
+      // Transform form data to match database schema
+      const dbData: ProductDbData = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        stock: formData.stock,
+        category_id: formData.category_id,
+        slug: generateSlug(formData.name),
+      };
+
       const { error } = product
-        ? await supabase.from("products").update(data).eq("id", product.id)
-        : await supabase.from("products").insert([data]);
+        ? await supabase
+            .from("products")
+            .update(dbData)
+            .eq("id", product.id)
+        : await supabase
+            .from("products")
+            .insert([dbData]);
+            
       if (error) throw error;
     },
     onSuccess: () => {
@@ -128,11 +159,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   };
 
   const onSubmit = (data: ProductFormData) => {
-    productMutation.mutate({
-      ...data,
-      price: data.price,
-      stock: Number(data.stock),
-    });
+    productMutation.mutate(data);
   };
 
   return (
