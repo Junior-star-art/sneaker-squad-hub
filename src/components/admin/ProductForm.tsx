@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,31 +17,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProductPreview } from "./ProductPreview";
 import { z } from "zod";
 
 interface ProductFormProps {
   product?: any;
   onSuccess?: () => void;
-}
-
-interface ProductFormData {
-  name: string;
-  price: string;
-  description: string;
-  stock: number;
-  category_id: string;
-}
-
-interface ProductDbData {
-  name: string;
-  price: number;
-  description: string;
-  stock: number;
-  category_id: string;
-  slug: string;
 }
 
 const productSchema = z.object({
@@ -62,12 +45,22 @@ const productSchema = z.object({
 
 type ProductFormData = z.infer<typeof productSchema>;
 
+interface ProductDbData {
+  name: string;
+  price: number;
+  description: string;
+  stock: number;
+  category_id: string;
+  slug: string;
+}
+
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const [uploading, setUploading] = useState(false);
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [bulkUploadModalOpen, setBulkUploadModalOpen] = useState(false);
   const { toast } = useToast();
+  
   const { register, handleSubmit, formState: { errors }, watch, setError } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: product || {
@@ -79,6 +72,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     },
   });
 
+  const formValues = watch();
   const productName = watch("name");
 
   const { data: categories } = useQuery({
@@ -495,7 +489,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
           <DialogHeader>
             <DialogTitle>Product Preview</DialogTitle>
           </DialogHeader>
-          <ProductPreview {...watchedValues} images={product?.images} />
+          <ProductPreview {...formValues} images={product?.images} />
         </DialogContent>
       </Dialog>
 
