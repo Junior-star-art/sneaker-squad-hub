@@ -11,7 +11,13 @@ interface ProductPreviewProps {
   stock: number;
 }
 
-export function ProductPreview({ name, price, description, images, stock }: ProductPreviewProps) {
+export function ProductPreview({ 
+  name = '', 
+  price = '0', 
+  description = '', 
+  images = [], 
+  stock = 0 
+}: ProductPreviewProps) {
   const formattedPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'

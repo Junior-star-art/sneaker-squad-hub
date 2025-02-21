@@ -489,7 +489,13 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
           <DialogHeader>
             <DialogTitle>Product Preview</DialogTitle>
           </DialogHeader>
-          <ProductPreview {...formValues} images={product?.images} />
+          <ProductPreview 
+            name={formValues.name || ''}
+            price={formValues.price || '0'}
+            description={formValues.description || ''}
+            stock={formValues.stock || 0}
+            images={product?.images}
+          />
         </DialogContent>
       </Dialog>
 
