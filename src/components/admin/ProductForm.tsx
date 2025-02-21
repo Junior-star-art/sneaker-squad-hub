@@ -23,10 +23,18 @@ interface ProductFormProps {
   onSuccess?: () => void;
 }
 
+interface ProductFormData {
+  name: string;
+  price: string;
+  description: string;
+  stock: number;
+  category_id: string;
+}
+
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm<ProductFormData>({
     defaultValues: product || {
       name: "",
       price: "",
@@ -49,7 +57,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const productMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: ProductFormData) => {
       const { error } = product
         ? await supabase.from("products").update(data).eq("id", product.id)
         : await supabase.from("products").insert([data]);
@@ -119,11 +127,11 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     }
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: ProductFormData) => {
     productMutation.mutate({
       ...data,
-      price: parseFloat(data.price),
-      stock: parseInt(data.stock),
+      price: data.price,
+      stock: Number(data.stock),
     });
   };
 
@@ -136,7 +144,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
           {...register("name", { required: "Product name is required" })}
         />
         {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
+          <p className="text-sm text-destructive">{String(errors.name.message)}</p>
         )}
       </div>
 
@@ -150,7 +158,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             {...register("price", { required: "Price is required" })}
           />
           {errors.price && (
-            <p className="text-sm text-destructive">{errors.price.message}</p>
+            <p className="text-sm text-destructive">{String(errors.price.message)}</p>
           )}
         </div>
 
@@ -162,7 +170,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             {...register("stock", { required: "Stock is required" })}
           />
           {errors.stock && (
-            <p className="text-sm text-destructive">{errors.stock.message}</p>
+            <p className="text-sm text-destructive">{String(errors.stock.message)}</p>
           )}
         </div>
       </div>
@@ -188,7 +196,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         </Select>
         {errors.category_id && (
           <p className="text-sm text-destructive">
-            {errors.category_id.message}
+            {String(errors.category_id.message)}
           </p>
         )}
       </div>
