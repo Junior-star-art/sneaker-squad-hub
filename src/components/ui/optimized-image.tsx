@@ -32,6 +32,9 @@ export function OptimizedImage({
   const [blurDataUrl, setBlurDataUrl] = useState<string | null>(null);
   const [imageSrc, setImageSrc] = useState<string>(src);
 
+  // Default blur placeholder for cross-origin or failed blur generation
+  const defaultBlurDataUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==';
+
   useEffect(() => {
     // Handle both relative and absolute paths
     if (src.startsWith('/')) {
@@ -47,9 +50,7 @@ export function OptimizedImage({
 
     if (priority) {
       const img = new Image();
-      if (!src.startsWith('/') && !src.startsWith(window.location.origin)) {
-        img.crossOrigin = "anonymous";
-      }
+      img.crossOrigin = 'anonymous';
       img.src = imageSrc;
       img.onload = () => {
         setLoading(false);
@@ -63,50 +64,53 @@ export function OptimizedImage({
       };
     }
 
-    // For placeholder generation, always use the fallback for cross-origin images
+    // For placeholder generation
     if (placeholder === 'blur') {
+      // For cross-origin images, use default blur
       if (!src.startsWith('/') && !src.startsWith(window.location.origin)) {
-        setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
-      } else {
-        generateBlurPlaceholder(imageSrc)
-          .then(setBlurDataUrl)
-          .catch((err) => {
-            console.warn('Failed to generate blur placeholder:', err);
-            setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
-          });
+        setBlurDataUrl(defaultBlurDataUrl);
+        return;
       }
-    }
-  }, [src, priority, placeholder, onLoad, onError]);
 
-  const generateBlurPlaceholder = async (imageSrc: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
+      // For same-origin images, try to generate blur
       const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
+      img.crossOrigin = 'anonymous';
+      img.src = imageSrc;
       img.onload = () => {
         try {
-          canvas.width = 40;
-          canvas.height = (40 * img.height) / img.width;
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            console.warn('Failed to get canvas context');
+            setBlurDataUrl(defaultBlurDataUrl);
+            return;
+          }
 
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', 0.5));
-          } else {
-            reject(new Error('Could not get canvas context'));
+          // Set canvas size to small dimensions for blur effect
+          canvas.width = 40;
+          canvas.height = Math.round((40 * img.height) / img.width);
+
+          // Draw and get data URL
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          try {
+            const blurUrl = canvas.toDataURL('image/jpeg', 0.5);
+            setBlurDataUrl(blurUrl);
+          } catch (error) {
+            console.warn('Failed to generate blur from canvas:', error);
+            setBlurDataUrl(defaultBlurDataUrl);
           }
         } catch (error) {
-          reject(error);
+          console.warn('Failed to generate blur:', error);
+          setBlurDataUrl(defaultBlurDataUrl);
         }
       };
-
       img.onerror = () => {
-        reject(new Error('Failed to load image for blur placeholder'));
+        console.warn('Failed to load image for blur');
+        setBlurDataUrl(defaultBlurDataUrl);
       };
-
-      img.src = imageSrc;
-    });
-  };
+    }
+  }, [src, priority, placeholder, onLoad, onError]);
 
   if (error) {
     return (
@@ -146,7 +150,7 @@ export function OptimizedImage({
         sizes={sizes}
         loading={priority ? undefined : "lazy"}
         decoding="async"
-        crossOrigin={!imageSrc.startsWith('/') && !imageSrc.startsWith(window.location.origin) ? "anonymous" : undefined}
+        crossOrigin="anonymous"
         onLoad={() => {
           setLoading(false);
           onLoad?.();
