@@ -35,13 +35,10 @@ export function OptimizedImage({
   useEffect(() => {
     // Handle both relative and absolute paths
     if (src.startsWith('/')) {
-      // If it's a relative path from the public directory
       setImageSrc(window.location.origin + src);
     } else if (!src.startsWith('http')) {
-      // If it's a relative path not starting with /
       setImageSrc(window.location.origin + '/' + src);
     } else {
-      // If it's already an absolute URL
       setImageSrc(src);
     }
 
@@ -53,7 +50,7 @@ export function OptimizedImage({
       if (!src.startsWith('/') && !src.startsWith(window.location.origin)) {
         img.crossOrigin = "anonymous";
       }
-      img.src = src;
+      img.src = imageSrc;
       img.onload = () => {
         setLoading(false);
         onLoad?.();
@@ -66,15 +63,18 @@ export function OptimizedImage({
       };
     }
 
-    // Only attempt blur placeholder for same-origin images or when crossOrigin is supported
-    if (placeholder === 'blur' && !blurDataUrl) {
-      generateBlurPlaceholder(src)
-        .then(setBlurDataUrl)
-        .catch((err) => {
-          console.warn('Failed to generate blur placeholder:', err);
-          // Use a light gradient as fallback
-          setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
-        });
+    // For placeholder generation, always use the fallback for cross-origin images
+    if (placeholder === 'blur') {
+      if (!src.startsWith('/') && !src.startsWith(window.location.origin)) {
+        setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
+      } else {
+        generateBlurPlaceholder(imageSrc)
+          .then(setBlurDataUrl)
+          .catch((err) => {
+            console.warn('Failed to generate blur placeholder:', err);
+            setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
+          });
+      }
     }
   }, [src, priority, placeholder, onLoad, onError]);
 
@@ -83,29 +83,15 @@ export function OptimizedImage({
       const img = new Image();
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      
-      // Set crossOrigin before setting src
-      if (!imageSrc.startsWith('/') && !imageSrc.startsWith(window.location.origin)) {
-        img.crossOrigin = "anonymous";
-      }
 
       img.onload = () => {
         try {
-          // Set small canvas size for blur effect
           canvas.width = 40;
           canvas.height = (40 * img.height) / img.width;
 
           if (ctx) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            try {
-              const blurredDataUrl = canvas.toDataURL('image/jpeg', 0.5);
-              resolve(blurredDataUrl);
-            } catch (error) {
-              console.warn('Canvas tainted, using fallback blur:', error);
-              // Use a light gradient as fallback
-              resolve('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
-            }
+            resolve(canvas.toDataURL('image/jpeg', 0.5));
           } else {
             reject(new Error('Could not get canvas context'));
           }
