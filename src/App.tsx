@@ -18,6 +18,7 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import Index from "@/pages/Index";
 import ProductDetail from "@/pages/ProductDetail";
+import ProductManagement from "@/pages/ProductManagement";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const App: React.FC = () => {
@@ -43,6 +44,14 @@ const App: React.FC = () => {
                       element={
                         <ProtectedRoute>
                           <ProfileManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/product-management"
+                      element={
+                        <ProtectedRoute>
+                          <ProductManagement />
                         </ProtectedRoute>
                       }
                     />
