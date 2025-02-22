@@ -66,44 +66,38 @@ export function OptimizedImage({
       };
     }
 
-    // Only attempt blur placeholder for same-origin images
+    // Only attempt blur placeholder for same-origin images or when crossOrigin is supported
     if (placeholder === 'blur' && !blurDataUrl) {
-      const isSameOrigin = src.startsWith('/') || src.startsWith(window.location.origin);
-      
-      if (isSameOrigin) {
-        generateBlurPlaceholder(src)
-          .then(setBlurDataUrl)
-          .catch((err) => {
-            console.warn('Failed to generate blur placeholder:', err);
-            setBlurDataUrl(null);
-          });
-      } else {
-        // For cross-origin images, use a simple gradient placeholder
-        setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
-      }
+      generateBlurPlaceholder(src)
+        .then(setBlurDataUrl)
+        .catch((err) => {
+          console.warn('Failed to generate blur placeholder:', err);
+          // Use a light gradient as fallback
+          setBlurDataUrl('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==');
+        });
     }
   }, [src, priority, placeholder, onLoad, onError]);
 
   const generateBlurPlaceholder = async (imageSrc: string): Promise<string> => {
     return new Promise((resolve, reject) => {
+      const img = new Image();
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = new Image();
       
-      // IMPORTANT: Set crossOrigin before setting src
+      // Set crossOrigin before setting src
       if (!imageSrc.startsWith('/') && !imageSrc.startsWith(window.location.origin)) {
         img.crossOrigin = "anonymous";
       }
 
       img.onload = () => {
         try {
+          // Set small canvas size for blur effect
           canvas.width = 40;
           canvas.height = (40 * img.height) / img.width;
 
           if (ctx) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            // Try to get data URL, fallback to placeholder if it fails
             try {
               const blurredDataUrl = canvas.toDataURL('image/jpeg', 0.5);
               resolve(blurredDataUrl);
