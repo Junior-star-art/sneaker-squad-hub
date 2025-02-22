@@ -30,26 +30,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        setError(error.message);
-        toast({
-          title: "Authentication Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email!,
-          created_at: session.user.created_at,
-          user_metadata: session.user.user_metadata,
-          full_name: session.user.user_metadata?.full_name,
-        };
-        setUser(userData);
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          throw error;
+        }
+        if (session?.user) {
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email!,
+            created_at: session.user.created_at,
+            user_metadata: session.user.user_metadata,
+            full_name: session.user.user_metadata?.full_name,
+          };
+          setUser(userData);
+        }
+      } catch (error) {
+        if (error instanceof AuthError) {
+          setError(error.message);
+          toast({
+            title: "Authentication Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
+
+    checkSession();
 
     // Listen for changes on auth state (signed in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
@@ -67,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           
           // Handle email verification success
-          if (event === 'EMAIL_CONFIRMED' as AuthChangeEvent) {
+          if (event === 'EMAIL_CONFIRMED') {
             toast({
               title: "Email verified",
               description: "Your email has been successfully verified.",
@@ -91,7 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   const signInWithEmail = async (email: string, password: string) => {
@@ -217,6 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setUser(null);
       toast({
         title: "Signed out",
         description: "You've been successfully signed out.",
@@ -235,18 +249,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const value = {
+    user,
+    loading,
+    error,
+    signOut,
+    signInWithEmail,
+    signUpWithEmail,
+    resetPassword,
+    signInWithGoogle,
+    updatePassword,
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      error, 
-      signOut,
-      signInWithEmail,
-      signUpWithEmail,
-      resetPassword,
-      signInWithGoogle,
-      updatePassword
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
