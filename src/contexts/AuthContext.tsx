@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           
           // Handle email verification success
-          if (event === 'EMAIL_CONFIRMED') {
+          if (event === 'SIGNED_IN' && session.user.email_confirmed_at) {
             toast({
               title: "Email verified",
               description: "Your email has been successfully verified.",
