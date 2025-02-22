@@ -28,6 +28,7 @@ interface Product {
   stock: number;
   images: string[];
   low_stock_threshold: number;
+  slug: string;
 }
 
 export default function ProductManagement() {
@@ -53,6 +54,13 @@ export default function ProductManagement() {
     fetchProducts();
   }, [user, navigate]);
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  };
+
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
@@ -76,16 +84,19 @@ export default function ProductManagement() {
 
   const handleCreateProduct = async () => {
     try {
+      const productData = {
+        name: newProduct.name,
+        description: newProduct.description,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        low_stock_threshold: parseInt(newProduct.low_stock_threshold),
+        images: [],
+        slug: generateSlug(newProduct.name)
+      };
+
       const { data, error } = await supabase
         .from('products')
-        .insert({
-          name: newProduct.name,
-          description: newProduct.description,
-          price: parseFloat(newProduct.price),
-          stock: parseInt(newProduct.stock),
-          low_stock_threshold: parseInt(newProduct.low_stock_threshold),
-          images: []
-        })
+        .insert(productData)
         .select()
         .single();
 
@@ -207,15 +218,18 @@ export default function ProductManagement() {
           return product;
         });
 
+        const productsToInsert = products.map(p => ({
+          name: p.name,
+          description: p.description,
+          price: parseFloat(p.price),
+          stock: parseInt(p.stock),
+          low_stock_threshold: parseInt(p.low_stock_threshold || '5'),
+          slug: generateSlug(p.name)
+        }));
+
         const { error } = await supabase
           .from('products')
-          .insert(products.map(p => ({
-            name: p.name,
-            description: p.description,
-            price: parseFloat(p.price),
-            stock: parseInt(p.stock),
-            low_stock_threshold: parseInt(p.low_stock_threshold || '5'),
-          })));
+          .insert(productsToInsert);
 
         if (error) throw error;
 
