@@ -32,7 +32,7 @@ export function OptimizedImage({
   const [blurDataUrl, setBlurDataUrl] = useState<string | null>(null);
   const [imageSrc, setImageSrc] = useState<string>(src);
 
-  // Default blur placeholder for cross-origin or failed blur generation
+  // Default blur placeholder
   const defaultBlurDataUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==';
 
   useEffect(() => {
@@ -50,7 +50,6 @@ export function OptimizedImage({
 
     if (priority) {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
       img.src = imageSrc;
       img.onload = () => {
         setLoading(false);
@@ -66,49 +65,8 @@ export function OptimizedImage({
 
     // For placeholder generation
     if (placeholder === 'blur') {
-      // For cross-origin images, use default blur
-      if (!src.startsWith('/') && !src.startsWith(window.location.origin)) {
-        setBlurDataUrl(defaultBlurDataUrl);
-        return;
-      }
-
-      // For same-origin images, try to generate blur
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = imageSrc;
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          if (!ctx) {
-            console.warn('Failed to get canvas context');
-            setBlurDataUrl(defaultBlurDataUrl);
-            return;
-          }
-
-          // Set canvas size to small dimensions for blur effect
-          canvas.width = 40;
-          canvas.height = Math.round((40 * img.height) / img.width);
-
-          // Draw and get data URL
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          try {
-            const blurUrl = canvas.toDataURL('image/jpeg', 0.5);
-            setBlurDataUrl(blurUrl);
-          } catch (error) {
-            console.warn('Failed to generate blur from canvas:', error);
-            setBlurDataUrl(defaultBlurDataUrl);
-          }
-        } catch (error) {
-          console.warn('Failed to generate blur:', error);
-          setBlurDataUrl(defaultBlurDataUrl);
-        }
-      };
-      img.onerror = () => {
-        console.warn('Failed to load image for blur');
-        setBlurDataUrl(defaultBlurDataUrl);
-      };
+      // Always use default blur for now to avoid CORS issues
+      setBlurDataUrl(defaultBlurDataUrl);
     }
   }, [src, priority, placeholder, onLoad, onError]);
 
@@ -150,7 +108,10 @@ export function OptimizedImage({
         sizes={sizes}
         loading={priority ? undefined : "lazy"}
         decoding="async"
-        crossOrigin="anonymous"
+        className={cn(
+          "transition-opacity duration-300 object-cover",
+          loading ? "opacity-0" : "opacity-100",
+        )}
         onLoad={() => {
           setLoading(false);
           onLoad?.();
@@ -161,12 +122,9 @@ export function OptimizedImage({
           onError?.();
           console.error(`Failed to load image: ${imageSrc}`);
         }}
-        className={cn(
-          "transition-opacity duration-300 object-cover",
-          loading ? "opacity-0" : "opacity-100",
-        )}
         {...props}
       />
     </div>
   );
 }
+
