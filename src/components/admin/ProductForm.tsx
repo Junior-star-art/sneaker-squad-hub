@@ -20,6 +20,8 @@ import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProductPreview } from "./ProductPreview";
 import { z } from "zod";
+import { ImageUpload } from "@/components/product/ImageUpload";
+import { InventoryLog } from "./InventoryLog";
 
 interface ProductFormProps {
   product?: any;
@@ -59,6 +61,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [bulkUploadModalOpen, setBulkUploadModalOpen] = useState(false);
+  const [images, setImages] = useState<string[]>(product?.images || []);
   const { toast } = useToast();
   
   const { register, handleSubmit, formState: { errors }, watch, setError } = useForm<ProductFormData>({
@@ -128,6 +131,15 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     }
   };
 
+  const generateAndCheckSlug = async (name: string) => {
+    const slug = generateSlug(name);
+    const isUnique = await checkSlugUniqueness(slug);
+    if (!isUnique) {
+      throw new Error("A product with this name already exists");
+    }
+    return slug;
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (productName) {
@@ -151,7 +163,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         description: formData.description,
         stock: formData.stock,
         category_id: formData.category_id,
-        slug: generateSlug(formData.name),
+        slug: await generateAndCheckSlug(formData.name),
       };
 
       const { error } = product
@@ -279,8 +291,14 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     }
   };
 
-  const onSubmit = (data: ProductFormData) => {
-    productMutation.mutate(data);
+  const onSubmit = async (data: ProductFormData) => {
+    const productData = {
+      ...data,
+      images,
+      slug: await generateAndCheckSlug(data.name),
+    };
+
+    productMutation.mutate(productData);
   };
 
   return (
@@ -303,186 +321,138 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="name">
-            Product Name
-            {isCheckingSlug && (
-              <span className="ml-2 text-sm text-muted-foreground">
-                Checking availability...
-              </span>
-            )}
-          </Label>
-          <Input
-            id="name"
-            {...register("name", { 
-              required: "Product name is required",
-              minLength: {
-                value: 3,
-                message: "Product name must be at least 3 characters",
-              },
-            })}
-          />
-          {errors.name && (
-            <p className="text-sm text-destructive">{String(errors.name.message)}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="price">Price</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register("price", { 
-                required: "Price is required",
-                min: {
-                  value: 0,
-                  message: "Price must be greater than 0",
-                },
-              })}
+        <div className="space-y-4">
+          <div>
+            <Label>Product Images</Label>
+            <ImageUpload 
+              images={images}
+              onChange={setImages}
             />
-            {errors.price && (
-              <p className="text-sm text-destructive">{String(errors.price.message)}</p>
-            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="stock">Stock</Label>
+            <Label htmlFor="name">
+              Product Name
+              {isCheckingSlug && (
+                <span className="ml-2 text-sm text-muted-foreground">
+                  Checking availability...
+                </span>
+              )}
+            </Label>
             <Input
-              id="stock"
-              type="number"
-              min="0"
-              {...register("stock", { 
-                required: "Stock is required",
-                min: {
-                  value: 0,
-                  message: "Stock cannot be negative",
+              id="name"
+              {...register("name", { 
+                required: "Product name is required",
+                minLength: {
+                  value: 3,
+                  message: "Product name must be at least 3 characters",
                 },
               })}
             />
-            {errors.stock && (
-              <p className="text-sm text-destructive">{String(errors.stock.message)}</p>
+            {errors.name && (
+              <p className="text-sm text-destructive">{String(errors.name.message)}</p>
             )}
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            value={product?.category_id || ""}
-            onValueChange={(value) =>
-              register("category_id", { value, required: "Category is required" })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories?.map((category: any) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.category_id && (
-            <p className="text-sm text-destructive">
-              {String(errors.category_id.message)}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price">Price</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                {...register("price", { 
+                  required: "Price is required",
+                  min: {
+                    value: 0,
+                    message: "Price must be greater than 0",
+                  },
+                })}
+              />
+              {errors.price && (
+                <p className="text-sm text-destructive">{String(errors.price.message)}</p>
+              )}
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            {...register("description", {
-              required: "Description is required",
-              minLength: {
-                value: 10,
-                message: "Description must be at least 10 characters",
-              },
-            })}
-            rows={4}
-          />
-          {errors.description && (
-            <p className="text-sm text-destructive">
-              {String(errors.description.message)}
-            </p>
-          )}
-        </div>
-
-        {product && (
-          <div className="space-y-2">
-            <Label>Images</Label>
-            <div className="grid grid-cols-4 gap-4">
-              {product.images?.map((image: string, index: number) => (
-                <div key={index} className="relative">
-                  <OptimizedImage
-                    src={image}
-                    alt={`Product image ${index + 1}`}
-                    className="w-full aspect-square object-cover rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={async () => {
-                      try {
-                        const newImages = [...product.images];
-                        newImages.splice(index, 1);
-                        const { error } = await supabase
-                          .from("products")
-                          .update({ images: newImages })
-                          .eq("id", product.id);
-                        if (error) throw error;
-                        onSuccess?.();
-                      } catch (error: any) {
-                        toast({
-                          title: "Error",
-                          description: error.message,
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <div className="flex items-center justify-center border-2 border-dashed rounded-lg p-4">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  id="image-upload"
-                  onChange={handleImageUpload}
-                  disabled={uploading}
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="cursor-pointer text-center"
-                >
-                  {uploading ? (
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                  ) : (
-                    <>
-                      <Upload className="h-8 w-8 mx-auto mb-2" />
-                      <span className="text-sm text-muted-foreground">
-                        Upload Images
-                      </span>
-                    </>
-                  )}
-                </label>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                {...register("stock", { 
+                  required: "Stock is required",
+                  min: {
+                    value: 0,
+                    message: "Stock cannot be negative",
+                  },
+                })}
+              />
+              {errors.stock && (
+                <p className="text-sm text-destructive">{String(errors.stock.message)}</p>
+              )}
             </div>
           </div>
-        )}
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              value={product?.category_id || ""}
+              onValueChange={(value) =>
+                register("category_id", { value, required: "Category is required" })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories?.map((category: any) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.category_id && (
+              <p className="text-sm text-destructive">
+                {String(errors.category_id.message)}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              {...register("description", {
+                required: "Description is required",
+                minLength: {
+                  value: 10,
+                  message: "Description must be at least 10 characters",
+                },
+              })}
+              rows={4}
+            />
+            {errors.description && (
+              <p className="text-sm text-destructive">
+                {String(errors.description.message)}
+              </p>
+            )}
+          </div>
+        </div>
       </form>
+
+      {product && (
+        <div className="pt-6 border-t">
+          <h3 className="text-lg font-semibold mb-4">Inventory Management</h3>
+          <InventoryLog
+            productId={product.id}
+            currentStock={product.stock}
+            onSuccess={onSuccess}
+          />
+        </div>
+      )}
 
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="sm:max-w-[425px]">
