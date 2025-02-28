@@ -32,7 +32,7 @@ export function OptimizedImage({
   const [blurDataUrl, setBlurDataUrl] = useState<string | null>(null);
   const [imageSrc, setImageSrc] = useState<string>(src);
 
-  // Default blur placeholder
+  // Default blur placeholder - using a static SVG to avoid canvas security issues
   const defaultBlurDataUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg==';
 
   useEffect(() => {
@@ -51,6 +51,8 @@ export function OptimizedImage({
     if (priority) {
       const img = new Image();
       img.src = imageSrc;
+      // Add crossOrigin attribute to prevent tainted canvas issues
+      img.crossOrigin = "anonymous"; 
       img.onload = () => {
         setLoading(false);
         onLoad?.();
@@ -63,9 +65,9 @@ export function OptimizedImage({
       };
     }
 
-    // For placeholder generation
+    // For placeholder generation - always use default blur
     if (placeholder === 'blur') {
-      // Always use default blur for now to avoid CORS issues
+      // Always use default blur to avoid CORS issues
       setBlurDataUrl(defaultBlurDataUrl);
     }
   }, [src, priority, placeholder, onLoad, onError]);
@@ -108,6 +110,7 @@ export function OptimizedImage({
         sizes={sizes}
         loading={priority ? undefined : "lazy"}
         decoding="async"
+        crossOrigin="anonymous" // Add crossOrigin attribute to prevent tainted canvas issues
         className={cn(
           "transition-opacity duration-300 object-cover",
           loading ? "opacity-0" : "opacity-100",
@@ -127,4 +130,3 @@ export function OptimizedImage({
     </div>
   );
 }
-
