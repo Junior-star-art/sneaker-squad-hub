@@ -15,8 +15,12 @@ interface PayFastData {
 export const createPayFastForm = (data: PayFastData) => {
   const form = document.createElement('form');
   form.method = 'POST';
-  // Use the live URL in production
-  form.action = 'https://www.payfast.co.za/eng/process';
+  
+  // Determine if we're in production or development
+  const isProd = import.meta.env.PROD;
+  form.action = isProd 
+    ? 'https://www.payfast.co.za/eng/process' 
+    : 'https://sandbox.payfast.co.za/eng/process';
 
   Object.entries(data).forEach(([key, value]) => {
     const input = document.createElement('input');

@@ -25,3 +25,7 @@ file_size_limit = 50000000
 
 [auth]
 enable_signup = true
+
+[functions]
+[functions.payfast-webhook]
+verify_jwt = false
