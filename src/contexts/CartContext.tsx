@@ -44,6 +44,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     loadCartData();
   }, [user, toast]);
 
+  // Try to recover cart from cancelled payment
+  useEffect(() => {
+    const recoveredCartItems = sessionStorage.getItem('recovered_cart_items');
+    if (recoveredCartItems) {
+      try {
+        const parsedItems = JSON.parse(recoveredCartItems);
+        setItems(prev => [...prev, ...parsedItems]);
+        sessionStorage.removeItem('recovered_cart_items');
+        
+        toast({
+          title: "Cart Restored",
+          description: "We've restored your previous cart items.",
+        });
+      } catch (e) {
+        console.error('Error parsing recovered cart items:', e);
+      }
+    }
+  }, [toast]);
+
   // Sync cart data with backend whenever it changes
   useEffect(() => {
     if (user) {
@@ -144,6 +163,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       description: "Item has been removed from your saved list",
     });
   };
+  
+  const clearCart = () => {
+    setItems([]);
+  };
 
   return (
     <CartContext.Provider
@@ -156,6 +179,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         saveForLater,
         moveToCart,
         removeSavedItem,
+        clearCart,
         total: calculateTotal(items),
       }}
     >

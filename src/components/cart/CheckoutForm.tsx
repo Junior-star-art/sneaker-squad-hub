@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +13,7 @@ import { PaymentMethodIcons } from "@/components/cart/PaymentMethodIcons";
 import { SecurityInfo } from "@/components/cart/SecurityInfo";
 import { DiscountCodeInput } from "@/components/cart/DiscountCodeInput";
 import { LaybyPlanForm } from "@/components/cart/LaybyPlanForm";
+import { useNavigate } from "react-router-dom";
 
 interface ShippingMethod {
   id: string;
@@ -26,7 +28,7 @@ interface CheckoutFormProps {
 }
 
 export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
-  const { items, total: subtotal } = useCart();
+  const { items, total: subtotal, clearCart } = useCart();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
   } | null>(null);
   const [isLayby, setIsLayby] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Fetch shipping methods
   const { data: shippingMethods } = useQuery({
@@ -57,14 +60,54 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
     try {
       setIsLoading(true);
       
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to complete your purchase.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Get user details for shipping information
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+      }
+      
+      // Get user's default shipping address
+      const { data: userAddresses, error: addressError } = await supabase
+        .from('user_addresses')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
+        .single();
+      
+      if (addressError && addressError.code !== 'PGRST116') {
+        console.error('Error fetching user address:', addressError);
+      }
+      
       // Create order in database
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          user_id: user?.id,
+          user_id: user.id,
           status: 'pending',
           total_amount: calculateTotal(),
           shipping_method_id: selectedShippingMethod,
+          shipping_address: userAddresses ? {
+            address_line1: userAddresses.address_line1,
+            address_line2: userAddresses.address_line2,
+            city: userAddresses.city,
+            state: userAddresses.state,
+            postal_code: userAddresses.postal_code,
+            country: userAddresses.country,
+          } : null,
         })
         .select()
         .single();
@@ -78,7 +121,7 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
         order_id: order.id,
         product_id: item.id,
         quantity: item.quantity,
-        price_at_time: parseFloat(item.price.toString()),
+        price_at_time: parseFloat(item.price.toString().replace('$', '')),
         size: item.size
       }));
 
@@ -89,16 +132,48 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
       if (itemsError) {
         throw new Error('Failed to create order items');
       }
+      
+      // Create initial tracking entry
+      const { error: trackingError } = await supabase
+        .from('order_tracking')
+        .insert({
+          order_id: order.id,
+          status: 'order_created',
+          description: 'Order has been created and is awaiting payment',
+        });
+      
+      if (trackingError) {
+        console.error('Error creating tracking entry:', trackingError);
+      }
+      
+      // Apply discount code if used
+      if (appliedDiscount) {
+        const { error: discountError } = await supabase
+          .from('discount_codes')
+          .insert({
+            promotion_id: appliedDiscount.code,
+            user_id: user.id,
+            used_at: new Date().toISOString(),
+          });
+        
+        if (discountError) {
+          console.error('Error recording discount usage:', discountError);
+        }
+      }
 
       // Initiate payment
       const paymentResult = initiatePayFastPayment({
         orderId: order.id,
         amount: calculateTotal(),
-        customerName: user?.user_metadata?.full_name || '',
+        customerName: user?.user_metadata?.full_name || userProfile?.full_name || '',
         customerEmail: user?.email || '',
         itemName: `Order #${order.id.slice(0, 8)}`,
       });
-
+      
+      // Clear the cart after successful order creation
+      clearCart();
+      
+      // Redirect to payment page
       window.location.href = paymentResult.url;
     } catch (error) {
       console.error('Error:', error);
@@ -132,7 +207,7 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
         .from('orders')
         .insert({
           user_id: user?.id,
-          status: 'pending',
+          status: 'layby_active',
           total_amount: calculateTotal(),
           shipping_method_id: selectedShippingMethod,
         })
@@ -158,7 +233,7 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
         order_id: order.id,
         product_id: item.id,
         quantity: item.quantity,
-        price_at_time: parseFloat(item.price.toString()),
+        price_at_time: parseFloat(item.price.toString().replace('$', '')),
         size: item.size
       }));
 
@@ -169,14 +244,30 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
       if (itemsError) {
         throw new Error('Failed to create order items');
       }
+      
+      // Create tracking entry for layby order
+      const { error: trackingError } = await supabase
+        .from('order_tracking')
+        .insert({
+          order_id: order.id,
+          status: 'layby_created',
+          description: 'Layby plan has been created',
+        });
+      
+      if (trackingError) {
+        console.error('Error creating tracking entry:', trackingError);
+      }
 
       toast({
         title: "Success",
         description: "Your layby plan has been created and your order has been placed.",
       });
+      
+      // Clear the cart after successful order creation
+      clearCart();
 
       // Redirect to order confirmation
-      window.location.href = `/orders/${order.id}`;
+      navigate(`/orders/${order.id}`);
     } catch (error) {
       console.error('Error:', error);
       toast({

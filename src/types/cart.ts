@@ -1,14 +1,14 @@
 
-export type CartItem = {
+export interface CartItem {
   id: string;
   name: string;
-  price: number;
+  price: string | number;
   image: string;
   quantity: number;
   size?: string;
-};
+}
 
-export type CartContextType = {
+export interface CartContextType {
   items: CartItem[];
   savedItems: CartItem[];
   addItem: (product: Omit<CartItem, "quantity">) => void;
@@ -17,17 +17,6 @@ export type CartContextType = {
   saveForLater: (id: string) => Promise<void>;
   moveToCart: (id: string) => Promise<void>;
   removeSavedItem: (id: string) => Promise<void>;
+  clearCart: () => void;
   total: string;
-};
-
-export type SavedCartItemResponse = {
-  product_id: string;
-  size: string | null;
-  quantity: number;
-  products: {
-    id: string;
-    name: string;
-    price: number;
-    images: string[];
-  };
-};
+}

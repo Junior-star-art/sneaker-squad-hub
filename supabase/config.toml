@@ -1,10 +1,14 @@
+
 project_id = "sllihrbacnavuodegwxd"
-
-[functions.create-checkout]
-verify_jwt = true
-
-[functions.order-notification]
-verify_jwt = true
-
-[functions.order-status-notification]
-verify_jwt = true
+[api]
+enabled = true
+[db]
+enabled = true
+[realtime]
+enabled = true
+[storage]
+enabled = true
+[edge_functions]
+enabled = true
+[edge_functions.functions.payfast-webhook]
+verify_jwt = false
