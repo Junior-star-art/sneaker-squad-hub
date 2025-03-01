@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -151,6 +150,7 @@ export const CheckoutForm = ({ onBack }: CheckoutFormProps) => {
         const { error: discountError } = await supabase
           .from('discount_codes')
           .insert({
+            code: appliedDiscount.code,
             promotion_id: appliedDiscount.code,
             user_id: user.id,
             used_at: new Date().toISOString(),

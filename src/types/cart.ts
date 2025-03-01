@@ -20,3 +20,15 @@ export interface CartContextType {
   clearCart: () => void;
   total: string;
 }
+
+export interface SavedCartItemResponse {
+  product_id: string;
+  size?: string;
+  quantity: number;
+  products: {
+    id: string;
+    name: string;
+    price: number | string;
+    images: string[];
+  }
+}

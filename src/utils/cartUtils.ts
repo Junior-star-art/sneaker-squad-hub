@@ -79,6 +79,13 @@ export const syncCartWithSupabase = async (userId: string, items: CartItem[]) =>
 
 export const calculateTotal = (items: CartItem[]) => {
   return items
-    .reduce((sum, item) => sum + item.price * item.quantity, 0)
+    .reduce((sum, item) => {
+      // Ensure price is treated as a number
+      const price = typeof item.price === 'string' 
+        ? parseFloat(item.price.replace(/[^0-9.-]+/g, '')) 
+        : item.price;
+      
+      return sum + (price * item.quantity);
+    }, 0)
     .toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
