@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -15,6 +16,7 @@ import CartItem from "./cart/CartItem";
 import { CheckoutForm } from "./cart/CheckoutForm";
 import { ShoppingBag, PackageOpen, ShoppingBasket } from "lucide-react";
 import { CartAuthDialog } from "./cart/CartAuthDialog";
+import { CartItem as CartItemType } from "@/types/cart";
 
 type CartDrawerProps = {
   open: boolean;
@@ -86,7 +88,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                           {items.map((item) => (
                             <CartItem
                               key={item.id}
-                              item={item}
+                              item={item as CartItemType}
                               onUpdateQuantity={updateQuantity}
                               onRemove={removeItem}
                               onSave={saveForLater}
@@ -106,7 +108,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                           {savedItems.map((item) => (
                             <CartItem
                               key={item.id}
-                              item={item}
+                              item={item as CartItemType}
                               isSaved
                               onRemove={removeSavedItem}
                               onUpdateQuantity={updateQuantity}
