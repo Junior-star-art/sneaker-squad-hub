@@ -7,14 +7,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Supabase client for database operations
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// PayFast merchant credentials (retrieved from environment variables)
 const PAYFAST_MERCHANT_ID = Deno.env.get('PAYFAST_MERCHANT_ID') ?? '';
 const PAYFAST_MERCHANT_KEY = Deno.env.get('PAYFAST_MERCHANT_KEY') ?? '';
 
-// Calculate PayFast signature
+// Helper function to calculate PayFast signature
 function calculateSignature(data: Record<string, string>, passPhrase = ''): string {
   // Remove signature if it exists
   const { signature, ...dataWithoutSignature } = data;
@@ -36,6 +38,8 @@ function calculateSignature(data: Record<string, string>, passPhrase = ''): stri
 }
 
 serve(async (req) => {
+  console.log("PayFast webhook received");
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -44,6 +48,7 @@ serve(async (req) => {
   try {
     // Only accept POST requests
     if (req.method !== 'POST') {
+      console.error("Method not allowed:", req.method);
       return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
         status: 405, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -62,7 +67,7 @@ serve(async (req) => {
     // Verify the request comes from PayFast
     // 1. Check if the merchant ID is correct
     if (data.merchant_id !== PAYFAST_MERCHANT_ID) {
-      console.error('Invalid merchant ID');
+      console.error('Invalid merchant ID:', data.merchant_id, 'Expected:', PAYFAST_MERCHANT_ID);
       return new Response(JSON.stringify({ error: 'Invalid merchant ID' }), { 
         status: 403, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -111,6 +116,8 @@ serve(async (req) => {
         orderStatus = 'pending';
     }
     
+    console.log(`Updating order ${orderId} status to ${orderStatus}`);
+    
     // Update order status in database
     const { data: updateData, error: updateError } = await supabase
       .from('orders')
@@ -142,6 +149,8 @@ serve(async (req) => {
       
       if (trackingError) {
         console.error('Error creating tracking entry:', trackingError);
+      } else {
+        console.log('Created tracking entry for order:', orderId);
       }
     }
     
