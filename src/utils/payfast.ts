@@ -22,6 +22,7 @@ export const createPayFastForm = (data: PayFastData) => {
     ? 'https://www.payfast.co.za/eng/process' 
     : 'https://sandbox.payfast.co.za/eng/process';
 
+  // Add a hidden input for each data field
   Object.entries(data).forEach(([key, value]) => {
     const input = document.createElement('input');
     input.type = 'hidden';
@@ -46,12 +47,21 @@ interface PayFastResponse {
 }
 
 export const initiatePayFastPayment = (orderData: PayFastPaymentParams): PayFastResponse => {
+  // Get environment variables
+  const merchantId = import.meta.env.VITE_PAYFAST_MERCHANT_ID || '';
+  const merchantKey = import.meta.env.VITE_PAYFAST_MERCHANT_KEY || '';
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  
+  if (!merchantId || !merchantKey) {
+    console.error('PayFast merchant credentials not found in environment variables');
+  }
+  
   const paymentData: PayFastData = {
-    merchant_id: import.meta.env.VITE_PAYFAST_MERCHANT_ID || '',
-    merchant_key: import.meta.env.VITE_PAYFAST_MERCHANT_KEY || '',
+    merchant_id: merchantId,
+    merchant_key: merchantKey,
     return_url: `${window.location.origin}/order-success?order_id=${orderData.orderId}`,
     cancel_url: `${window.location.origin}/payment-cancelled?order_id=${orderData.orderId}`,
-    notify_url: `${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/payfast-webhook`,
+    notify_url: `${supabaseUrl}/functions/v1/payfast-webhook`,
     name_first: orderData.customerName,
     email_address: orderData.customerEmail,
     amount: orderData.amount.toFixed(2),
