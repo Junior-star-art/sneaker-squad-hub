@@ -1,5 +1,4 @@
-
-import * as React from 'react';
+import React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/database';
@@ -29,7 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check active sessions and sets the user
     const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -62,7 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkSession();
 
-    // Listen for changes on auth state (signed in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       setLoading(true);
       try {
@@ -77,7 +74,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(userData);
           setError(null);
           
-          // Handle email verification success
           if (event === 'SIGNED_IN' && session.user.email_confirmed_at) {
             toast({
               title: "Email verified",
