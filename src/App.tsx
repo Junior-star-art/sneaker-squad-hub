@@ -20,6 +20,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import OrderSuccess from "./pages/OrderSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import { ProductManagement } from "./components/admin/ProductManagement";
+import { AdminNav } from "./components/admin/AdminNav";
 import Index from "./pages/Index";
 
 // Placeholder components for missing imports
@@ -63,7 +64,12 @@ function App() {
                         <Route path="/orders/:id" element={<OrderDetails />} />
                         <Route path="/order-success" element={<OrderSuccess />} />
                         <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                        <Route path="/admin/products" element={<ProductManagement />} />
+                        <Route path="/admin/products" element={
+                          <>
+                            <AdminNav />
+                            <ProductManagement />
+                          </>
+                        } />
                       </Routes>
                     </div>
                     <Footer />

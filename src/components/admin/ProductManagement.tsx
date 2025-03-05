@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -29,14 +28,22 @@ interface Product {
 }
 
 export function ProductManagement() {
+  console.log("ProductManagement component rendering");
+  
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: products, isLoading } = useQuery({
+  useEffect(() => {
+    console.log("ProductManagement component mounted");
+    return () => console.log("ProductManagement component unmounted");
+  }, []);
+
+  const { data: products, isLoading, error } = useQuery({
     queryKey: ["products", search],
     queryFn: async () => {
+      console.log("Fetching products with search:", search);
       let query = supabase
         .from("products")
         .select("*")
@@ -47,10 +54,20 @@ export function ProductManagement() {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+      console.log("Products fetched:", data?.length || 0);
       return data as Product[];
     },
   });
+
+  useEffect(() => {
+    if (error) {
+      console.error("Query error:", error);
+    }
+  }, [error]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
