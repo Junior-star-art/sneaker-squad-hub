@@ -19,9 +19,10 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 import OrderSuccess from "./pages/OrderSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
+import { ProductManagement } from "./components/admin/ProductManagement";
+import Index from "./pages/Index";
 
 // Placeholder components for missing imports
-const Index = () => <div>Home Page</div>;
 const ProductDetail = () => <div>Product Detail Page</div>;
 const Wishlist = () => <div>Wishlist Page</div>;
 const Blog = () => <div>Blog Page</div>;
@@ -30,7 +31,6 @@ const PrivacyPolicy = () => <div>Privacy Policy Page</div>;
 const Sustainability = () => <div>Sustainability Page</div>;
 const OrderHistory = () => <div>Order History Page</div>;
 const OrderDetails = () => <div>Order Details Page</div>;
-const ProductManagement = () => <div>Product Management Page</div>;
 
 function App() {
   const queryClient = new QueryClient();
