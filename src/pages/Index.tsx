@@ -1,15 +1,33 @@
 
 import React from "react";
+import Hero from "@/components/Hero";
+import ProductGrid from "@/components/ProductGrid";
+import LatestAndGreatest from "@/components/sections/LatestAndGreatest";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
+
   return (
-    <div className="container mx-auto py-8">
-      <AdminNav />
-      <div className="text-center mt-8">
-        <h1 className="text-3xl font-bold">Welcome to the Store</h1>
-        <p className="mt-4">This is the home page of your e-commerce application.</p>
-      </div>
+    <div className="min-h-screen">
+      {/* Admin Navigation - only show for authenticated users */}
+      {user && (
+        <div className="bg-gray-50 border-b">
+          <div className="container mx-auto px-4">
+            <AdminNav />
+          </div>
+        </div>
+      )}
+      
+      {/* Hero Section */}
+      <Hero />
+      
+      {/* Latest Products Section */}
+      <LatestAndGreatest />
+      
+      {/* Main Product Grid */}
+      <ProductGrid />
     </div>
   );
 };

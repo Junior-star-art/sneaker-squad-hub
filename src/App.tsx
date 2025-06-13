@@ -5,7 +5,6 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -34,7 +33,6 @@ const OrderHistory = () => <div>Order History Page</div>;
 const OrderDetails = () => <div>Order Details Page</div>;
 
 function App() {
-  const queryClient = new QueryClient();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const handleCartClick = () => {
@@ -42,48 +40,46 @@ function App() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <RecentlyViewedProvider>
-              <ErrorBoundary>
-                <Router>
-                  <div className="min-h-screen flex flex-col">
-                    <Navbar onCartClick={handleCartClick} />
-                    <div className="flex-1">
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/products/:slug" element={<ProductDetail />} />
-                        <Route path="/wishlist" element={<Wishlist />} />
-                        <Route path="/blog" element={<Blog />} />
-                        <Route path="/terms" element={<Terms />} />
-                        <Route path="/privacy" element={<PrivacyPolicy />} />
-                        <Route path="/sustainability" element={<Sustainability />} />
-                        <Route path="/orders" element={<OrderHistory />} />
-                        <Route path="/orders/:id" element={<OrderDetails />} />
-                        <Route path="/order-success" element={<OrderSuccess />} />
-                        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                        <Route path="/admin/products" element={
-                          <>
-                            <AdminNav />
-                            <ProductManagement />
-                          </>
-                        } />
-                      </Routes>
-                    </div>
-                    <Footer />
-                    <CookieConsent />
-                    <Toaster />
-                    <BackToTop />
+    <AuthProvider>
+      <CartProvider>
+        <WishlistProvider>
+          <RecentlyViewedProvider>
+            <ErrorBoundary>
+              <Router>
+                <div className="min-h-screen flex flex-col">
+                  <Navbar onCartClick={handleCartClick} />
+                  <div className="flex-1">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/products/:slug" element={<ProductDetail />} />
+                      <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/sustainability" element={<Sustainability />} />
+                      <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/orders/:id" element={<OrderDetails />} />
+                      <Route path="/order-success" element={<OrderSuccess />} />
+                      <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+                      <Route path="/admin/products" element={
+                        <>
+                          <AdminNav />
+                          <ProductManagement />
+                        </>
+                      } />
+                    </Routes>
                   </div>
-                </Router>
-              </ErrorBoundary>
-            </RecentlyViewedProvider>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+                  <Footer />
+                  <CookieConsent />
+                  <Toaster />
+                  <BackToTop />
+                </div>
+              </Router>
+            </ErrorBoundary>
+          </RecentlyViewedProvider>
+        </WishlistProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 
