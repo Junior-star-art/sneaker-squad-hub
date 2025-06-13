@@ -7,6 +7,7 @@ import { AuthError, AuthChangeEvent } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
+  userRole: string | null;
   loading: boolean;
   error: string | null;
   signOut: () => Promise<void>;
@@ -15,16 +16,98 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
+  isAdmin: () => boolean;
+  isModerator: () => boolean;
+  hasRole: (role: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Security event logging
+const logSecurityEvent = async (action: string, details?: Record<string, any>) => {
+  try {
+    await fetch('/functions/v1/security-audit-log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+      },
+      body: JSON.stringify({
+        action,
+        resource_type: 'auth',
+        details
+      })
+    });
+  } catch (error) {
+    console.error('Failed to log security event:', error);
+  }
+};
+
+// Input sanitization
+const sanitizeInput = (input: string): string => {
+  return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+              .replace(/javascript:/gi, '')
+              .replace(/on\w+\s*=/gi, '');
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Session timeout (30 minutes of inactivity)
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const resetTimeout = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        signOut();
+        toast({
+          title: "Session Expired",
+          description: "Your session has expired for security reasons. Please sign in again.",
+          variant: "destructive",
+        });
+      }, 30 * 60 * 1000); // 30 minutes
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      document.addEventListener(event, resetTimeout, { passive: true });
+    });
+
+    resetTimeout(); // Start initial timeout
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimeout);
+      });
+    };
+  }, [user]);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+      
+      return data?.role || 'user';
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return 'user';
+    }
+  };
 
   useEffect(() => {
     const checkSession = async () => {
@@ -42,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             full_name: session.user.user_metadata?.full_name,
           };
           setUser(userData);
+          setUserRole(await fetchUserRole(session.user.id));
         }
       } catch (error) {
         if (error instanceof AuthError) {
@@ -71,6 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             full_name: session.user.user_metadata?.full_name,
           };
           setUser(userData);
+          setUserRole(await fetchUserRole(session.user.id));
           setError(null);
           
           if (event === 'SIGNED_IN' && session.user.email_confirmed_at) {
@@ -82,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else {
           setUser(null);
+          setUserRole(null);
         }
       } catch (error) {
         if (error instanceof AuthError) {
@@ -105,8 +191,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithEmail = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      setError(null);
+      
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(email.trim().toLowerCase());
+      const cleanPassword = password; // Don't sanitize password as it may contain special chars
+      
+      // Basic validation
+      if (!sanitizedEmail || !cleanPassword) {
+        throw new Error('Email and password are required');
+      }
+      
+      if (!/\S+@\S+\.\S+/.test(sanitizedEmail)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email: sanitizedEmail, 
+        password: cleanPassword 
+      });
+      
+      if (error) {
+        await logSecurityEvent('failed_login', { email: sanitizedEmail, error: error.message });
+        throw error;
+      }
+      
+      await logSecurityEvent('successful_login', { email: sanitizedEmail });
       navigate('/');
     } catch (error: any) {
       setError(error.message);
@@ -124,15 +234,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUpWithEmail = async (email: string, password: string, fullName: string) => {
     try {
       setLoading(true);
+      setError(null);
+      
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(email.trim().toLowerCase());
+      const sanitizedFullName = sanitizeInput(fullName.trim());
+      
+      // Validation
+      if (!sanitizedEmail || !password || !sanitizedFullName) {
+        throw new Error('All fields are required');
+      }
+      
+      if (!/\S+@\S+\.\S+/.test(sanitizedEmail)) {
+        throw new Error('Please enter a valid email address');
+      }
+      
+      if (password.length < 8) {
+        throw new Error('Password must be at least 8 characters long');
+      }
+      
+      if (sanitizedFullName.length < 2) {
+        throw new Error('Full name must be at least 2 characters long');
+      }
+
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: sanitizedEmail,
+        password: password,
         options: {
-          data: { full_name: fullName },
+          data: { full_name: sanitizedFullName },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        await logSecurityEvent('failed_signup', { email: sanitizedEmail, error: error.message });
+        throw error;
+      }
+      
+      await logSecurityEvent('successful_signup', { email: sanitizedEmail });
       toast({
         title: "Sign up successful",
         description: "Please check your email to verify your account.",
@@ -223,9 +362,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       setLoading(true);
+      await logSecurityEvent('logout');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setUser(null);
+      setUserRole(null);
       toast({
         title: "Signed out",
         description: "You've been successfully signed out.",
@@ -246,6 +387,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
+    userRole,
     loading,
     error,
     signOut,
@@ -254,6 +396,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     signInWithGoogle,
     updatePassword,
+    isAdmin,
+    isModerator,
+    hasRole,
   };
 
   return (

@@ -15,6 +15,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
 import { RecentlyViewedProvider } from "./contexts/RecentlyViewedContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { AdminProtected } from "./components/auth/AdminProtected";
 
 import OrderSuccess from "./pages/OrderSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
@@ -62,10 +63,10 @@ function App() {
                       <Route path="/order-success" element={<OrderSuccess />} />
                       <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                       <Route path="/admin/products" element={
-                        <>
+                        <AdminProtected>
                           <AdminNav />
                           <ProductManagement />
-                        </>
+                        </AdminProtected>
                       } />
                     </Routes>
                   </div>
