@@ -91,23 +91,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching user role:', error);
-        return null;
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) return 'user';
+
+      const response = await fetch('/functions/v1/get-user-role', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.data.session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        return 'user';
       }
-      
-      return data?.role || 'user';
+
+      const data = await response.json();
+      return data.role || 'user';
     } catch (error) {
       console.error('Error fetching user role:', error);
       return 'user';
     }
   };
+
+  // Role check functions
+  const isAdmin = () => userRole === 'admin';
+  const isModerator = () => userRole === 'moderator';
+  const hasRole = (role: string) => userRole === role;
 
   useEffect(() => {
     const checkSession = async () => {
