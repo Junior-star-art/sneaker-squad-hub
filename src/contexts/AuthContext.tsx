@@ -26,18 +26,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Security event logging
 const logSecurityEvent = async (action: string, details?: Record<string, any>) => {
   try {
-    await fetch('/functions/v1/security-audit-log', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('security-audit-log', {
+      body: {
         action,
         resource_type: 'auth',
         details
-      })
+      }
     });
+    if (error) {
+      console.error('Failed to log security event:', error);
+    }
   } catch (error) {
     console.error('Failed to log security event:', error);
   }
@@ -91,22 +89,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserRole = async (userId: string) => {
     try {
-      const session = await supabase.auth.getSession();
-      if (!session.data.session) return 'user';
-
-      const response = await fetch('/functions/v1/get-user-role', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.data.session.access_token}`,
-        },
+      const { data, error } = await supabase.functions.invoke('get-user-role', {
+        body: { user_id: userId }
       });
 
-      if (!response.ok) {
+      if (error) {
+        console.error('Error fetching user role:', error);
         return 'user';
       }
 
-      const data = await response.json();
-      return data.role || 'user';
+      return data?.role || 'user';
     } catch (error) {
       console.error('Error fetching user role:', error);
       return 'user';
